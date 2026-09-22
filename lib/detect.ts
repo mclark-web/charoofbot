@@ -1,3 +1,4 @@
+import { ageOfPoster, resolveAge, summarizeAges, type ResolvedAge } from "./age";
 import { sha256 } from "./hash";
 import {
   fourGrams,
@@ -221,6 +222,10 @@ export function analyzeCorpus(corpus: Corpus): Report {
   }
 
   const featureById = new Map(features.map((feature) => [feature.post.id, feature]));
+  const accountDirectory = new Map(corpus.accounts.map((account) => [account.handle, account]));
+  const ageById = new Map(
+    features.map((feature) => [feature.post.id, ageOfPoster(feature.post, accountDirectory)]),
+  );
 
   const posts: AnnotatedPost[] = features.map((feature) => {
     const role = roleOf.get(feature.post.id) ?? "solo";
@@ -253,6 +258,11 @@ export function analyzeCorpus(corpus: Corpus): Report {
       role !== "originator" &&
       !sourceAccounts.has(feature.post.account) &&
       (engage || sloganReuse);
+    const age = ageById.get(feature.post.id) ?? {
+      accountCreatedAt: null,
+      ageDays: null,
+      ageBand: "unknown" as const,
+    };
 
     return {
       id: feature.post.id,
@@ -278,11 +288,13 @@ export function analyzeCorpus(corpus: Corpus): Report {
       framePhrases: feature.framePhrases,
       isNarrativeOriginatorPost,
       isBoost,
+      accountCreatedAt: age.accountCreatedAt,
+      ageDays: age.ageDays,
+      ageBand: age.ageBand,
     };
   });
 
   const postById = new Map(posts.map((post) => [post.id, post]));
-  const accountDirectory = new Map(corpus.accounts.map((account) => [account.handle, account]));
 
   const clusters: CloneCluster[] = [...members.entries()]
     .map(([id, group]) => buildCluster(id, group, postById, accountDirectory))
@@ -310,7 +322,27 @@ export function analyzeCorpus(corpus: Corpus): Report {
       amplifierAccountCount: accounts.filter(
         (account) => account.label === "Amplifier" || account.label === "Clone+Amp",
       ).length,
+      freshPostCount: posts.filter((post) => post.ageBand === "fresh").length,
+      underYearPostCount: posts.filter(
+        (post) => post.ageBand === "fresh" || post.ageBand === "young",
+      ).length,
+      newAccountNarrativeCount: narratives.filter((narrative) => narrative.age.newAccountsDominate)
+        .length,
     },
+  };
+}
+
+function ageFromPosts(posts: AnnotatedPost[]): ResolvedAge {
+  let best: AnnotatedPost | null = null;
+  for (const post of posts) {
+    if (post.ageDays === null) continue;
+    if (!best || (best.ageDays ?? -1) < post.ageDays) best = post;
+  }
+  if (!best) return { accountCreatedAt: null, ageDays: null, ageBand: "unknown" };
+  return {
+    accountCreatedAt: best.accountCreatedAt,
+    ageDays: best.ageDays,
+    ageBand: best.ageBand,
   };
 }
 
@@ -367,6 +399,7 @@ function buildCluster(
     accounts,
     mutualFollows,
     oneWayFollows,
+    age: summarizeAges(annotated.map((post) => post.ageBand)),
   };
 }
 
@@ -385,6 +418,9 @@ function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): Acc
     const owned = byHandle.get(handle) ?? [];
     if (owned.length === 0) continue;
     const meta = known.get(handle) ?? blankAccount(handle);
+    const age = known.has(handle)
+      ? resolveAge({ accountCreatedAt: meta.accountCreatedAt, joined: meta.joined })
+      : ageFromPosts(owned);
     const clonePosts = owned.filter(
       (post) => post.role === "exact" || post.role === "near" || post.role === "template",
     );
@@ -468,6 +504,9 @@ function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): Acc
       narrativeIds,
       clusterIds,
       passesAmpGate,
+      accountCreatedAt: age.accountCreatedAt,
+      ageDays: age.ageDays,
+      ageBand: age.ageBand,
     });
   }
 
@@ -492,6 +531,8 @@ function gradeNarratives(
       let otherPosts = 0;
       const cloneAccounts = new Set<string>();
       const ampAccounts = new Set<string>();
+      let freshBoostPosts = 0;
+      let underYearBoostPosts = 0;
       for (const post of related) {
         const account = accounts.find((item) => item.handle === post.account);
         if (post.isNarrativeOriginatorPost || post.role === "originator") originPosts += 1;
@@ -505,6 +546,9 @@ function gradeNarratives(
         if (account && (account.label === "Amplifier" || account.label === "Clone+Amp")) {
           ampAccounts.add(post.account);
         }
+        const underYear = post.ageBand === "fresh" || post.ageBand === "young";
+        if (post.isBoost && post.ageBand === "fresh") freshBoostPosts += 1;
+        if (post.isBoost && underYear) underYearBoostPosts += 1;
       }
       const origin = related.find((post) => post.isNarrativeOriginatorPost);
       return {
@@ -523,6 +567,9 @@ function gradeNarratives(
         firstSeen: origin?.postedAt ?? null,
         cloneAccountCount: cloneAccounts.size,
         ampAccountCount: ampAccounts.size,
+        age: summarizeAges(related.map((post) => post.ageBand)),
+        freshBoostPosts,
+        underYearBoostPosts,
       };
     })
     .sort((a, b) => b.postCount - a.postCount || a.title.localeCompare(b.title));

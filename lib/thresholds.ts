@@ -28,6 +28,18 @@ export const THRESHOLDS = {
   ampVolumePostsForFull: 6,
   /** Boost-days at which the persistence term saturates. */
   persistenceDaysForFull: 3,
+  /** Account age under this many days is fresh (the stricter new-account band). */
+  freshAccountDays: 30,
+  /** Account age under this many days is still new. Fresh accounts are included. */
+  youngAccountDays: 365,
+  /**
+   * Share of posts from accounts under 1 year at which a cluster or narrative
+   * is marked as dominated by new accounts. The fresh band uses the same share.
+   */
+  newAccountDominateShare: 0.5,
 } as const;
 
 export const DEMO_PASTE_STAMP = "2026-09-22T15:00:00.000Z";
+
+/** Fixture and paste ages are measured against this stamp, not the wall clock and not the X API. */
+export const AGE_AS_OF = DEMO_PASTE_STAMP;

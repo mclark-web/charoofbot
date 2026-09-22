@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { LabelBadge, RoleBadge } from "@/components/label-badge";
+import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
-import { excerpt, formatStamp } from "@/lib/format";
+import { AGE_AS_OF } from "@/lib/thresholds";
+import { excerpt, formatAgeDays, formatStamp } from "@/lib/format";
 
 type PageProps = {
   params: Promise<{ handle: string }>;
@@ -42,6 +43,7 @@ export default async function AccountPage({ params }: PageProps) {
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <h1 className="font-serif text-4xl text-ink">@{account.handle}</h1>
           <LabelBadge label={account.label} />
+          <AgeBadge band={account.ageBand} showEstablished showUnknown />
         </div>
         <p className="mt-2 text-ink-soft">{account.name}</p>
         <p className="mt-3 max-w-2xl text-lg leading-relaxed">{account.bio}</p>
@@ -70,13 +72,20 @@ export default async function AccountPage({ params }: PageProps) {
           }`}
         />
       </div>
-      <p className="text-sm text-ink-soft">These two grades are computed separately and are not combined.</p>
+      <p className="text-sm text-ink-soft">
+        These two grades are computed separately and are not combined. Account age is a third flag, measured at{" "}
+        {formatStamp(AGE_AS_OF)} from the fixture created date. It is not added to either grade.
+        {account.ageDays === null ? " This handle has no created date, so the age is unknown." : ""}
+      </p>
 
       <dl className="grid grid-cols-2 gap-px border border-rule bg-rule sm:grid-cols-4">
         <Meta label="Posts" value={String(account.postCount)} />
         <Meta label="Active days" value={String(account.activeDays)} />
         <Meta label="Followers, not scored" value={account.followers.toLocaleString("en-US")} />
-        <Meta label="Joined" value={account.joined || "—"} />
+        <Meta
+          label="Age at scan"
+          value={account.ageDays === null ? "Unknown" : `${formatAgeDays(account.ageDays)} · ${account.joined || "no date"}`}
+        />
       </dl>
 
       <section>

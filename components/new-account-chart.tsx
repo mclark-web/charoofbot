@@ -11,31 +11,31 @@ import {
   YAxis,
 } from "recharts";
 
-export type VolumeRow = {
+export type NewAccountRow = {
   shortLabel: string;
   title: string;
   topic: string;
-  postCount: number;
-  accountCount: number;
-  originPosts: number;
-  clonePosts: number;
-  boostPosts: number;
-  otherPosts: number;
   freshPosts: number;
+  youngPosts: number;
   underYearPosts: number;
+  postCount: number;
   freshVolumePct: number;
   underYearVolumePct: number;
+  freshBoostPosts: number;
+  underYearBoostPosts: number;
+  freshAccountsDominate: boolean;
+  newAccountsDominate: boolean;
 };
 
 const TICK = { fill: "#1c1915", fontSize: 12 };
 const AXIS = { stroke: "#d4cbb8" };
 
-function VolumeTooltip({
+function NewAccountTooltip({
   active,
   payload,
 }: {
   active?: boolean;
-  payload?: ReadonlyArray<{ payload?: VolumeRow }>;
+  payload?: ReadonlyArray<{ payload?: NewAccountRow }>;
 }) {
   const row = payload?.[0]?.payload;
   if (!active || !row) return null;
@@ -43,20 +43,28 @@ function VolumeTooltip({
     <div className="border border-rule bg-paper-raised px-3 py-2 text-xs shadow-sm">
       <p className="font-serif text-sm text-ink">{row.title}</p>
       <p className="mt-1 font-mono text-ink">
-        {row.postCount} posts · {row.accountCount} accounts
+        {row.underYearPosts} of {row.postCount} posts from accounts under 1 year
       </p>
       <p className="mt-1 text-ink-soft">
-        {row.originPosts} origin · {row.clonePosts} clone · {row.boostPosts} amplifier · {row.otherPosts} other
+        {row.freshPosts} under 30 days · {row.youngPosts} from 30 days to 1 year
       </p>
       <p className="mt-1 text-ink-soft">
-        {row.freshPosts} from accounts under 30 days · {row.underYearPosts} under 1 year ({row.freshVolumePct}% /{" "}
-        {row.underYearVolumePct}%)
+        {row.underYearBoostPosts} amplifier posts from accounts under 1 year ({row.freshBoostPosts} of them under 30
+        days)
+      </p>
+      <p className="mt-1 text-ink-soft">
+        {row.freshVolumePct}% under 30 days · {row.underYearVolumePct}% under 1 year
+        {row.freshAccountsDominate
+          ? " · fresh accounts dominate"
+          : row.newAccountsDominate
+            ? " · new accounts dominate"
+            : ""}
       </p>
     </div>
   );
 }
 
-export function VolumeChart({ rows }: { rows: VolumeRow[] }) {
+export function NewAccountChart({ rows }: { rows: NewAccountRow[] }) {
   return (
     <div className="h-[460px] w-full min-w-0 max-w-full overflow-hidden">
       <ResponsiveContainer width="100%" height="100%">
@@ -71,12 +79,10 @@ export function VolumeChart({ rows }: { rows: VolumeRow[] }) {
             axisLine={false}
             tickLine={false}
           />
-          <Tooltip content={<VolumeTooltip />} cursor={{ fill: "rgba(28, 25, 21, 0.04)" }} />
-          <Bar dataKey="originPosts" name="Originator" stackId="volume" fill="#2a3d64" />
-          <Bar dataKey="clonePosts" name="Clone speech" stackId="volume" fill="#8c3b30" />
-          <Bar dataKey="boostPosts" name="Amplifier" stackId="volume" fill="#1b4a43" />
-          <Bar dataKey="otherPosts" name="Other notes" stackId="volume" fill="#b7ad9d">
-            <LabelList dataKey="postCount" position="right" fill="#1c1915" fontSize={12} />
+          <Tooltip content={<NewAccountTooltip />} cursor={{ fill: "rgba(28, 25, 21, 0.04)" }} />
+          <Bar dataKey="freshPosts" name="Under 30 days" stackId="age" fill="#6e2f4a" />
+          <Bar dataKey="youngPosts" name="30 days to 1 year" stackId="age" fill="#9a6b2f">
+            <LabelList dataKey="underYearPosts" position="right" fill="#1c1915" fontSize={12} />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

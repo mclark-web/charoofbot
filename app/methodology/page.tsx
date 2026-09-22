@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
-import { THRESHOLDS } from "@/lib/thresholds";
+import { formatStamp } from "@/lib/format";
+import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
 
 export const metadata: Metadata = {
   title: "Methodology",
@@ -27,6 +28,10 @@ export default function MethodologyPage() {
           <li>No X API key, and no paid firehose. The demo does not ask for one.</li>
           <li>No paid database. The corpus is a JSON file in the repo, scored in memory.</li>
           <li>No paid language model. Matching is normalization, SHA-256, and token overlap.</li>
+          <li>
+            No X user lookup. Account ages in the demo are <span className="font-mono">accountCreatedAt</span> values
+            in the fixture file, measured at {formatStamp(AGE_AS_OF)}. That clock does not move with the wall date.
+          </li>
           <li>Hosting can be a Vercel Hobby project. Nothing in the app reads environment variables.</li>
         </ul>
         <p className="leading-relaxed text-ink-soft">
@@ -84,6 +89,10 @@ export default function MethodologyPage() {
               <Row label="Exact / near / template weights" value={`${THRESHOLDS.cloneExactWeight} / ${THRESHOLDS.cloneNearWeight} / ${THRESHOLDS.cloneTemplateWeight}`} />
               <Row label="Clone label" value={`score ≥ ${THRESHOLDS.cloneLabel}`} />
               <Row label="Amplifier label" value={`score ≥ ${THRESHOLDS.ampLabel}, and ≥ ${THRESHOLDS.ampMinBoostPosts} boosts on ≥ ${THRESHOLDS.ampMinBoostDays} days`} />
+              <Row label="Fresh account" value={`age < ${THRESHOLDS.freshAccountDays} days`} />
+              <Row label="New account" value={`age < ${THRESHOLDS.youngAccountDays} days, which includes fresh`} />
+              <Row label="New-account dominance" value={`≥ ${THRESHOLDS.newAccountDominateShare * 100}% of posts in the cluster or narrative`} />
+              <Row label="Age clock" value={formatStamp(AGE_AS_OF)} />
             </tbody>
           </table>
         </div>
@@ -102,11 +111,40 @@ export default function MethodologyPage() {
       </section>
 
       <section className="grid gap-3">
+        <h2 className="font-serif text-2xl">New accounts</h2>
+        <p className="leading-relaxed">
+          The scan records how old each poster is, then asks whether new accounts are sewing the narrative. An account
+          under {THRESHOLDS.freshAccountDays} days is fresh. An account under {THRESHOLDS.youngAccountDays} days is new,
+          and that band includes the fresh accounts. Both shares are reported: percent of volume from accounts under 30
+          days, and percent from accounts under 1 year. A cluster or narrative is highlighted when either share is at
+          least {THRESHOLDS.newAccountDominateShare * 100}%. Unknown ages stay in the denominator and out of the
+          numerator, so a missing date cannot invent a new account.
+        </p>
+        <p className="leading-relaxed">
+          Fixture ages come from <span className="font-mono">accountCreatedAt</span> on each account in{" "}
+          <span className="font-mono">data/corpus.json</span>. They are measured at {formatStamp(AGE_AS_OF)}, the same
+          stamp the paste bench uses. The demo does not call the X API, and it does not infer age from follower count
+          or bio. Paste a post with <span className="font-mono">accountCreatedAt</span>,{" "}
+          <span className="font-mono">createdAt</span>, <span className="font-mono">joined</span>, or{" "}
+          <span className="font-mono">ageDays</span> when you know it. Omit the field and the finding is marked age
+          unknown. A handle already in the fixture directory keeps the fixture date.
+        </p>
+        <p className="leading-relaxed">
+          The new-account mark is a badge and a volume series. It is not added to the clone speech grade and it is not
+          added to the amplifier grade. A fresh amplifier and an established amplifier with the same boost pattern keep
+          the same amplifier score. The badge tells you the account is new. The score tells you how it behaved.
+        </p>
+      </section>
+
+      <section className="grid gap-3">
         <h2 className="font-serif text-2xl">What this does not claim</h2>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           <li>A clone label is reused language. It is not proof of a bot, a payment, or a conspiracy.</li>
           <li>Weak or missing mutual follows inside a cluster are a hint. They are not evidence of coordination.</li>
-          <li>Follower count, account age, and a default-looking bio are shown as context. They are not scored.</li>
+          <li>
+            Follower count and a default-looking bio are shown as context. They are not scored. Account age is flagged
+            at the two thresholds above and is not added to either grade.
+          </li>
           <li>The corpus is synthetic. It is not a live sample of any real timeline.</li>
           <li>Nothing here is investment advice, a harassment list, or a grade for sale.</li>
         </ul>

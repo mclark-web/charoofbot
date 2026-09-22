@@ -11,4 +11,18 @@ export const samplePastes = {
   amp: "@pasted_demo\nAI capex supercycle keeps showing up in my replies this week, and I still have not opened a supplier filing.",
   clean:
     "@pasted_demo\nLibrary note for my own desk: reconcile the source PDF before repeating a sentence.",
+  fresh: `[
+  {
+    "account": "@fresh_horn",
+    "text": "AI capex supercycle keeps showing up in my replies this week, and I still have not opened a supplier filing.",
+    "accountCreatedAt": "2026-09-08",
+    "postedAt": "2026-09-20T15:00:00.000Z"
+  },
+  {
+    "account": "@fresh_horn",
+    "text": "Passing the AI capex supercycle along again today. No supplier invoice on my side, just the frame.",
+    "accountCreatedAt": "2026-09-08",
+    "postedAt": "2026-09-21T16:00:00.000Z"
+  }
+]`,
 } as const;

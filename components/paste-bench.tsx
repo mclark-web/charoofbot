@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { LabelBadge } from "@/components/label-badge";
+import { AgeBadge, LabelBadge } from "@/components/label-badge";
 import { ScoreMeter } from "@/components/score-meter";
-import { formatLatency, matchLabel } from "@/lib/format";
+import { formatAgeDays, formatLatency, matchLabel } from "@/lib/format";
 import { runPaste, type PasteRun } from "@/lib/paste";
 import { samplePastes } from "@/lib/samples";
 import type { AccountReport, AnnotatedPost } from "@/lib/types";
@@ -14,6 +14,7 @@ const SAMPLES = [
   { id: "near", label: "Near-duplicate", text: samplePastes.near },
   { id: "amp", label: "Amplifier framing", text: samplePastes.amp },
   { id: "clean", label: "Unrelated note", text: samplePastes.clean },
+  { id: "fresh", label: "New-account amplifier", text: samplePastes.fresh },
 ] as const;
 
 export function PasteBench() {
@@ -143,6 +144,8 @@ function FindingCard({
         ) : (
           <span className="bg-paper px-2 py-0.5 text-xs text-ink-soft">No amplifier frame</span>
         )}
+        <AgeBadge band={finding.ageBand} showEstablished showUnknown />
+        <span className="font-mono text-xs text-ink-soft">{formatAgeDays(finding.ageDays)}</span>
       </div>
       <p className="mt-3 font-serif text-lg leading-snug text-ink">{finding.text}</p>
       {finding.isRetweet ? (
@@ -197,9 +200,13 @@ function AccountSlice({ account }: { account: AccountReport }) {
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-serif text-xl">@{account.handle}</h3>
           <LabelBadge label={account.label} />
+          <AgeBadge band={account.ageBand} showEstablished showUnknown />
         </div>
         <p className="mt-2 text-sm text-ink-soft">
-          {account.inDirectory ? "Includes fixture history." : "Paste only. Not in the fixture directory."}
+          {account.inDirectory ? "Includes fixture history." : "Paste only. Not in the fixture directory."}{" "}
+          {account.ageDays === null
+            ? "Account age was omitted, so it stays unknown."
+            : `Account age ${formatAgeDays(account.ageDays)} at the fixture clock. Not added to either grade.`}
         </p>
       </div>
       <div className="grid gap-3">

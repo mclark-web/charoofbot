@@ -36,7 +36,7 @@ export function NarrativeGraph({
     <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="block h-auto w-full max-w-full" role="img" aria-labelledby="sewing-graph-title sewing-graph-desc">
       <title id="sewing-graph-title">Narrative sewing graph</title>
       <desc id="sewing-graph-desc">
-        Each node is a narrative. Node area follows post volume. A line means at least two accounts posted in both narratives.
+        Each node is a narrative. Node area follows post volume. A line means at least two accounts posted in both narratives. A ring means new accounts, under 30 days or under 1 year, supply at least half of that narrative&apos;s posts.
       </desc>
       {visibleEdges.map((edge) => {
         const source = byId.get(edge.source);
@@ -55,8 +55,24 @@ export function NarrativeGraph({
           />
         );
       })}
-      {placed.map((node) => (
+      {placed.map((node) => {
+        const ring = node.age.freshAccountsDominate
+          ? "#6e2f4a"
+          : node.age.newAccountsDominate
+            ? "#9a6b2f"
+            : null;
+        return (
         <g key={node.id}>
+          {ring ? (
+            <circle
+              cx={node.x}
+              cy={node.y}
+              r={node.radius + 5}
+              fill="none"
+              stroke={ring}
+              strokeWidth={2.5}
+            />
+          ) : null}
           <circle cx={node.x} cy={node.y} r={node.radius} fill="#8c3b30" fillOpacity={0.9} />
           <text
             x={node.x}
@@ -79,7 +95,8 @@ export function NarrativeGraph({
             {node.shortLabel}
           </text>
         </g>
-      ))}
+        );
+      })}
     </svg>
   );
 }

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AgeCallout } from "@/components/age-share";
 import { DiffView } from "@/components/diff-view";
-import { RoleBadge } from "@/components/label-badge";
+import { AgeBadge, RoleBadge } from "@/components/label-badge";
 import { getReport } from "@/lib/corpus";
 import { wordDiff } from "@/lib/diff";
-import { excerpt, formatLatency, formatStamp } from "@/lib/format";
+import { excerpt, formatAgeDays, formatLatency, formatStamp } from "@/lib/format";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -52,6 +53,9 @@ export default async function ClusterPage({ params }: PageProps) {
           {narrative ? narrative.title : "No narrative tag"} · {cluster.cloneCount} copies ·{" "}
           {cluster.accounts.length} accounts
         </p>
+        <div className="mt-4 max-w-3xl">
+          <AgeCallout age={cluster.age} scope="cluster" />
+        </div>
       </div>
 
       <section className="grid gap-4 border border-rule bg-paper-raised p-4 md:grid-cols-3">
@@ -88,12 +92,13 @@ export default async function ClusterPage({ params }: PageProps) {
       <section>
         <h2 className="font-serif text-2xl text-ink">Timeline</h2>
         <div className="mt-4 max-w-full overflow-x-auto border border-rule">
-          <table className="w-full min-w-[36rem] text-left text-sm">
+          <table className="w-full min-w-[46rem] text-left text-sm">
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>
                 <th className="px-3 py-2 font-medium">When</th>
                 <th className="px-3 py-2 font-medium">Account</th>
                 <th className="px-3 py-2 font-medium">Role</th>
+                <th className="px-3 py-2 font-medium">Account age</th>
                 <th className="px-3 py-2 font-medium">Latency</th>
               </tr>
             </thead>
@@ -108,6 +113,12 @@ export default async function ClusterPage({ params }: PageProps) {
                   </td>
                   <td className="px-3 py-2">
                     <RoleBadge role={post.role} />
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className="flex flex-wrap items-center gap-2">
+                      <AgeBadge band={post.ageBand} showEstablished showUnknown />
+                      <span className="font-mono text-xs text-ink-soft">{formatAgeDays(post.ageDays)}</span>
+                    </span>
                   </td>
                   <td className="px-3 py-2 text-ink-soft">
                     {post.latencyMs === null ? "First seen" : formatLatency(post.latencyMs)}
@@ -134,6 +145,7 @@ export default async function ClusterPage({ params }: PageProps) {
                 @{copy.account}
               </Link>
               <RoleBadge role={copy.role} />
+              <AgeBadge band={copy.ageBand} showEstablished showUnknown />
               <span className="font-mono text-xs text-ink-soft">
                 Jaccard {copy.jaccard.toFixed(2)} · {copy.sharedFourGrams} shared 4-grams
               </span>
@@ -164,7 +176,11 @@ export default async function ClusterPage({ params }: PageProps) {
                   </Link>{" "}
                   <span className="text-ink-soft">
                     {post.action} · {formatStamp(post.postedAt)}
-                  </span>
+                  </span>{" "}
+                  <AgeBadge band={post.ageBand} showEstablished showUnknown />
+                  {post.ageDays !== null ? (
+                    <span className="font-mono text-xs text-ink-soft"> {formatAgeDays(post.ageDays)}</span>
+                  ) : null}
                 </p>
                 <p className="mt-1 text-ink">{post.text}</p>
               </li>

@@ -15,6 +15,10 @@
   --clay: #8a5a2b;
   --clay-soft: #f4ecdf;
   --other: #b7ad9d;
+  --fresh: #6e2f4a;
+  --fresh-soft: #f8e8ee;
+  --yearling: #9a6b2f;
+  --yearling-soft: #f8f0e2;
 }
 
 @theme inline {
@@ -32,6 +36,10 @@
   --color-clay: var(--clay);
   --color-clay-soft: var(--clay-soft);
   --color-other: var(--other);
+  --color-fresh: var(--fresh);
+  --color-fresh-soft: var(--fresh-soft);
+  --color-yearling: var(--yearling);
+  --color-yearling-soft: var(--yearling-soft);
   --font-sans: var(--font-source-sans), "Source Sans 3", "Segoe UI", sans-serif;
   --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
   --font-mono: var(--font-ibm-mono), "IBM Plex Mono", ui-monospace, monospace;

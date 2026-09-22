@@ -24,6 +24,13 @@ export function excerpt(text: string, max = 160): string {
   return `${flat.slice(0, max - 1).trimEnd()}…`;
 }
 
+export function formatAgeDays(days: number | null): string {
+  if (days === null) return "unknown";
+  if (days < 365) return `${days}d`;
+  const years = Math.floor(days / 365);
+  return `${years}y`;
+}
+
 export function matchLabel(kind: "exact" | "near" | "template"): string {
   if (kind === "exact") return "Exact clone";
   if (kind === "near") return "Near duplicate";
