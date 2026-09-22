@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #f3efe4;
+  --paper-raised: #fbf8f1;
+  --ink: #1c1915;
+  --ink-soft: #5e574c;
+  --rule: #d4cbb8;
+  --lab: #1b4a43;
+  --lab-soft: #e3eee8;
+  --vermilion: #8c3b30;
+  --vermilion-soft: #f4e6e1;
+  --origin: #2a3d64;
+  --origin-soft: #e4e8f2;
+  --clay: #8a5a2b;
+  --clay-soft: #f4ecdf;
+  --other: #b7ad9d;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rule: var(--rule);
+  --color-lab: var(--lab);
+  --color-lab-soft: var(--lab-soft);
+  --color-vermilion: var(--vermilion);
+  --color-vermilion-soft: var(--vermilion-soft);
+  --color-origin: var(--origin);
+  --color-origin-soft: var(--origin-soft);
+  --color-clay: var(--clay);
+  --color-clay-soft: var(--clay-soft);
+  --color-other: var(--other);
+  --font-sans: var(--font-source-sans), "Source Sans 3", "Segoe UI", sans-serif;
+  --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
+  --font-mono: var(--font-ibm-mono), "IBM Plex Mono", ui-monospace, monospace;
+}
+
+html {
+  overflow-x: clip;
+}
+
+main .grid > * {
+  min-width: 0;
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+@media (min-width: 768px) {
+  body {
+    background-image: linear-gradient(
+      90deg,
+      transparent 0 1.65rem,
+      rgba(140, 59, 48, 0.45) 1.65rem calc(1.65rem + 1px),
+      transparent calc(1.65rem + 1px)
+    );
+  }
+}
+
+::selection {
+  background: #ead6cf;
+}
+
+:focus-visible {
+  outline: 2px solid var(--lab);
+  outline-offset: 3px;
+}
+
+.kicker {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--lab);
+}
