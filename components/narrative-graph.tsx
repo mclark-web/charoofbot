@@ -33,7 +33,7 @@ export function NarrativeGraph({
   const visibleEdges = edges.filter((edge) => edge.sharedAccounts >= 2);
 
   return (
-    <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-auto w-full" role="img" aria-labelledby="sewing-graph-title sewing-graph-desc">
+    <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="block h-auto w-full max-w-full" role="img" aria-labelledby="sewing-graph-title sewing-graph-desc">
       <title id="sewing-graph-title">Narrative sewing graph</title>
       <desc id="sewing-graph-desc">
         Each node is a narrative. Node area follows post volume. A line means at least two accounts posted in both narratives.

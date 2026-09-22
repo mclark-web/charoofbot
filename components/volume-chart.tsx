@@ -50,7 +50,7 @@ function VolumeTooltip({
 
 export function VolumeChart({ rows }: { rows: VolumeRow[] }) {
   return (
-    <div className="h-[460px] w-full min-w-0">
+    <div className="h-[460px] w-full min-w-0 max-w-full overflow-hidden">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 28, bottom: 8, left: 4 }}>
           <CartesianGrid horizontal={false} stroke="#d4cbb8" />

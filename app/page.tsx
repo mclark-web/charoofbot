@@ -33,7 +33,7 @@ export default function DashboardPage() {
     );
 
   return (
-    <div className="grid gap-12">
+    <div className="grid min-w-0 gap-12">
       <section className="max-w-3xl">
         <p className="kicker">Field notebook 00</p>
         <h1 className="mt-2 font-serif text-3xl tracking-tight text-ink md:text-4xl">
@@ -80,7 +80,7 @@ export default function DashboardPage() {
           end of each bar is the total.
         </p>
         <VolumeChart rows={chartRows} />
-        <div className="overflow-x-auto border border-rule">
+        <div className="max-w-full overflow-x-auto border border-rule">
           <table className="w-full min-w-[40rem] text-left text-sm">
             <caption className="sr-only">Narrative volume, sorted by post count</caption>
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
@@ -137,12 +137,12 @@ export default function DashboardPage() {
           Node area tracks volume. A line means at least two accounts posted in both narratives, which is a hint that
           the same voices are sewing those frames together. It is not proof of coordination.
         </p>
-        <div className="border border-rule bg-paper-raised p-3">
+        <div className="overflow-hidden border border-rule bg-paper-raised p-3">
           <NarrativeGraph nodes={graphNodes} edges={report.edges} />
         </div>
       </section>
 
-      <div className="grid gap-10 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-10 lg:grid-cols-2">
         <section>
           <p className="kicker">Clone speech</p>
           <h2 className="mt-1 font-serif text-2xl text-ink">Language clusters</h2>
@@ -175,7 +175,7 @@ export default function DashboardPage() {
             Sorted by amplifier grade only. Follower count is shown and ignored. High-follower clone accounts are not
             on this list unless they also boost without copying.
           </p>
-          <div className="mt-4 overflow-x-auto border border-rule">
+          <div className="mt-4 max-w-full overflow-x-auto border border-rule">
             <table className="w-full min-w-[28rem] text-left text-sm">
               <caption className="sr-only">Amplifier leaderboard</caption>
               <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">

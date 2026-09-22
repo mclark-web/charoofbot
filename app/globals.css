@@ -37,6 +37,14 @@
   --font-mono: var(--font-ibm-mono), "IBM Plex Mono", ui-monospace, monospace;
 }
 
+html {
+  overflow-x: clip;
+}
+
+main .grid > * {
+  min-width: 0;
+}
+
 body {
   background-color: var(--paper);
   color: var(--ink);

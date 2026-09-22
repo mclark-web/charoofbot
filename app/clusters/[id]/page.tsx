@@ -87,7 +87,7 @@ export default async function ClusterPage({ params }: PageProps) {
 
       <section>
         <h2 className="font-serif text-2xl text-ink">Timeline</h2>
-        <div className="mt-4 overflow-x-auto border border-rule">
+        <div className="mt-4 max-w-full overflow-x-auto border border-rule">
           <table className="w-full min-w-[36rem] text-left text-sm">
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>
