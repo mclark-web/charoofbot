@@ -1,0 +1,685 @@
+{
+  "narratives": [
+    {
+      "id": "ai-capex",
+      "title": "AI capex supercycle",
+      "shortLabel": "AI capex",
+      "topic": "Equities",
+      "summary": "Hyperscaler spending, not app demos, is the claim being repeated.",
+      "framePhrases": ["ai capex supercycle", "picks and shovels"]
+    },
+    {
+      "id": "fed-trap",
+      "title": "Fed pivot is a trap",
+      "shortLabel": "Fed pivot trap",
+      "topic": "Macro",
+      "summary": "Cuts are framed as a lure for duration buyers, not a relief rally.",
+      "framePhrases": ["fed pivot is a trap", "duration tourists"]
+    },
+    {
+      "id": "btc-shock",
+      "title": "Bitcoin supply shock",
+      "shortLabel": "BTC supply",
+      "topic": "Crypto",
+      "summary": "Exchange float is the story, told as a calendar rather than a mood.",
+      "framePhrases": ["bitcoin supply shock", "leaving exchanges"]
+    },
+    {
+      "id": "private-credit",
+      "title": "Private credit cracks",
+      "shortLabel": "Private credit",
+      "topic": "Credit",
+      "summary": "Covenant waivers and PIK toggles, not the closing print, are the tell.",
+      "framePhrases": ["private credit cracks", "pik toggles"]
+    },
+    {
+      "id": "energy-tech",
+      "title": "Energy is the new tech",
+      "shortLabel": "Energy multiple",
+      "topic": "Equities",
+      "summary": "Firm power and interconnection queues decide which data centers exist.",
+      "framePhrases": ["energy is the new tech", "interconnection queues"]
+    },
+    {
+      "id": "mag7",
+      "title": "Magnificent 7 concentration",
+      "shortLabel": "Mag 7",
+      "topic": "Equities",
+      "summary": "Index strength is described as a costume on seven cash-flow streams.",
+      "framePhrases": ["magnificent 7 concentration", "diversification is a brochure"]
+    },
+    {
+      "id": "yen-carry",
+      "title": "Yen carry unwind",
+      "shortLabel": "Yen carry",
+      "topic": "FX",
+      "summary": "A funding-currency jump is framed as forced selling, not a view on Japan.",
+      "framePhrases": ["yen carry unwind", "funding currency"]
+    },
+    {
+      "id": "retail-options",
+      "title": "Retail options mania",
+      "shortLabel": "0DTE mania",
+      "topic": "Derivatives",
+      "summary": "Zero-day premium is described as a transfer to whoever is short gamma.",
+      "framePhrases": ["retail options mania", "zero day complex"]
+    },
+    {
+      "id": "gold-bid",
+      "title": "Gold is the quiet bid",
+      "shortLabel": "Quiet gold",
+      "topic": "Metals",
+      "summary": "Official-sector buying is the claim; jewelry demand is dismissed.",
+      "framePhrases": ["gold is the quiet bid", "record of distrust"]
+    },
+    {
+      "id": "china-rumor",
+      "title": "China stimulus rumor mill",
+      "shortLabel": "China stimulus",
+      "topic": "Macro",
+      "summary": "Rebound trades are framed as short leases on headlines.",
+      "framePhrases": ["china stimulus rumor mill", "headline lease"]
+    },
+    {
+      "id": "election-vol",
+      "title": "Election vol premium",
+      "shortLabel": "Election vol",
+      "topic": "Derivatives",
+      "summary": "The straddle is said to price a path, not a candidate.",
+      "framePhrases": ["election vol premium", "straddle is pricing"]
+    },
+    {
+      "id": "small-cap",
+      "title": "Small-cap rotation",
+      "shortLabel": "Small-cap",
+      "topic": "Equities",
+      "summary": "One green Russell session is not treated as a regime change.",
+      "framePhrases": ["small cap rotation", "breadth holds"]
+    }
+  ],
+  "accounts": [
+    {"handle": "ledger_mina", "name": "Ledger Mina", "bio": "Reads purchase orders. No price targets.", "joined": "2019-04-02", "followers": 22400, "following": 310, "follows": ["grid_helen", "index_ruth"]},
+    {"handle": "basis_note", "name": "Basis Note", "bio": "Front-end curves and primary inflation prints.", "joined": "2016-11-18", "followers": 18300, "following": 240, "follows": ["fx_notebook", "vol_desk"]},
+    {"handle": "quiet_bar", "name": "Quiet Bar", "bio": "On-chain float, not candle commentary.", "joined": "2017-08-09", "followers": 15600, "following": 190, "follows": ["assay_paul"]},
+    {"handle": "clearing_ed", "name": "Clearing Ed", "bio": "Credit docs, waivers, and what lenders see.", "joined": "2014-02-11", "followers": 9800, "following": 150, "follows": ["basis_note"]},
+    {"handle": "grid_helen", "name": "Grid Helen", "bio": "Interconnection queues and firm power.", "joined": "2018-06-21", "followers": 12100, "following": 205, "follows": ["ledger_mina"]},
+    {"handle": "index_ruth", "name": "Index Ruth", "bio": "Index math and concentration.", "joined": "2015-01-30", "followers": 27400, "following": 260, "follows": ["breadth_ada", "ledger_mina"]},
+    {"handle": "fx_notebook", "name": "FX Notebook", "bio": "Funding currencies and positioning.", "joined": "2013-09-14", "followers": 14200, "following": 180, "follows": ["basis_note"]},
+    {"handle": "open_interest", "name": "Open Interest", "bio": "Listed options, gamma, and the close.", "joined": "2018-03-03", "followers": 16750, "following": 220, "follows": ["vol_desk"]},
+    {"handle": "assay_paul", "name": "Assay Paul", "bio": "Official-sector metals flows.", "joined": "2012-12-01", "followers": 8600, "following": 140, "follows": ["quiet_bar"]},
+    {"handle": "wire_chen", "name": "Wire Chen", "bio": "Fiscal numbers, not rumor headlines.", "joined": "2017-05-19", "followers": 11300, "following": 175, "follows": ["basis_note"]},
+    {"handle": "vol_desk", "name": "Vol Desk", "bio": "Implied paths. Not a pollster.", "joined": "2016-07-07", "followers": 19200, "following": 200, "follows": ["open_interest"]},
+    {"handle": "breadth_ada", "name": "Breadth Ada", "bio": "Advance-decline and rotation tests.", "joined": "2019-10-22", "followers": 7400, "following": 160, "follows": ["index_ruth"]},
+    {"handle": "bullhorn_7", "name": "Bullhorn Seven", "bio": "I repeat the frame until it sticks.", "joined": "2024-01-12", "followers": 4100, "following": 890, "follows": ["ledger_mina", "grid_helen", "open_interest"]},
+    {"handle": "tape_reader", "name": "Tape Reader", "bio": "Quoting the narrative of the day.", "joined": "2023-06-02", "followers": 6300, "following": 1200, "follows": ["ledger_mina", "index_ruth", "wire_chen"]},
+    {"handle": "narrative_pump", "name": "Narrative Pump", "bio": "Same claims, fresh wording, all week.", "joined": "2024-03-28", "followers": 2800, "following": 740, "follows": ["ledger_mina", "clearing_ed", "breadth_ada"]},
+    {"handle": "reply_guy_macro", "name": "Reply Guy Macro", "bio": "Replies on macro threads. Rarely first.", "joined": "2023-11-09", "followers": 1900, "following": 2100, "follows": ["basis_note", "fx_notebook", "wire_chen"]},
+    {"handle": "quote_cart", "name": "Quote Cart", "bio": "Quote posts only. No primary work.", "joined": "2024-05-16", "followers": 3500, "following": 980, "follows": ["quiet_bar", "assay_paul", "vol_desk"]},
+    {"handle": "megaphone_m", "name": "Megaphone M", "bio": "Boost button for whatever is circulating.", "joined": "2022-08-30", "followers": 8700, "following": 1500, "follows": ["basis_note", "breadth_ada", "wire_chen"]},
+    {"handle": "frame_repeat", "name": "Frame Repeat", "bio": "Keeps the slogan in circulation.", "joined": "2024-02-14", "followers": 2200, "following": 660, "follows": ["grid_helen", "fx_notebook", "open_interest"]},
+    {"handle": "copy_lane", "name": "Copy Lane", "bio": "Just a guy sharing thoughts", "joined": "2025-11-02", "followers": 842000, "following": 12, "follows": []},
+    {"handle": "mirror_desk", "name": "Mirror Desk", "bio": "Investor. Thoughts are my own.", "joined": "2025-09-18", "followers": 510000, "following": 40, "follows": ["ledger_mina"]},
+    {"handle": "echo_futures", "name": "Echo Futures", "bio": "Just a guy sharing thoughts", "joined": "2026-01-07", "followers": 120000, "following": 8, "follows": []},
+    {"handle": "reprint_io", "name": "Reprint IO", "bio": "Market observer.", "joined": "2025-12-12", "followers": 64000, "following": 15, "follows": []},
+    {"handle": "samewords", "name": "Same Words", "bio": "Thoughts are my own.", "joined": "2026-02-02", "followers": 230000, "following": 6, "follows": []},
+    {"handle": "carbon_copy", "name": "Carbon Copy", "bio": "Just a guy sharing thoughts", "joined": "2025-08-23", "followers": 305000, "following": 22, "follows": ["quiet_bar"]},
+    {"handle": "both_signal", "name": "Both Signal", "bio": "Sometimes I copy. Sometimes I boost.", "joined": "2024-09-01", "followers": 9600, "following": 400, "follows": ["vol_desk", "assay_paul", "basis_note"]},
+    {"handle": "skeptic_jo", "name": "Skeptic Jo", "bio": "Primary documents or silence.", "joined": "2015-04-04", "followers": 17800, "following": 210, "follows": ["clearing_ed"]},
+    {"handle": "notes_only", "name": "Notes Only", "bio": "Private desk diary, posted rarely.", "joined": "2020-01-15", "followers": 420, "following": 80, "follows": []},
+    {"handle": "field_notes", "name": "Field Notes", "bio": "Library habits. No calls.", "joined": "2018-11-11", "followers": 2100, "following": 95, "follows": ["skeptic_jo"]}
+  ],
+  "posts": [
+    {
+      "id": "ai-origin",
+      "account": "ledger_mina",
+      "postedAt": "2026-09-10T14:05:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "post",
+      "text": "The AI capex supercycle is not a slogan, it is a purchase order. Hyperscalers will keep spending through 2027, and the picks and shovels vendors get paid before the apps do."
+    },
+    {
+      "id": "ai-follow",
+      "account": "ledger_mina",
+      "postedAt": "2026-09-16T15:00:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "post",
+      "text": "Foundry delivery slots are still the constraint I watch. Keynotes do not ship silicon, calendars do."
+    },
+    {
+      "id": "ai-exact-1",
+      "account": "copy_lane",
+      "postedAt": "2026-09-10T16:42:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "post",
+      "text": "The AI capex supercycle is not a slogan, it is a purchase order. Hyperscalers will keep spending through 2027, and the picks and shovels vendors get paid before the apps do. 🚀 https://t.co/aiCapexDemo"
+    },
+    {
+      "id": "ai-exact-2",
+      "account": "mirror_desk",
+      "postedAt": "2026-09-11T09:05:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "post",
+      "text": "@ledger_mina The AI capex supercycle is not a slogan, it is a purchase order. Hyperscalers will keep spending through 2027, and the picks and shovels vendors get paid before the apps do. $NVDA"
+    },
+    {
+      "id": "ai-near",
+      "account": "echo_futures",
+      "postedAt": "2026-09-11T13:20:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "post",
+      "text": "The AI capex supercycle is not a motto, it is a purchase order. Hyperscalers will keep spending through 2027, and the picks and shovels vendors get paid before the applications do."
+    },
+    {
+      "id": "ai-template",
+      "account": "reprint_io",
+      "postedAt": "2026-09-12T08:15:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "post",
+      "text": "Forget the keynote. Hyperscalers will keep spending through 2027, and the picks and shovels vendors get paid before the apps do."
+    },
+    {
+      "id": "ai-amp-1",
+      "account": "bullhorn_7",
+      "postedAt": "2026-09-11T18:00:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "quote",
+      "text": "AI capex supercycle. If a note does not start from purchase orders, I scroll past it and keep the frame moving."
+    },
+    {
+      "id": "ai-amp-2",
+      "account": "tape_reader",
+      "postedAt": "2026-09-12T19:10:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "reply",
+      "text": "Replying under every fade: AI capex supercycle does not expire because one daily candle looks tired."
+    },
+    {
+      "id": "ai-amp-3",
+      "account": "narrative_pump",
+      "postedAt": "2026-09-14T11:00:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "post",
+      "text": "AI capex supercycle remains the only frame I pass along from industrials desks, minus any new primary evidence of my own."
+    },
+    {
+      "id": "ai-amp-4",
+      "account": "bullhorn_7",
+      "postedAt": "2026-09-18T12:30:00.000Z",
+      "narrativeId": "ai-capex",
+      "action": "post",
+      "text": "Still on AI capex supercycle. I am not adding a model. I am keeping the phrase in the timeline until the week turns."
+    },
+    {
+      "id": "fed-origin",
+      "account": "basis_note",
+      "postedAt": "2026-09-10T15:20:00.000Z",
+      "narrativeId": "fed-trap",
+      "action": "post",
+      "text": "The Fed pivot is a trap for duration tourists. Cuts into sticky services inflation reprice the front end and punish anyone who bought the long bond as a bedtime story."
+    },
+    {
+      "id": "fed-follow",
+      "account": "basis_note",
+      "postedAt": "2026-09-17T10:00:00.000Z",
+      "narrativeId": "fed-trap",
+      "action": "post",
+      "text": "Front-end pricing already moved on the last print. I am watching services components, not speeches from the podium."
+    },
+    {
+      "id": "fed-exact",
+      "account": "samewords",
+      "postedAt": "2026-09-11T08:12:00.000Z",
+      "narrativeId": "fed-trap",
+      "action": "post",
+      "text": "The Fed pivot is a trap for duration tourists. Cuts into sticky services inflation reprice the front end and punish anyone who bought the long bond as a bedtime story. https://example.com/fed-note"
+    },
+    {
+      "id": "fed-near",
+      "account": "carbon_copy",
+      "postedAt": "2026-09-12T14:40:00.000Z",
+      "narrativeId": "fed-trap",
+      "action": "post",
+      "text": "The Fed pivot is a trap for duration visitors. Cuts into sticky services inflation reprice the front end and hurt anyone who bought the long bond as a bedtime story."
+    },
+    {
+      "id": "fed-amp-1",
+      "account": "reply_guy_macro",
+      "postedAt": "2026-09-12T16:05:00.000Z",
+      "narrativeId": "fed-trap",
+      "action": "reply",
+      "text": "Fed pivot is a trap. I will keep replying with that line until the long-bond crowd finds another hallway."
+    },
+    {
+      "id": "fed-amp-2",
+      "account": "both_signal",
+      "postedAt": "2026-09-15T09:30:00.000Z",
+      "narrativeId": "fed-trap",
+      "action": "quote",
+      "text": "Duration tourists keep asking for a blessing on the cut. Fed pivot is a trap, and I am only here to repeat the warning."
+    },
+    {
+      "id": "fed-amp-3",
+      "account": "megaphone_m",
+      "postedAt": "2026-09-13T21:15:00.000Z",
+      "narrativeId": "fed-trap",
+      "action": "quote",
+      "text": "Quote-boosting this so it does not die overnight: Fed pivot is a trap. No fresh work from my side."
+    },
+    {
+      "id": "btc-origin",
+      "account": "quiet_bar",
+      "postedAt": "2026-09-11T11:00:00.000Z",
+      "narrativeId": "btc-shock",
+      "action": "post",
+      "text": "Bitcoin supply shock is a calendar, not a vibe. Coins are leaving exchanges faster than miners can replace them, and the float that actually trades is thinner than the timeline admits."
+    },
+    {
+      "id": "btc-exact",
+      "account": "copy_lane",
+      "postedAt": "2026-09-11T19:45:00.000Z",
+      "narrativeId": "btc-shock",
+      "action": "post",
+      "text": "Bitcoin supply shock is a calendar, not a vibe. Coins are leaving exchanges faster than miners can replace them, and the float that actually trades is thinner than the timeline admits. 🔥 $BTC https://t.co/floatDemo"
+    },
+    {
+      "id": "btc-near",
+      "account": "echo_futures",
+      "postedAt": "2026-09-13T10:20:00.000Z",
+      "narrativeId": "btc-shock",
+      "action": "post",
+      "text": "Bitcoin supply shock is a calendar, not a mood. Coins are leaving exchanges faster than miners can replace them, and the float that actually trades is thinner than the timeline allows."
+    },
+    {
+      "id": "btc-amp-1",
+      "account": "quote_cart",
+      "postedAt": "2026-09-12T15:00:00.000Z",
+      "narrativeId": "btc-shock",
+      "action": "quote",
+      "text": "Bitcoin supply shock. Passing it on. I do not run a node and I am not pretending this quote is research."
+    },
+    {
+      "id": "btc-amp-2",
+      "account": "both_signal",
+      "postedAt": "2026-09-16T18:40:00.000Z",
+      "narrativeId": "btc-shock",
+      "action": "reply",
+      "text": "Replying on the float threads again: Bitcoin supply shock is the line, and I am here to keep it visible."
+    },
+    {
+      "id": "btc-amp-3",
+      "account": "bullhorn_7",
+      "postedAt": "2026-09-19T08:55:00.000Z",
+      "narrativeId": "btc-shock",
+      "action": "post",
+      "text": "Bitcoin supply shock stays on my list of lines to repeat. Different market, same habit, no new dataset from me."
+    },
+    {
+      "id": "credit-origin",
+      "account": "clearing_ed",
+      "postedAt": "2026-09-11T16:40:00.000Z",
+      "narrativeId": "private-credit",
+      "action": "post",
+      "text": "Private credit cracks do not announce themselves on the closing tape. Watch covenant waivers, PIK toggles, and the quiet extension of maturities that only the lenders can see."
+    },
+    {
+      "id": "credit-exact",
+      "account": "mirror_desk",
+      "postedAt": "2026-09-12T11:25:00.000Z",
+      "narrativeId": "private-credit",
+      "action": "post",
+      "text": "Private credit cracks do not announce themselves on the closing tape. Watch covenant waivers, PIK toggles, and the quiet extension of maturities that only the lenders can see."
+    },
+    {
+      "id": "credit-near",
+      "account": "samewords",
+      "postedAt": "2026-09-13T17:05:00.000Z",
+      "narrativeId": "private-credit",
+      "action": "post",
+      "text": "Private credit cracks do not reveal themselves on the closing tape. Watch covenant waivers, PIK toggles, and the silent extension of maturities that only the lenders can see."
+    },
+    {
+      "id": "credit-amp-1",
+      "account": "narrative_pump",
+      "postedAt": "2026-09-15T13:45:00.000Z",
+      "narrativeId": "private-credit",
+      "action": "reply",
+      "text": "Private credit cracks. I have not read a credit agreement this month. I am replying so the phrase does not drop out of the thread."
+    },
+    {
+      "id": "energy-origin",
+      "account": "grid_helen",
+      "postedAt": "2026-09-12T13:15:00.000Z",
+      "narrativeId": "energy-tech",
+      "action": "post",
+      "text": "Energy is the new tech multiple. Interconnection queues, transformers, and firm power will decide which data centers get built, not another model demo on stage."
+    },
+    {
+      "id": "energy-near",
+      "account": "echo_futures",
+      "postedAt": "2026-09-14T09:40:00.000Z",
+      "narrativeId": "energy-tech",
+      "action": "post",
+      "text": "Energy is the new tech multiple. Interconnection queues, transformers, and firm power will determine which data centers get built, not another model demo on camera."
+    },
+    {
+      "id": "energy-amp-1",
+      "account": "bullhorn_7",
+      "postedAt": "2026-09-13T20:10:00.000Z",
+      "narrativeId": "energy-tech",
+      "action": "quote",
+      "text": "Energy is the new tech. Quoting it into a second audience. I do not cover utilities and I am not starting today."
+    },
+    {
+      "id": "energy-amp-2",
+      "account": "frame_repeat",
+      "postedAt": "2026-09-16T11:30:00.000Z",
+      "narrativeId": "energy-tech",
+      "action": "post",
+      "text": "Energy is the new tech. I will keep that sentence circulating while other people argue about substations I have not visited."
+    },
+    {
+      "id": "energy-amp-3",
+      "account": "reply_guy_macro",
+      "postedAt": "2026-09-18T19:00:00.000Z",
+      "narrativeId": "energy-tech",
+      "action": "reply",
+      "text": "Dropping into power threads just to leave Energy is the new tech where the argument was about something else."
+    },
+    {
+      "id": "mag7-origin",
+      "account": "index_ruth",
+      "postedAt": "2026-09-12T18:05:00.000Z",
+      "narrativeId": "mag7",
+      "action": "post",
+      "text": "Magnificent 7 concentration is the market itself. If those seven names stall, the index is a costume on a handful of cash flows, and diversification is a brochure."
+    },
+    {
+      "id": "mag7-exact",
+      "account": "mirror_desk",
+      "postedAt": "2026-09-13T08:50:00.000Z",
+      "narrativeId": "mag7",
+      "action": "post",
+      "text": "Magnificent 7 concentration is the market itself. If those seven names stall, the index is a costume on a handful of cash flows, and diversification is a brochure. $SPY https://example.com/mag7"
+    },
+    {
+      "id": "mag7-template",
+      "account": "echo_futures",
+      "postedAt": "2026-09-15T16:20:00.000Z",
+      "narrativeId": "mag7",
+      "action": "post",
+      "text": "Passive flows hide the dependence. If those seven names stall, the index is a costume on a handful of cash flows, and diversification is a brochure. Breadth is the audit that matters here."
+    },
+    {
+      "id": "mag7-amp-1",
+      "account": "tape_reader",
+      "postedAt": "2026-09-14T12:15:00.000Z",
+      "narrativeId": "mag7",
+      "action": "quote",
+      "text": "Magnificent 7 concentration. I quote this whenever the index is green so the costume line stays attached to the day."
+    },
+    {
+      "id": "mag7-amp-2",
+      "account": "narrative_pump",
+      "postedAt": "2026-09-17T09:25:00.000Z",
+      "narrativeId": "mag7",
+      "action": "post",
+      "text": "Magnificent 7 concentration is my standing post this month. I am not recomputing weights. I am keeping the claim warm."
+    },
+    {
+      "id": "mag7-amp-3",
+      "account": "bullhorn_7",
+      "postedAt": "2026-09-20T14:05:00.000Z",
+      "narrativeId": "mag7",
+      "action": "post",
+      "text": "Magnificent 7 concentration again, because a quiet Sunday still needs the same sentence from someone who will not let it fade."
+    },
+    {
+      "id": "yen-origin",
+      "account": "fx_notebook",
+      "postedAt": "2026-09-13T09:30:00.000Z",
+      "narrativeId": "yen-carry",
+      "action": "post",
+      "text": "The yen carry unwind is a positioning event first. When the funding currency jumps, crowded longs sell what they can, not what they should, and equity liquidity gaps open before FX commentary does."
+    },
+    {
+      "id": "yen-near",
+      "account": "carbon_copy",
+      "postedAt": "2026-09-14T18:45:00.000Z",
+      "narrativeId": "yen-carry",
+      "action": "post",
+      "text": "The yen carry unwind is a positioning event first. When the funding currency spikes, crowded longs sell what they can, not what they should, and equity liquidity gaps open before FX commentary does."
+    },
+    {
+      "id": "yen-amp-1",
+      "account": "reply_guy_macro",
+      "postedAt": "2026-09-14T11:10:00.000Z",
+      "narrativeId": "yen-carry",
+      "action": "post",
+      "text": "Yen carry unwind. I do not trade FX. I post the phrase on equity threads so the positioning story travels without me adding a chart."
+    },
+    {
+      "id": "yen-amp-2",
+      "account": "tape_reader",
+      "postedAt": "2026-09-17T21:00:00.000Z",
+      "narrativeId": "yen-carry",
+      "action": "reply",
+      "text": "Replying here too: yen carry unwind. Same line as this morning, because repetition is the assignment."
+    },
+    {
+      "id": "yen-amp-3",
+      "account": "frame_repeat",
+      "postedAt": "2026-09-19T15:35:00.000Z",
+      "narrativeId": "yen-carry",
+      "action": "quote",
+      "text": "Yen carry unwind, quoted across accounts I do not follow closely. The job is volume, not a new mechanism."
+    },
+    {
+      "id": "opt-origin",
+      "account": "open_interest",
+      "postedAt": "2026-09-13T14:45:00.000Z",
+      "narrativeId": "retail-options",
+      "action": "post",
+      "text": "Retail options mania is back inside the zero-day complex. That premium is a transfer from impatient buyers to whoever is short gamma into the cash close."
+    },
+    {
+      "id": "opt-exact",
+      "account": "copy_lane",
+      "postedAt": "2026-09-14T10:05:00.000Z",
+      "narrativeId": "retail-options",
+      "action": "post",
+      "text": "Retail options mania is back inside the zero-day complex. That premium is a transfer from impatient buyers to whoever is short gamma into the cash close. https://t.co/gammaDemo"
+    },
+    {
+      "id": "opt-template",
+      "account": "reprint_io",
+      "postedAt": "2026-09-16T13:55:00.000Z",
+      "narrativeId": "retail-options",
+      "action": "post",
+      "text": "Ignore the meme. That premium is a transfer from impatient buyers to whoever is short gamma into the cash close."
+    },
+    {
+      "id": "opt-amp-1",
+      "account": "frame_repeat",
+      "postedAt": "2026-09-15T19:20:00.000Z",
+      "narrativeId": "retail-options",
+      "action": "quote",
+      "text": "Retail options mania. I quote this into every expirations thread. I do not warehouse gamma and I am not about to learn the greek tonight."
+    },
+    {
+      "id": "gold-origin",
+      "account": "assay_paul",
+      "postedAt": "2026-09-14T10:10:00.000Z",
+      "narrativeId": "gold-bid",
+      "action": "post",
+      "text": "Gold is the quiet bid under the noise. Central banks keep adding ounces while retail argues about equities, and the price is a record of distrust rather than a jewelry anecdote."
+    },
+    {
+      "id": "gold-exact",
+      "account": "both_signal",
+      "postedAt": "2026-09-15T11:48:00.000Z",
+      "narrativeId": "gold-bid",
+      "action": "post",
+      "text": "Gold is the quiet bid under the noise. Central banks keep adding ounces while retail argues about equities, and the price is a record of distrust rather than a jewelry anecdote. $GLD"
+    },
+    {
+      "id": "gold-amp-1",
+      "account": "quote_cart",
+      "postedAt": "2026-09-16T08:30:00.000Z",
+      "narrativeId": "gold-bid",
+      "action": "post",
+      "text": "Gold is the quiet bid. I am not a metals analyst. I am posting the line so the afternoon timeline still carries it."
+    },
+    {
+      "id": "china-origin",
+      "account": "wire_chen",
+      "postedAt": "2026-09-14T21:00:00.000Z",
+      "narrativeId": "china-rumor",
+      "action": "post",
+      "text": "The China stimulus rumor mill is a weekly ritual. Until fiscal numbers hit the wire, the rebound trade is a headline lease with a very short term."
+    },
+    {
+      "id": "china-near",
+      "account": "carbon_copy",
+      "postedAt": "2026-09-16T22:10:00.000Z",
+      "narrativeId": "china-rumor",
+      "action": "post",
+      "text": "The China stimulus rumor mill is a daily ritual. Until fiscal numbers hit the wire, the rebound trade is a headline lease with a very short term."
+    },
+    {
+      "id": "china-amp-1",
+      "account": "tape_reader",
+      "postedAt": "2026-09-15T18:05:00.000Z",
+      "narrativeId": "china-rumor",
+      "action": "post",
+      "text": "China stimulus rumor mill, posted again because a headline without a fiscal table still gets a boost from me."
+    },
+    {
+      "id": "china-amp-2",
+      "account": "reply_guy_macro",
+      "postedAt": "2026-09-18T07:40:00.000Z",
+      "narrativeId": "china-rumor",
+      "action": "quote",
+      "text": "China stimulus rumor mill. Quoting it into the morning pile. I will not be the person who opens the ministry PDF."
+    },
+    {
+      "id": "china-amp-3",
+      "account": "megaphone_m",
+      "postedAt": "2026-09-20T16:15:00.000Z",
+      "narrativeId": "china-rumor",
+      "action": "reply",
+      "text": "Replying so this does not scroll away: China stimulus rumor mill. Same boost as last week, different thread."
+    },
+    {
+      "id": "elec-origin",
+      "account": "vol_desk",
+      "postedAt": "2026-09-15T12:25:00.000Z",
+      "narrativeId": "election-vol",
+      "action": "post",
+      "text": "Election vol premium is already sitting in the wings. The straddle is pricing a path, not a candidate, and selling it because polls feel calm is how desks donate money."
+    },
+    {
+      "id": "elec-exact",
+      "account": "both_signal",
+      "postedAt": "2026-09-16T09:05:00.000Z",
+      "narrativeId": "election-vol",
+      "action": "post",
+      "text": "Election vol premium is already sitting in the wings. The straddle is pricing a path, not a candidate, and selling it because polls feel calm is how desks donate money. 📈 https://example.com/vol"
+    },
+    {
+      "id": "elec-amp-1",
+      "account": "quote_cart",
+      "postedAt": "2026-09-18T13:20:00.000Z",
+      "narrativeId": "election-vol",
+      "action": "reply",
+      "text": "Election vol premium. I reply with the phrase under poll screenshots. Pricing the wings is someone else's job."
+    },
+    {
+      "id": "small-origin",
+      "account": "breadth_ada",
+      "postedAt": "2026-09-15T17:50:00.000Z",
+      "narrativeId": "small-cap",
+      "action": "post",
+      "text": "Small-cap rotation only counts if breadth holds for more than a single session. One green day in the Russell is a trade, not a regime change you can underwrite."
+    },
+    {
+      "id": "small-exact",
+      "account": "copy_lane",
+      "postedAt": "2026-09-16T20:30:00.000Z",
+      "narrativeId": "small-cap",
+      "action": "post",
+      "text": "Small-cap rotation only counts if breadth holds for more than a single session. One green day in the Russell is a trade, not a regime change you can underwrite."
+    },
+    {
+      "id": "small-near",
+      "account": "echo_futures",
+      "postedAt": "2026-09-18T11:11:00.000Z",
+      "narrativeId": "small-cap",
+      "action": "post",
+      "text": "Small-cap rotation only matters if breadth holds for more than a single session. One green day in the Russell is a trade, not a regime change you can fund."
+    },
+    {
+      "id": "small-amp-1",
+      "account": "narrative_pump",
+      "postedAt": "2026-09-19T16:45:00.000Z",
+      "narrativeId": "small-cap",
+      "action": "quote",
+      "text": "Small cap rotation. Quoting the caution without checking advancers. The point is to keep the phrase paired with the index."
+    },
+    {
+      "id": "small-amp-2",
+      "account": "megaphone_m",
+      "postedAt": "2026-09-21T09:00:00.000Z",
+      "narrativeId": "small-cap",
+      "action": "post",
+      "text": "Small cap rotation, one more time before the open. I am not running a breadth model. I am making sure the line is seen."
+    },
+    {
+      "id": "clean-1",
+      "account": "skeptic_jo",
+      "postedAt": "2026-09-12T12:00:00.000Z",
+      "narrativeId": null,
+      "action": "post",
+      "text": "I do not have a ticker call. I want invoices and filings, and I will wait for those documents before I quote anyone."
+    },
+    {
+      "id": "clean-2",
+      "account": "skeptic_jo",
+      "postedAt": "2026-09-15T12:00:00.000Z",
+      "narrativeId": null,
+      "action": "post",
+      "text": "A crowded timeline is not evidence. Show the primary document or leave the quote thread alone."
+    },
+    {
+      "id": "clean-3",
+      "account": "skeptic_jo",
+      "postedAt": "2026-09-19T12:00:00.000Z",
+      "narrativeId": null,
+      "action": "post",
+      "text": "Anonymity is allowed. Pasting someone else's paragraph and signing a fresh name is a separate act, and I want that act labeled."
+    },
+    {
+      "id": "clean-4",
+      "account": "notes_only",
+      "postedAt": "2026-09-13T08:00:00.000Z",
+      "narrativeId": null,
+      "action": "post",
+      "text": "Desk diary: spreadsheets reconciled, no public call today, and the coffee was burnt again."
+    },
+    {
+      "id": "clean-5",
+      "account": "field_notes",
+      "postedAt": "2026-09-16T08:00:00.000Z",
+      "narrativeId": null,
+      "action": "post",
+      "text": "Walked the numbers on a closed fund letter. Nothing here is a recommendation, just a reminder that PDFs exist."
+    },
+    {
+      "id": "clean-6",
+      "account": "field_notes",
+      "postedAt": "2026-09-20T08:00:00.000Z",
+      "narrativeId": null,
+      "action": "post",
+      "text": "Library note: primary sources first, screenshots second, and applause is not a source at all."
+    }
+  ]
+}
