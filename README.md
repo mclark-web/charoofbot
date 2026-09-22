@@ -6,7 +6,7 @@ Built for accountability in an age of market fomo, prediction craze, and loud an
 
 ## What you can do
 
-- Open the dashboard. Figure 1 is narrative volume (which frames are being sewn, and how hard). Figure 2 links narratives that share accounts. Clone clusters and the amplifier leaderboard are separate.
+- Open the dashboard. Figure 1 is narrative volume (which frames are being sewn, and how hard). Figure 1b is the same narratives split by poster age: accounts under 30 days, and accounts from 30 days to under 1 year. Figure 2 links narratives that share accounts and rings the ones new accounts dominate. Clone clusters and the amplifier leaderboard stay separate. A new-account badge sits beside an amplifier grade and does not change it.
 - Open a cluster for the originator, the timeline, and a normalized text diff.
 - Open an account. Clone speech and amplifier grades are two meters. They are not added together.
 - Paste a duplicate of a fixture post on `/paste`. Decorations (links, @handles, cashtags, emoji) are stripped, and an exact copy is flagged as clone speech. A slogan without the copied paragraph is an amplifier-style hit, not a clone.
@@ -46,7 +46,9 @@ You can also paste your own text, several posts split by a line that is only `--
 5. Two or more shared 4-grams, with Jaccard ≥ 0.5 and below 0.85, is a template skeleton.
 6. Copies only join a cluster within 14 days of first seen. A leading `RT @handle:` is excluded.
 
-Thresholds and the amplifier formula are printed on `/methodology` from the same constants the code uses.
+Thresholds, the amplifier formula, and the new-account rules are printed on `/methodology` from the same constants the code uses. Fixture ages are `accountCreatedAt` on each account, measured at 22 Sep 2026 15:00 UTC. That is a file in the repo, not an X profile lookup. Paste can send `accountCreatedAt` or `ageDays`. Omit both and the age is unknown.
+
+A cluster or narrative is highlighted when accounts under 1 year wrote at least half of its posts. The under-30-day share is reported separately and uses the same half-volume line.
 
 The corpus is synthetic (`data/corpus.json`): 12 narratives and a few dozen posts, with deliberate clones and boosters. Follower counts are bait. They are displayed and not scored, so a large clone account does not top the amplifier board.
 

@@ -7,6 +7,10 @@ export type FixturePost = {
   postedAt: string;
   narrativeId: string | null;
   action: PostAction;
+  /** Optional poster created date. Fixture posts inherit this from the account directory. */
+  accountCreatedAt?: string;
+  /** Optional age in days at the fixture clock, used when no created date is present. */
+  ageDays?: number;
 };
 
 export type FixtureAccount = {
@@ -14,9 +18,27 @@ export type FixtureAccount = {
   name: string;
   bio: string;
   joined: string;
+  /** Calendar date the fixture account was created. Demo ages use this field. */
+  accountCreatedAt?: string;
   followers: number;
   following: number;
   follows: string[];
+};
+
+export type AgeBand = "fresh" | "young" | "established" | "unknown";
+
+export type AgeVolume = {
+  freshPostCount: number;
+  /** Posts from accounts that are at least 30 days old and under 1 year. */
+  youngPostCount: number;
+  /** Fresh plus young: every post from an account under 1 year. */
+  underYearPostCount: number;
+  establishedPostCount: number;
+  unknownAgePostCount: number;
+  freshVolumePct: number;
+  underYearVolumePct: number;
+  freshAccountsDominate: boolean;
+  newAccountsDominate: boolean;
 };
 
 export type Narrative = {
@@ -67,6 +89,9 @@ export type AnnotatedPost = {
   framePhrases: string[];
   isNarrativeOriginatorPost: boolean;
   isBoost: boolean;
+  accountCreatedAt: string | null;
+  ageDays: number | null;
+  ageBand: AgeBand;
 };
 
 export type FollowLink = {
@@ -90,6 +115,7 @@ export type CloneCluster = {
   accounts: string[];
   mutualFollows: FollowLink[];
   oneWayFollows: FollowLink[];
+  age: AgeVolume;
 };
 
 export type AccountReport = {
@@ -113,6 +139,9 @@ export type AccountReport = {
   narrativeIds: string[];
   clusterIds: string[];
   passesAmpGate: boolean;
+  accountCreatedAt: string | null;
+  ageDays: number | null;
+  ageBand: AgeBand;
 };
 
 export type NarrativeVolume = {
@@ -131,6 +160,9 @@ export type NarrativeVolume = {
   firstSeen: string | null;
   cloneAccountCount: number;
   ampAccountCount: number;
+  age: AgeVolume;
+  freshBoostPosts: number;
+  underYearBoostPosts: number;
 };
 
 export type NarrativeEdge = {
@@ -151,5 +183,8 @@ export type Report = {
     clusterCount: number;
     clonePostCount: number;
     amplifierAccountCount: number;
+    freshPostCount: number;
+    underYearPostCount: number;
+    newAccountNarrativeCount: number;
   };
 };

@@ -1,4 +1,4 @@
-import type { AccountLabel, PostRole } from "@/lib/types";
+import type { AccountLabel, AgeBand, PostRole } from "@/lib/types";
 
 const ACCOUNT_STYLES: Record<AccountLabel, string> = {
   Originator: "bg-origin-soft text-origin",
@@ -23,6 +23,38 @@ const ROLE_LABEL: Record<PostRole, string> = {
   template: "Template",
   solo: "Solo",
 };
+
+const AGE_LABEL: Record<AgeBand, string> = {
+  fresh: "New <30d",
+  young: "New <1y",
+  established: "Established",
+  unknown: "Age unknown",
+};
+
+const AGE_STYLE: Record<AgeBand, string> = {
+  fresh: "bg-fresh-soft text-fresh",
+  young: "bg-yearling-soft text-yearling",
+  established: "bg-origin-soft text-origin",
+  unknown: "bg-paper text-ink-soft",
+};
+
+export function AgeBadge({
+  band,
+  showEstablished = false,
+  showUnknown = false,
+}: {
+  band: AgeBand;
+  showEstablished?: boolean;
+  showUnknown?: boolean;
+}) {
+  if (band === "established" && !showEstablished) return null;
+  if (band === "unknown" && !showUnknown) return null;
+  return (
+    <span className={`inline-block border border-current/15 px-2 py-0.5 text-xs tracking-wide ${AGE_STYLE[band]}`}>
+      {AGE_LABEL[band]}
+    </span>
+  );
+}
 
 export function RoleBadge({ role }: { role: PostRole }) {
   const style =
