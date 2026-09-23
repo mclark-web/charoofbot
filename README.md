@@ -1,6 +1,6 @@
-# Charoof Bot
+# GCBot
 
-Zero-cost proof of clone speech, narrative amplifiers, and a volume graph. The demo never calls the X API, never asks for a key, and does not need a database or a language model.
+A GradedCalls product. Zero-cost proof of clone speech, narrative amplifiers, and a volume graph. The demo never calls the X API, never asks for a key, and does not need a database or a language model.
 
 Built for accountability in an age of market fomo, prediction craze, and loud anonymous voices.
 
