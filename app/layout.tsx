@@ -26,8 +26,8 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Charoof Bot",
-    template: "%s · Charoof Bot",
+    default: "GCBot",
+    template: "%s · GCBot",
   },
   description:
     "Zero-cost demo that separates clone speech from narrative amplifiers. Fixture corpus and a paste bench. No API keys.",
