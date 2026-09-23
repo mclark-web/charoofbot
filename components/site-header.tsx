@@ -22,7 +22,7 @@ export function SiteHeader() {
       <div className="mx-auto flex min-w-0 max-w-6xl flex-col gap-5 px-5 py-6 md:px-8">
         <div className="flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-3xl">
-            <p className="kicker">GradedCalls · Phase 0 · Fixture corpus</p>
+            <p className="kicker">GC Scale · Phase 0 · Fixture corpus</p>
             <Link href="/" className="mt-2 block font-serif text-4xl tracking-tight text-ink md:text-5xl">
               GCBot
             </Link>

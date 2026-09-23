@@ -99,7 +99,7 @@ function PasteResults({ outcome }: { outcome: PasteRun }) {
         <section>
           <h2 className="font-serif text-2xl text-ink">Handles in this paste</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Clone speech and amplifier grades stay in separate meters. A handle that already exists in the fixture
+            GC Scale clone speech and amplifier grades stay in separate meters. A handle that already exists in the fixture
             directory is rescored with its fixture posts plus this paste. A new handle is scored from the paste alone.
           </p>
           <div className="mt-4 grid gap-4">

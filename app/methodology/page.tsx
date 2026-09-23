@@ -5,7 +5,7 @@ import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
 
 export const metadata: Metadata = {
   title: "Methodology",
-  description: "How the zero-cost GCBot demo detects clone speech and amplifiers, including public thresholds.",
+  description: "How the zero-cost GCBot demo detects clone speech and amplifiers, including public GC Scale thresholds.",
 };
 
 const WINDOW_DAYS = THRESHOLDS.clusterWindowHours / 24;
@@ -18,7 +18,7 @@ export default function MethodologyPage() {
         <h1 className="mt-2 font-serif text-4xl tracking-tight text-ink">Methodology</h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
           GCBot phase 0 is a proof that clone speech, amplifier behavior, and narrative volume can be shown
-          without an API bill. The numbers on this page are the constants the scorer uses.
+          without an API bill. The numbers on this page are the GC Scale constants the scorer uses.
         </p>
       </header>
 
@@ -87,8 +87,8 @@ export default function MethodologyPage() {
               <Row label="Minimum tokens" value={String(THRESHOLDS.minTokens)} />
               <Row label="Cluster window" value={`${WINDOW_DAYS} days after first seen`} />
               <Row label="Exact / near / template weights" value={`${THRESHOLDS.cloneExactWeight} / ${THRESHOLDS.cloneNearWeight} / ${THRESHOLDS.cloneTemplateWeight}`} />
-              <Row label="Clone label" value={`score ≥ ${THRESHOLDS.cloneLabel}`} />
-              <Row label="Amplifier label" value={`score ≥ ${THRESHOLDS.ampLabel}, and ≥ ${THRESHOLDS.ampMinBoostPosts} boosts on ≥ ${THRESHOLDS.ampMinBoostDays} days`} />
+              <Row label="GC Scale clone" value={`score ≥ ${THRESHOLDS.cloneLabel}`} />
+              <Row label="GC Scale amplifier" value={`score ≥ ${THRESHOLDS.ampLabel}, and ≥ ${THRESHOLDS.ampMinBoostPosts} boosts on ≥ ${THRESHOLDS.ampMinBoostDays} days`} />
               <Row label="Fresh account" value={`age < ${THRESHOLDS.freshAccountDays} days`} />
               <Row label="New account" value={`age < ${THRESHOLDS.youngAccountDays} days, which includes fresh`} />
               <Row label="New-account dominance" value={`≥ ${THRESHOLDS.newAccountDominateShare * 100}% of posts in the cluster or narrative`} />
@@ -97,11 +97,11 @@ export default function MethodologyPage() {
           </table>
         </div>
         <p className="leading-relaxed text-ink-soft">
-          Clone score is the sum of match weights, capped at 100. One exact copy is enough to cross the clone label.
+          The GC Scale clone score is the sum of match weights, capped at 100. One exact copy is enough to cross the clone label.
           The first post in a cluster is the originator and does not take clone weight.
         </p>
         <p className="leading-relaxed text-ink-soft">
-          Amplifier score, when there is at least one boost, is 100 times ({THRESHOLDS.ampBoostWeight} × boost share
+          The GC Scale amplifier score, when there is at least one boost, is 100 times ({THRESHOLDS.ampBoostWeight} × boost share
           of posts + {THRESHOLDS.ampLoadWeight} × share of posts on a narrative + {THRESHOLDS.ampPersistenceWeight} ×
           boost-days / {THRESHOLDS.persistenceDaysForFull} + {THRESHOLDS.ampOriginalityWeight} × share of posts that
           are not first-seen + {THRESHOLDS.ampVolumeWeight} × boost count / {THRESHOLDS.ampVolumePostsForFull}). Each

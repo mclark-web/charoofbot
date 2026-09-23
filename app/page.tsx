@@ -70,7 +70,7 @@ export default function DashboardPage() {
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
           Two signals, kept apart. <strong className="font-medium text-ink">Clone speech</strong> is the same or
           near-same wording posted as an original, not a retweet. <strong className="font-medium text-ink">Amplifiers</strong>{" "}
-          boost a narrative without being the source. An account can be either, both, or neither. The scores are
+          boost a narrative without being the source. An account can be either, both, or neither. GC Scale scores are
           never added into one number. A third flag, also kept off both grades, marks volume from accounts under 30
           days and under 1 year. Those ages are fixture dates measured at {formatStamp(AGE_AS_OF)}, not a live lookup.
         </p>
@@ -278,18 +278,18 @@ export default function DashboardPage() {
           <p className="kicker">Amplifiers</p>
           <h2 className="mt-1 font-serif text-2xl text-ink">Leaderboard</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            Sorted by amplifier grade only. Follower count is shown and ignored. A new-account badge sits beside the
+            Sorted by the GC Scale amplifier grade only. Follower count is shown and ignored. A new-account badge sits beside the
             grade when the amplifier is under 30 days or under 1 year. The badge does not change the grade.
             High-follower clone accounts are not on this list unless they also boost without copying.
           </p>
           <div className="mt-4 max-w-full overflow-x-auto border border-rule">
             <table className="w-full min-w-[36rem] text-left text-sm">
-              <caption className="sr-only">Amplifier leaderboard</caption>
+              <caption className="sr-only">Amplifier leaderboard on the GC Scale</caption>
               <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
                 <tr>
                   <th className="px-3 py-2 font-medium">Account</th>
-                  <th className="px-3 py-2 font-medium">Amp</th>
-                  <th className="px-3 py-2 font-medium">Clone</th>
+                  <th className="px-3 py-2 font-medium">GC Scale amp</th>
+                  <th className="px-3 py-2 font-medium">GC Scale clone</th>
                   <th className="px-3 py-2 font-medium">Age</th>
                   <th className="px-3 py-2 font-medium">Followers</th>
                 </tr>
