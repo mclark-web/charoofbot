@@ -5,7 +5,7 @@ import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
 
 export const metadata: Metadata = {
   title: "Methodology",
-  description: "How the zero-cost Charoof Bot demo detects clone speech and amplifiers, including public thresholds.",
+  description: "How the zero-cost GCBot demo detects clone speech and amplifiers, including public thresholds.",
 };
 
 const WINDOW_DAYS = THRESHOLDS.clusterWindowHours / 24;
@@ -17,7 +17,7 @@ export default function MethodologyPage() {
         <p className="kicker">Audit note</p>
         <h1 className="mt-2 font-serif text-4xl tracking-tight text-ink">Methodology</h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          Charoof Bot phase 0 is a proof that clone speech, amplifier behavior, and narrative volume can be shown
+          GCBot phase 0 is a proof that clone speech, amplifier behavior, and narrative volume can be shown
           without an API bill. The numbers on this page are the constants the scorer uses.
         </p>
       </header>

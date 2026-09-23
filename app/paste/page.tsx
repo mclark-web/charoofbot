@@ -3,7 +3,7 @@ import { PasteBench } from "@/components/paste-bench";
 
 export const metadata: Metadata = {
   title: "Paste bench",
-  description: "Paste tweet text and compare it with the Charoof Bot fixture corpus. No API key.",
+  description: "Paste tweet text and compare it with the GCBot fixture corpus. No API key.",
 };
 
 export default function PastePage() {

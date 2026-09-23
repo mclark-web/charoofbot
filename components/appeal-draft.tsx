@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const DRAFT = `Charoof Bot false-positive appeal (demo draft)
+const DRAFT = `GCBot false-positive appeal (demo draft)
 Handle:
 Post text:
 Match shown (exact / near / template / amplifier):
