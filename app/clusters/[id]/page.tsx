@@ -94,28 +94,30 @@ export default async function ClusterPage({ params }: PageProps) {
         <ul className="mt-4 grid gap-3 md:hidden">
           {cluster.posts.map((post) => (
             <li key={post.id} className="grid gap-2 border border-rule bg-paper-raised p-4 text-sm">
-              <p>
-                <span className="text-xs uppercase tracking-wide text-ink-soft">When </span>
-                {formatStamp(post.postedAt)}
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">When</span>
+                <span className="min-w-0 max-w-full">{formatStamp(post.postedAt)}</span>
               </p>
-              <p>
-                <span className="text-xs uppercase tracking-wide text-ink-soft">Account </span>
-                <Link href={`/accounts/${post.account}`} className="tap underline decoration-rule">
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">Account</span>
+                <Link href={`/accounts/${post.account}`} className="tap min-w-0 max-w-full underline decoration-rule">
                   @{post.account}
                 </Link>
               </p>
-              <p className="flex flex-wrap items-center gap-2">
-                <span className="text-xs uppercase tracking-wide text-ink-soft">Role</span>
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">Role</span>
                 <RoleBadge role={post.role} />
               </p>
-              <p className="flex flex-wrap items-center gap-2">
-                <span className="text-xs uppercase tracking-wide text-ink-soft">Account age</span>
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">Account age</span>
                 <AgeBadge band={post.ageBand} showEstablished showUnknown />
                 <span className="font-mono text-xs text-ink-soft">{formatAgeDays(post.ageDays)}</span>
               </p>
-              <p>
-                <span className="text-xs uppercase tracking-wide text-ink-soft">Latency </span>
-                <span className="text-ink-soft">{post.latencyMs === null ? "First seen" : formatLatency(post.latencyMs)}</span>
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">Latency</span>
+                <span className="min-w-0 max-w-full text-ink-soft">
+                  {post.latencyMs === null ? "First seen" : formatLatency(post.latencyMs)}
+                </span>
               </p>
             </li>
           ))}

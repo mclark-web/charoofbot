@@ -13,7 +13,7 @@
   --lab: #c9c9cf;
   --lab-soft: rgba(154, 154, 163, 0.12);
   --vermilion: #eb6505;
-  --vermilion-soft: rgba(235, 101, 5, 0.12);
+  --vermilion-soft: rgba(235, 101, 5, 0.06);
   --origin: #ee9a44;
   --origin-soft: rgba(238, 154, 68, 0.14);
   --clay: #c9c9cf;
@@ -21,8 +21,6 @@
   --fresh: #eb6505;
   --fresh-soft: rgba(235, 101, 5, 0.14);
   --yearling-soft: rgba(154, 154, 163, 0.08);
-  --ok: #4cc38a;
-  --bad: #f26d7d;
 }
 
 @theme inline {

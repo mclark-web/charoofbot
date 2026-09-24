@@ -224,7 +224,6 @@ export function NarrativeGraph({
                 dominantBaseline="auto"
                 fill="#f2f1ee"
                 fontSize={FONT_SIZE}
-                fontFamily="Source Serif 4, Georgia, serif"
               >
                 {node.shortLabel}
               </text>

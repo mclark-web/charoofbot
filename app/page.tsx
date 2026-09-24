@@ -70,7 +70,7 @@ export default function DashboardPage() {
   return (
     <div className="grid min-w-0 gap-12">
       <section className="max-w-3xl">
-        <p className="kicker">GCBot · GC Scale · Phase 0 · Fixture corpus</p>
+        <p className="kicker">GCBot · Phase 0 · Fixture corpus</p>
         <h1 className="mt-2 font-serif text-3xl tracking-tight text-ink md:text-4xl">
           Which narratives are being sewn, and who is copying the language.
         </h1>
@@ -171,17 +171,17 @@ export default function DashboardPage() {
                   <dd className="font-mono">{narrative.age.underYearVolumePct}%</dd>
                 </div>
               </dl>
-              <p className="text-sm">
-                <span className="text-xs uppercase tracking-wide text-ink-soft">First seen </span>
+              <p className="flex flex-wrap items-baseline gap-2 text-sm">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">First seen</span>
                 {narrative.originAccount ? (
-                  <Link href={`/accounts/${narrative.originAccount}`} className="tap underline decoration-rule">
+                  <Link href={`/accounts/${narrative.originAccount}`} className="tap min-w-0 max-w-full underline decoration-rule">
                     @{narrative.originAccount}
                   </Link>
                 ) : (
                   "—"
                 )}
                 {narrative.firstSeen ? (
-                  <span className="mt-0.5 block text-xs text-ink-soft">{formatStamp(narrative.firstSeen)}</span>
+                  <span className="basis-full text-xs text-ink-soft">{formatStamp(narrative.firstSeen)}</span>
                 ) : null}
               </p>
             </li>
