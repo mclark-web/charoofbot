@@ -37,7 +37,7 @@ export function NewAccountChart({ rows }: { rows: NewAccountRow[] }) {
             meterLabel={`${row.title}, ${row.underYearPosts} of ${row.postCount} posts from accounts under 1 year. ${row.freshPosts} under 30 days, ${row.youngPosts} from 30 days to 1 year.`}
             segments={[
               { name: "Under 30 days", value: row.freshPosts, color: "#eb6505" },
-              { name: "30 days to 1 year", value: row.youngPosts, color: "#9a9aa3" },
+              { name: "30 days to 1 year", value: row.youngPosts, color: "#d15202" },
             ]}
           />
           <p className="mt-2 text-xs leading-relaxed text-ink-soft">

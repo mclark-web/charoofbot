@@ -25,6 +25,7 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://charoofbot.vercel.app"),
   applicationName: "GCBot",
   title: {
     default: "GCBot",
@@ -32,6 +33,11 @@ export const metadata: Metadata = {
   },
   description:
     "GCBot, a GradedCalls product. The GC Scale reads authenticity: higher means more trustworthy. Fixture corpus and a paste bench. No API keys.",
+  openGraph: {
+    title: { absolute: "GCBot · GradedCalls" },
+    siteName: "GradedCalls",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

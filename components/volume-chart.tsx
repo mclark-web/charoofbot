@@ -19,8 +19,8 @@ export type VolumeRow = {
 const SEGMENTS = [
   { key: "originPosts", name: "Originator", color: "#ee9a44" },
   { key: "clonePosts", name: "Copied posts", color: "#eb6505" },
-  { key: "boostPosts", name: "Boosts", color: "#9a9aa3" },
-  { key: "otherPosts", name: "Other notes", color: "#3a3e48" },
+  { key: "boostPosts", name: "Boosts", color: "#d15202" },
+  { key: "otherPosts", name: "Other notes", color: "#7a3402" },
 ] as const;
 
 export function VolumeChart({ rows }: { rows: VolumeRow[] }) {

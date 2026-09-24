@@ -76,7 +76,7 @@ export function NarrativeGraph({
                 x={node.x}
                 y={node.y + 5}
                 textAnchor="middle"
-                fill="#f2f1ee"
+                fill="#1a1005"
                 fontSize="13"
                 fontFamily="IBM Plex Mono, ui-monospace, monospace"
               >

@@ -114,7 +114,7 @@ export default async function AccountPage({ params }: PageProps) {
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <RoleBadge role={post.role} />
                   {post.isBoost ? (
-                    <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink">Boost</span>
+                    <span className="meta-badge">Boost</span>
                   ) : null}
                   <span className="text-ink-soft">{formatStamp(post.postedAt)}</span>
                   <span className="text-ink-soft">{post.action}</span>

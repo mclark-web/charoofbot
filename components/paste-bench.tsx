@@ -134,16 +134,16 @@ function FindingCard({
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-xs text-ink-soft">@{finding.account}</span>
         {finding.isRetweet ? (
-          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">Retweet excluded</span>
+          <span className="meta-badge">Retweet excluded</span>
         ) : cloneKind ? (
-          <span className="border border-vermilion/40 bg-vermilion-soft px-2 py-1 text-xs text-vermilion">{matchLabel(cloneKind)}</span>
+          <span className="meta-badge">{matchLabel(cloneKind)}</span>
         ) : (
-          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">No clone match</span>
+          <span className="meta-badge">No copied wording</span>
         )}
         {finding.isBoost ? (
-          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink">Boost frame hit</span>
+          <span className="meta-badge">Boost frame hit</span>
         ) : (
-          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">No boost frame</span>
+          <span className="meta-badge">No boost frame</span>
         )}
         <AgeBadge band={finding.ageBand} showEstablished showUnknown />
         <span className="font-mono text-xs text-ink-soft">{formatAgeDays(finding.ageDays)}</span>

@@ -174,9 +174,9 @@ export function GcScale({
               <div className="gc-swirl" aria-hidden="true">
                 <div className="tex" />
               </div>
-              <div className="gc-liquid-sheen" />
             </>
           )}
+          <div className="gc-liquid-sheen" />
           <div className="gc-meniscus" />
         </div>
       </div>

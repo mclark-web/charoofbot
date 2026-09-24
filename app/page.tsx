@@ -108,8 +108,8 @@ export default function DashboardPage() {
           <ul className="flex flex-wrap gap-3 text-xs text-ink-soft">
             <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-origin" /> Originator</li>
             <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-vermilion" /> Copied posts</li>
-            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-yearling" /> Boosts</li>
-            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-other" /> Other notes</li>
+            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-[#d15202]" /> Boosts</li>
+            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-[#7a3402]" /> Other notes</li>
           </ul>
         </div>
         <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">
@@ -200,7 +200,7 @@ export default function DashboardPage() {
               <span className="inline-block h-3 w-3 border border-rule bg-fresh" /> Under 30 days
             </li>
             <li className="flex items-center gap-1.5">
-              <span className="inline-block h-3 w-3 border border-rule bg-yearling" /> 30 days to 1 year
+              <span className="inline-block h-3 w-3 border border-rule bg-[#d15202]" /> 30 days to 1 year
             </li>
           </ul>
         </div>
@@ -238,7 +238,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <div className="grid min-w-0 gap-10 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-10">
         <section>
           <p className="kicker">Copied language</p>
           <h2 className="mt-1 font-serif text-2xl text-ink">Language clusters</h2>
@@ -296,8 +296,39 @@ export default function DashboardPage() {
             grade when the account is under 30 days or under 1 year. The badge does not change the grade.
             High-follower copy accounts are not on this list unless they also boost without copying.
           </p>
-          <div className="mt-4 max-w-full min-w-0 overflow-x-auto border border-rule">
-            <table className="w-full min-w-[36rem] text-left text-sm">
+          <ul className="mt-4 grid gap-3 md:hidden">
+            {amplifiers.map((account) => (
+              <li key={account.handle} className="grid gap-3 border border-rule bg-paper-raised p-4">
+                <div>
+                  <Link href={`/accounts/${account.handle}`} className="tap underline decoration-rule">
+                    @{account.handle}
+                  </Link>
+                  <span className="mt-1 block">
+                    <LabelBadge label={account.label} />
+                  </span>
+                </div>
+                <GcScale
+                  score={account.ampScore}
+                  label="Organic reach"
+                  signal={detectorSignal("amplifier", account.ampScore)}
+                  meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
+                />
+                <GcScale
+                  score={account.cloneScore}
+                  label="Original voice"
+                  signal={detectorSignal("clone", account.cloneScore)}
+                  meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
+                />
+                <p className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+                  <AgeBadge band={account.ageBand} showEstablished />
+                  <span className="font-mono text-xs">{formatAgeDays(account.ageDays)}</span>
+                  <span className="font-mono">{account.followers.toLocaleString("en-US")} followers</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 hidden max-w-full min-w-0 border border-rule md:block">
+            <table className="w-full text-left text-sm">
               <caption className="sr-only">Flagged amplifiers, lowest organic reach first</caption>
               <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
                 <tr>
@@ -319,7 +350,7 @@ export default function DashboardPage() {
                         <LabelBadge label={account.label} />
                       </span>
                     </td>
-                    <td className="min-w-52 px-3 py-2">
+                    <td className="min-w-0 px-3 py-2">
                       <GcScale
                         score={account.ampScore}
                         label="Organic reach"
@@ -327,7 +358,7 @@ export default function DashboardPage() {
                         meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
                       />
                     </td>
-                    <td className="min-w-52 px-3 py-2">
+                    <td className="min-w-0 px-3 py-2">
                       <GcScale
                         score={account.cloneScore}
                         label="Original voice"
