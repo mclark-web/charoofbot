@@ -1,4 +1,4 @@
-import { GcScale } from "@/components/gc-scale";
+import { GcScale, type GradeInput } from "@/components/gc-scale";
 
 export function ScoreMeter({
   label,
@@ -6,7 +6,7 @@ export function ScoreMeter({
   detail,
 }: {
   label: string;
-  score: number;
+  score: GradeInput;
   detail: string;
 }) {
   const scaleLabel = `GC Scale · ${label}`;

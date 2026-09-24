@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
+import { amplifierScaleScore } from "@/components/gc-scale";
 import { ScoreMeter } from "@/components/score-meter";
 import { formatAgeDays, formatLatency, matchLabel } from "@/lib/format";
 import { runPaste, type PasteRun } from "@/lib/paste";
@@ -213,7 +214,7 @@ function AccountSlice({ account }: { account: AccountReport }) {
         />
         <ScoreMeter
           label="Amplifier"
-          score={account.ampScore}
+          score={amplifierScaleScore(account.boostPostCount, account.ampScore)}
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts across ${account.boostDays} days.`

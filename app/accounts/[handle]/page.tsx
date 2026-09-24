@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
+import { amplifierScaleScore } from "@/components/gc-scale";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
 import { AGE_AS_OF } from "@/lib/thresholds";
@@ -62,7 +63,7 @@ export default async function AccountPage({ params }: PageProps) {
         />
         <ScoreMeter
           label="Amplifier"
-          score={account.ampScore}
+          score={amplifierScaleScore(account.boostPostCount, account.ampScore)}
           detail={`${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. ${
             account.passesAmpGate
               ? "Passes the persistence gate."

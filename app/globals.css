@@ -171,10 +171,19 @@ thead {
   top: 0;
   z-index: 20;
   box-sizing: border-box;
-  height: 56px;
   border-bottom: 1px solid #2a2e38;
-  background-color: rgba(11, 12, 14, 0.94);
+  background-color: #0b0c0e;
   backdrop-filter: blur(16px);
+}
+
+.fixture-label {
+  margin: 0;
+  padding: 0 8px 8px;
+  background-color: #0b0c0e;
+  color: #9a9aa3;
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
 }
 
 .site-header-inner {
@@ -182,7 +191,8 @@ thead {
   align-items: center;
   flex-wrap: nowrap;
   gap: 6px;
-  height: 100%;
+  box-sizing: border-box;
+  height: 56px;
   max-width: 72rem;
   margin: 0 auto;
   padding: 0 8px;
@@ -584,6 +594,19 @@ thead {
   font-size: 32px;
 }
 
+.gc-ungraded {
+  margin: 0;
+  color: #9a9aa3;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1.3;
+}
+
+.gc-scale.is-vertical .gc-ungraded {
+  font-size: 14px;
+}
+
 @keyframes gc-tex {
   from {
     transform: translateX(0);
@@ -606,6 +629,10 @@ thead {
   .site-header-inner {
     gap: 16px;
     padding: 0 20px;
+  }
+
+  .fixture-label {
+    padding: 0 20px 10px;
   }
 
   .brand-name {
