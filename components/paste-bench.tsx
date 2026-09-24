@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
+import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
+import { organicReachMutedNote, organicReachWithheldDetail } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { formatAgeDays, formatLatency, matchLabel } from "@/lib/format";
 import { runPaste, type PasteRun } from "@/lib/paste";
@@ -12,9 +14,9 @@ import type { AccountReport, AnnotatedPost } from "@/lib/types";
 const SAMPLES = [
   { id: "exact", label: "Exact fixture duplicate", text: samplePastes.exact },
   { id: "near", label: "Near-duplicate", text: samplePastes.near },
-  { id: "amp", label: "Amplifier framing", text: samplePastes.amp },
+  { id: "amp", label: "Boost framing", text: samplePastes.amp },
   { id: "clean", label: "Unrelated note", text: samplePastes.clean },
-  { id: "fresh", label: "New-account amplifier", text: samplePastes.fresh },
+  { id: "fresh", label: "New-account boost", text: samplePastes.fresh },
 ] as const;
 
 export function PasteBench() {
@@ -29,7 +31,7 @@ export function PasteBench() {
   return (
     <div className="grid gap-8">
       <form
-        className="grid gap-4"
+        className="grid gap-4 border border-rule bg-paper-raised p-4"
         onSubmit={(event) => {
           event.preventDefault();
           setOutcome(runPaste(draft));
@@ -45,24 +47,24 @@ export function PasteBench() {
             onChange={(event) => setDraft(event.target.value)}
             rows={10}
             spellCheck={false}
-            className="mt-2 w-full border border-rule bg-paper-raised p-3 font-mono text-sm leading-6 text-ink"
+            className="mt-2 w-full min-w-11 border border-rule bg-inset p-3 font-mono text-sm leading-6 text-ink placeholder:text-ink-soft"
             placeholder={"@handle\nTweet text\n\n---\n\n@other\nSecond tweet"}
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="tap-row">
           {SAMPLES.map((sample) => (
             <button
               key={sample.id}
               type="button"
               onClick={() => score(sample.text)}
-              className="border border-rule bg-paper-raised px-3 py-1.5 text-sm text-ink hover:border-ink"
+              className="btn"
             >
               {sample.label}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="submit" className="border border-ink bg-ink px-4 py-2 text-sm text-paper">
+        <div className="tap-row">
+          <button type="submit" className="btn btn-primary">
             Score against fixtures
           </button>
           <p className="text-sm text-ink-soft">Runs in the browser. Nothing is uploaded.</p>
@@ -99,7 +101,7 @@ function PasteResults({ outcome }: { outcome: PasteRun }) {
         <section>
           <h2 className="font-serif text-2xl text-ink">Handles in this paste</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            GC Scale clone speech and amplifier grades stay in separate meters. A handle that already exists in the fixture
+            Original voice and organic reach stay in separate meters. Higher means more authentic. A handle that already exists in the fixture
             directory is rescored with its fixture posts plus this paste. A new handle is scored from the paste alone.
           </p>
           <div className="mt-4 grid gap-4">
@@ -133,16 +135,16 @@ function FindingCard({
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-xs text-ink-soft">@{finding.account}</span>
         {finding.isRetweet ? (
-          <span className="bg-paper px-2 py-0.5 text-xs text-ink-soft">Retweet excluded</span>
+          <span className="meta-badge">Retweet excluded</span>
         ) : cloneKind ? (
-          <span className="bg-vermilion-soft px-2 py-0.5 text-xs text-vermilion">{matchLabel(cloneKind)}</span>
+          <span className="meta-badge">{matchLabel(cloneKind)}</span>
         ) : (
-          <span className="bg-paper px-2 py-0.5 text-xs text-ink-soft">No clone match</span>
+          <span className="meta-badge">No copied wording</span>
         )}
         {finding.isBoost ? (
-          <span className="bg-lab-soft px-2 py-0.5 text-xs text-lab">Amplifier-style frame hit</span>
+          <span className="meta-badge">Boost frame hit</span>
         ) : (
-          <span className="bg-paper px-2 py-0.5 text-xs text-ink-soft">No amplifier frame</span>
+          <span className="meta-badge">No boost frame</span>
         )}
         <AgeBadge band={finding.ageBand} showEstablished showUnknown />
         <span className="font-mono text-xs text-ink-soft">{formatAgeDays(finding.ageDays)}</span>
@@ -150,29 +152,25 @@ function FindingCard({
       <p className="mt-3 font-serif text-lg leading-snug text-ink">{finding.text}</p>
       {finding.isRetweet ? (
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-          A leading RT @handle: is not clone speech. Clone speech is the same language posted as an original.
+          A leading RT @handle: is set aside. It does not lower original voice, and it does not count as organic reach.
         </p>
       ) : null}
       {cloneKind ? (
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
           <div>
             <dt className="kicker">Matched</dt>
-            <dd className="mt-1">
+            <dd className="tap-row mt-1">
               {finding.matchedAccount ? (
-                <Link href={`/accounts/${finding.matchedAccount}`} className="underline decoration-rule">
+                <Link href={`/accounts/${finding.matchedAccount}`} className="tap underline decoration-rule">
                   @{finding.matchedAccount}
                 </Link>
               ) : (
                 "—"
               )}
               {finding.clusterId ? (
-                <>
-                  {" "}
-                  ·{" "}
-                  <Link href={`/clusters/${finding.clusterId}`} className="underline decoration-rule">
-                    open cluster
-                  </Link>
-                </>
+                <Link href={`/clusters/${finding.clusterId}`} className="tap underline decoration-rule">
+                  open cluster
+                </Link>
               ) : null}
             </dd>
           </div>
@@ -188,14 +186,14 @@ function FindingCard({
       {frameTitles.length > 0 ? (
         <p className="mt-3 text-sm text-ink-soft">Frame phrase hits {frameTitles.join(", ")}.</p>
       ) : null}
-      <p className="mt-3 break-all font-mono text-[11px] text-ink-soft">{finding.hash}</p>
+      <p className="mt-3 break-all font-mono text-xs text-ink-soft">{finding.hash}</p>
     </article>
   );
 }
 
 function AccountSlice({ account }: { account: AccountReport }) {
   return (
-    <div className="grid gap-3 border border-rule p-4 md:grid-cols-2">
+    <div className="grid gap-3 border border-rule bg-paper-raised p-4 md:grid-cols-2">
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-serif text-xl">@{account.handle}</h3>
@@ -211,19 +209,19 @@ function AccountSlice({ account }: { account: AccountReport }) {
       </div>
       <div className="grid gap-3">
         <ScoreMeter
-          label="Clone speech"
+          label="Original voice"
           score={account.cloneScore}
-          tone="clone"
-          detail={`${account.clonePostCount} copied post${account.clonePostCount === 1 ? "" : "s"}. Not mixed with the amplifier grade.`}
+          signal={detectorSignal("clone", account.cloneScore)}
+          detail={`${account.clonePostCount} copied post${account.clonePostCount === 1 ? "" : "s"}. Higher means more original. Not mixed with organic reach.`}
         />
         <ScoreMeter
-          label="Amplifier"
-          score={account.ampScore}
-          tone="amp"
+          label="Organic reach"
+          score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
+          signal={organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays)}
           detail={
             account.passesAmpGate
-              ? `${account.boostPostCount} boosts across ${account.boostDays} days.`
-              : `${account.boostPostCount} boosts across ${account.boostDays} days. Label needs 2 boosts on 2 days.`
+              ? `${account.boostPostCount} boosts across ${account.boostDays} days. Higher means less of the activity is boosting someone else.`
+              : organicReachWithheldDetail(account.boostPostCount, account.boostDays, account.ampScore)
           }
         />
       </div>

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "tsx --test lib/age.test.ts lib/detect.test.ts"
+    "test": "tsx --test lib/age.test.ts lib/detect.test.ts components/gc-scale.test.ts"
   },
   "dependencies": {
     "next": "16.3.5",

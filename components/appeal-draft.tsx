@@ -17,7 +17,7 @@ export function AppealDraft() {
       <pre className="whitespace-pre-wrap font-mono text-xs leading-6 text-ink">{DRAFT}</pre>
       <button
         type="button"
-        className="mt-3 border border-ink bg-ink px-3 py-1.5 text-sm text-paper"
+        className="btn btn-primary mt-3"
         onClick={() => {
           void navigator.clipboard.writeText(DRAFT).then(() => {
             setCopied(true);

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
+import { ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
 import { formatStamp } from "@/lib/format";
 import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
 
 export const metadata: Metadata = {
   title: "Methodology",
-  description: "How the zero-cost GCBot demo detects clone speech and amplifiers, including public GC Scale thresholds.",
+  description: "How the GC Scale shows authenticity, and the detector signals underneath. Higher means more trustworthy.",
 };
 
 const WINDOW_DAYS = THRESHOLDS.clusterWindowHours / 24;
@@ -17,8 +18,9 @@ export default function MethodologyPage() {
         <p className="kicker">Audit note</p>
         <h1 className="mt-2 font-serif text-4xl tracking-tight text-ink">Methodology</h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          GCBot phase 0 is a proof that clone speech, amplifier behavior, and narrative volume can be shown
-          without an API bill. The numbers on this page are the GC Scale constants the scorer uses.
+          GCBot phase 0 shows two authenticity readings, original voice and organic reach, without an API bill.
+          Higher on the GC Scale means more authentic, and STRONG means trustworthy. The numbers below are the
+          detector constants. The scale you see is 100 minus that detector signal.
         </p>
       </header>
 
@@ -42,15 +44,35 @@ export default function MethodologyPage() {
       </section>
 
       <section className="grid gap-3">
-        <h2 className="font-serif text-2xl">Two identifiers, never one score</h2>
+        <h2 className="font-serif text-2xl">Two readings, never one score</h2>
         <p className="leading-relaxed">
-          Clone speech asks whether this post reuses earlier language and presents it as original. Amplifiers ask
-          whether an account keeps a narrative in circulation without being the source. A retweet prefix
-          (<span className="font-mono">RT @handle:</span>) is neither. It is excluded.
+          Original voice asks how little of the wording is copied and posted as original. Organic reach asks how
+          little of the activity is boosting a narrative without being the source. A retweet prefix
+          (<span className="font-mono">RT @handle:</span>) is neither. It is excluded. Higher on each meter means more authentic.
         </p>
         <p className="leading-relaxed">
-          Labels are Originator, Clone, Amplifier, Clone+Amp, or Clean. Clone+Amp means both gates passed. It is not
-          an average of the two grades.
+          The detector still flags Originator, Clone, Amplifier, Clone+Amp, or Clean. Clone+Amp means both detector
+          gates passed. It is not an average of the two grades. Those badges mark the flag. The GC Scale beside them
+          is authenticity.
+        </p>
+      </section>
+
+      <section className="grid gap-3">
+        <h2 className="font-serif text-2xl">How the GC Scale is shown</h2>
+        <p className="leading-relaxed">
+          Display only: authenticity = 100 − detector signal. A graded, finite signal is flipped. Withheld values
+          read Not graded yet. {ORGANIC_REACH_RULE} They are never flipped into 100 STRONG. A reading above 100 is not graded.
+        </p>
+        <ul className="list-disc space-y-2 pl-5 leading-relaxed">
+          <li>70 and above is STRONG. That is the trustworthy band.</li>
+          <li>40–69 is PROVISIONAL.</li>
+          <li>Above 0 and under 40 is WEAK.</li>
+          <li>A graded authenticity that displays as 0% is EXIT LIQUIDITY, shown as an empty glass.</li>
+        </ul>
+        <p className="leading-relaxed text-ink-soft">
+          A clean account whose detector clone signal is 0 shows 100% STRONG original voice. A copy at a detector
+          signal of 100 shows 0% EXIT LIQUIDITY. A detector signal of 90 shows 10% WEAK. The small muted line under
+          a meter is the raw detector signal, so the flip stays visible.
         </p>
       </section>
 
@@ -72,7 +94,7 @@ export default function MethodologyPage() {
 
       <section className="grid gap-3">
         <h2 className="font-serif text-2xl">Thresholds</h2>
-        <div className="overflow-x-auto border border-rule">
+        <div className="max-w-full min-w-0 overflow-x-auto border border-rule">
           <table className="w-full text-left text-sm">
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>
@@ -87,8 +109,8 @@ export default function MethodologyPage() {
               <Row label="Minimum tokens" value={String(THRESHOLDS.minTokens)} />
               <Row label="Cluster window" value={`${WINDOW_DAYS} days after first seen`} />
               <Row label="Exact / near / template weights" value={`${THRESHOLDS.cloneExactWeight} / ${THRESHOLDS.cloneNearWeight} / ${THRESHOLDS.cloneTemplateWeight}`} />
-              <Row label="GC Scale clone" value={`score ≥ ${THRESHOLDS.cloneLabel}`} />
-              <Row label="GC Scale amplifier" value={`score ≥ ${THRESHOLDS.ampLabel}, and ≥ ${THRESHOLDS.ampMinBoostPosts} boosts on ≥ ${THRESHOLDS.ampMinBoostDays} days`} />
+              <Row label="Detector clone signal" value={`score ≥ ${THRESHOLDS.cloneLabel} flags copied wording`} />
+              <Row label="Detector amplifier signal" value={`score ≥ ${THRESHOLDS.ampLabel}, and ≥ ${THRESHOLDS.ampMinBoostPosts} boosts on ≥ ${THRESHOLDS.ampMinBoostDays} days`} />
               <Row label="Fresh account" value={`age < ${THRESHOLDS.freshAccountDays} days`} />
               <Row label="New account" value={`age < ${THRESHOLDS.youngAccountDays} days, which includes fresh`} />
               <Row label="New-account dominance" value={`≥ ${THRESHOLDS.newAccountDominateShare * 100}% of posts in the cluster or narrative`} />
@@ -97,16 +119,19 @@ export default function MethodologyPage() {
           </table>
         </div>
         <p className="leading-relaxed text-ink-soft">
-          The GC Scale clone score is the sum of match weights, capped at 100. One exact copy is enough to cross the clone label.
-          The first post in a cluster is the originator and does not take clone weight.
+          The detector clone signal is the sum of match weights, capped at 100. One exact copy is enough to cross the clone flag.
+          The first post in a cluster is the originator and does not take clone weight. Original voice on the GC Scale is
+          100 minus that signal.
         </p>
         <p className="leading-relaxed text-ink-soft">
-          The GC Scale amplifier score, when there is at least one boost, is 100 times ({THRESHOLDS.ampBoostWeight} × boost share
+          The detector amplifier signal, when there is at least one boost, is 100 times ({THRESHOLDS.ampBoostWeight} × boost share
           of posts + {THRESHOLDS.ampLoadWeight} × share of posts on a narrative + {THRESHOLDS.ampPersistenceWeight} ×
           boost-days / {THRESHOLDS.persistenceDaysForFull} + {THRESHOLDS.ampOriginalityWeight} × share of posts that
           are not first-seen + {THRESHOLDS.ampVolumeWeight} × boost count / {THRESHOLDS.ampVolumePostsForFull}). Each
           ratio is capped at 1. A boost is a quote, reply, or non-copied slogan on someone else’s narrative. Verbatim
-          copies do not count as boosts, which is why a pure clone can sit at amplifier 0.
+          copies do not count as boosts. A pure clone has no boosts, so the detector records amplifier 0 as a skip and
+          organic reach reads Not graded yet. {ORGANIC_REACH_RULE} It is not shown as 100 STRONG, as WEAK, or as 0%.
+          When the signal is graded, organic reach is 100 minus that signal.
         </p>
       </section>
 
@@ -130,9 +155,9 @@ export default function MethodologyPage() {
           unknown. A handle already in the fixture directory keeps the fixture date.
         </p>
         <p className="leading-relaxed">
-          The new-account mark is a badge and a volume series. It is not added to the clone speech grade and it is not
-          added to the amplifier grade. A fresh amplifier and an established amplifier with the same boost pattern keep
-          the same amplifier score. The badge tells you the account is new. The score tells you how it behaved.
+          The new-account mark is a badge and a volume series. It is not added to original voice and it is not
+          added to organic reach. A fresh booster and an established booster with the same boost pattern keep
+          the same detector signal, and the same authenticity. The badge tells you the account is new. The GC Scale tells you how authentic the activity looks.
         </p>
       </section>
 

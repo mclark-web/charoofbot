@@ -43,10 +43,10 @@ export default async function ClusterPage({ params }: PageProps) {
     <article className="grid gap-8">
       <div>
         <p className="kicker">
-          <Link href="/" className="underline decoration-rule underline-offset-4">
+          <Link href="/" className="tap underline decoration-rule underline-offset-4">
             Dashboard
           </Link>{" "}
-          / clone cluster
+          / copied language
         </p>
         <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-ink">{cluster.sampleText}</h1>
         <p className="mt-4 text-sm text-ink-soft">
@@ -62,7 +62,7 @@ export default async function ClusterPage({ params }: PageProps) {
         <div>
           <p className="kicker">Originator</p>
           <p className="mt-2 font-serif text-xl">
-            <Link href={`/accounts/${cluster.originAccount}`} className="underline decoration-rule">
+            <Link href={`/accounts/${cluster.originAccount}`} className="tap underline decoration-rule">
               @{cluster.originAccount}
             </Link>
           </p>
@@ -91,8 +91,39 @@ export default async function ClusterPage({ params }: PageProps) {
 
       <section>
         <h2 className="font-serif text-2xl text-ink">Timeline</h2>
-        <div className="mt-4 max-w-full overflow-x-auto border border-rule">
-          <table className="w-full min-w-[46rem] text-left text-sm">
+        <ul className="mt-4 grid gap-3 md:hidden">
+          {cluster.posts.map((post) => (
+            <li key={post.id} className="grid gap-2 border border-rule bg-paper-raised p-4 text-sm">
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">When</span>
+                <span className="min-w-0 max-w-full">{formatStamp(post.postedAt)}</span>
+              </p>
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">Account</span>
+                <Link href={`/accounts/${post.account}`} className="tap min-w-0 max-w-full underline decoration-rule">
+                  @{post.account}
+                </Link>
+              </p>
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">Role</span>
+                <RoleBadge role={post.role} />
+              </p>
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">Account age</span>
+                <AgeBadge band={post.ageBand} showEstablished showUnknown />
+                <span className="font-mono text-xs text-ink-soft">{formatAgeDays(post.ageDays)}</span>
+              </p>
+              <p className="flex flex-wrap items-baseline gap-2">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">Latency</span>
+                <span className="min-w-0 max-w-full text-ink-soft">
+                  {post.latencyMs === null ? "First seen" : formatLatency(post.latencyMs)}
+                </span>
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 hidden max-w-full min-w-0 border border-rule md:block">
+          <table className="w-full text-left text-sm">
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>
                 <th className="px-3 py-2 font-medium">When</th>
@@ -105,9 +136,9 @@ export default async function ClusterPage({ params }: PageProps) {
             <tbody>
               {cluster.posts.map((post) => (
                 <tr key={post.id} className="border-t border-rule">
-                  <td className="px-3 py-2 whitespace-nowrap">{formatStamp(post.postedAt)}</td>
+                  <td className="px-3 py-2">{formatStamp(post.postedAt)}</td>
                   <td className="px-3 py-2">
-                    <Link href={`/accounts/${post.account}`} className="underline decoration-rule">
+                    <Link href={`/accounts/${post.account}`} className="tap underline decoration-rule">
                       @{post.account}
                     </Link>
                   </td>
@@ -135,13 +166,13 @@ export default async function ClusterPage({ params }: PageProps) {
           <h2 className="font-serif text-2xl text-ink">Text diffs</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
             Diffs compare normalized text: lowercase, with URLs, @handles, cashtags, emoji, and extra whitespace
-            removed. Struck words were in the originator post. Green words appear only in the copy.
+            removed. Struck words were in the originator post. Orange words appear only in the copy.
           </p>
         </div>
         {copies.map((copy) => (
-          <div key={copy.id} className="border border-rule p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Link href={`/accounts/${copy.account}`} className="font-serif text-lg underline decoration-rule">
+          <div key={copy.id} className="border border-rule bg-paper-raised p-4">
+            <div className="tap-row">
+              <Link href={`/accounts/${copy.account}`} className="tap font-serif text-lg underline decoration-rule">
                 @{copy.account}
               </Link>
               <RoleBadge role={copy.role} />
@@ -159,21 +190,21 @@ export default async function ClusterPage({ params }: PageProps) {
       </section>
 
       <section>
-        <h2 className="font-serif text-2xl text-ink">Amplifiers on this narrative</h2>
+        <h2 className="font-serif text-2xl text-ink">Boosts on this narrative</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          These posts reuse the frame or quote it. They are not in the clone cluster unless their wording also
-          matched. The lists stay separate on purpose.
+          These posts reuse the frame or quote it. They are not in the copied-language cluster unless their wording also
+          matched. The lists stay separate on purpose. This is the boost list, not an organic-reach ranking.
         </p>
         {amplifiers.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-soft">No amplifier posts on this narrative.</p>
+          <p className="mt-4 text-sm text-ink-soft">No boost posts on this narrative.</p>
         ) : (
           <ul className="mt-4 divide-y divide-rule border-y border-rule">
             {amplifiers.map((post) => (
               <li key={post.id} className="py-3">
-                <p className="text-sm">
-                  <Link href={`/accounts/${post.account}`} className="underline decoration-rule">
+                <p className="tap-row text-sm">
+                  <Link href={`/accounts/${post.account}`} className="tap underline decoration-rule">
                     @{post.account}
-                  </Link>{" "}
+                  </Link>
                   <span className="text-ink-soft">
                     {post.action} · {formatStamp(post.postedAt)}
                   </span>{" "}

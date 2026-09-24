@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { authenticityFrom, detectorSignal, GcScale } from "@/components/gc-scale";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
 import { NarrativeGraph } from "@/components/narrative-graph";
 import { NewAccountChart, type NewAccountRow } from "@/components/new-account-chart";
@@ -53,31 +54,38 @@ export default function DashboardPage() {
       newAccountsDominate: narrative.age.newAccountsDominate,
     }));
   const maxPosts = Math.max(...report.narratives.map((narrative) => narrative.postCount));
+  const authenticity = (score: number) => {
+    const flipped = authenticityFrom(score);
+    return typeof flipped === "number" ? flipped : Number.POSITIVE_INFINITY;
+  };
   const amplifiers = report.accounts
     .filter((account) => account.label === "Amplifier" || account.label === "Clone+Amp")
     .sort(
       (a, b) =>
-        b.ampScore - a.ampScore || b.boostPostCount - a.boostPostCount || a.handle.localeCompare(b.handle),
+        authenticity(a.ampScore) - authenticity(b.ampScore) ||
+        b.boostPostCount - a.boostPostCount ||
+        a.handle.localeCompare(b.handle),
     );
 
   return (
     <div className="grid min-w-0 gap-12">
       <section className="max-w-3xl">
-        <p className="kicker">Field notebook 00</p>
+        <p className="kicker">GCBot · Phase 0 · Fixture corpus</p>
         <h1 className="mt-2 font-serif text-3xl tracking-tight text-ink md:text-4xl">
           Which narratives are being sewn, and who is copying the language.
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          Two signals, kept apart. <strong className="font-medium text-ink">Clone speech</strong> is the same or
-          near-same wording posted as an original, not a retweet. <strong className="font-medium text-ink">Amplifiers</strong>{" "}
-          boost a narrative without being the source. An account can be either, both, or neither. GC Scale scores are
-          never added into one number. A third flag, also kept off both grades, marks volume from accounts under 30
-          days and under 1 year. Those ages are fixture dates measured at {formatStamp(AGE_AS_OF)}, not a live lookup.
+          Two authenticity readings, kept apart. <strong className="font-medium text-ink">Original voice</strong> is
+          how little of the wording is copied and posted as original. <strong className="font-medium text-ink">Organic reach</strong>{" "}
+          is how little of the activity is boosting someone else’s narrative. Higher on the GC Scale means more authentic,
+          and STRONG means trustworthy. The two readings are never added into one number. A third flag, also kept off both
+          grades, marks volume from accounts under 30 days and under 1 year. Those ages are fixture dates measured at{" "}
+          {formatStamp(AGE_AS_OF)}, not a live lookup.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           This page is a {report.totals.postCount}-post synthetic corpus across {report.totals.narrativeCount}{" "}
           narratives. It does not call X. Paste a duplicate on the{" "}
-          <Link href="/paste" className="underline decoration-rule underline-offset-4 hover:decoration-ink">
+          <Link href="/paste" className="tap underline decoration-rule underline-offset-4 hover:decoration-ink">
             paste bench
           </Link>{" "}
           to see the same rules fire.
@@ -88,7 +96,7 @@ export default function DashboardPage() {
         <Stat label="Narratives" value={String(report.totals.narrativeCount)} />
         <Stat label="Posts" value={String(report.totals.postCount)} />
         <Stat label="Clone clusters" value={String(report.totals.clusterCount)} />
-        <Stat label="Amplifier accounts" value={String(report.totals.amplifierAccountCount)} />
+        <Stat label="Flagged amplifiers" value={String(report.totals.amplifierAccountCount)} />
       </dl>
 
       <section className="grid gap-4">
@@ -98,10 +106,10 @@ export default function DashboardPage() {
             <h2 className="mt-1 font-serif text-2xl text-ink">Narrative volume</h2>
           </div>
           <ul className="flex flex-wrap gap-3 text-xs text-ink-soft">
-            <li className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 bg-origin" /> Originator</li>
-            <li className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 bg-vermilion" /> Clone speech</li>
-            <li className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 bg-lab" /> Amplifier</li>
-            <li className="flex items-center gap-1.5"><span className="inline-block h-2.5 w-2.5 bg-other" /> Other notes</li>
+            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-origin" /> Originator</li>
+            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-vermilion" /> Copied posts</li>
+            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-[#d15202]" /> Boosts</li>
+            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-[#7a3402]" /> Other notes</li>
           </ul>
         </div>
         <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">
@@ -109,8 +117,78 @@ export default function DashboardPage() {
           end of each bar is the total.
         </p>
         <VolumeChart rows={chartRows} />
-        <div className="max-w-full overflow-x-auto border border-rule">
-          <table className="w-full min-w-[48rem] text-left text-sm">
+        <ul className="grid gap-3 md:hidden">
+          {report.narratives.map((narrative) => (
+            <li
+              key={narrative.id}
+              className={`grid gap-3 border border-rule p-4 ${
+                narrative.age.freshAccountsDominate
+                  ? "bg-fresh-soft"
+                  : narrative.age.newAccountsDominate
+                    ? "bg-yearling-soft"
+                    : "bg-paper-raised"
+              }`}
+            >
+              <div>
+                <h3 className="font-serif text-lg text-ink">{narrative.title}</h3>
+                <p className="text-xs text-ink-soft">{narrative.topic}</p>
+                {narrative.age.newAccountsDominate ? (
+                  <p className="text-xs text-ink-soft">
+                    {narrative.age.freshAccountsDominate
+                      ? "Sewn by accounts under 30 days"
+                      : "Sewn by accounts under 1 year"}
+                  </p>
+                ) : null}
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-ink-soft">Volume</p>
+                <GcScale
+                  score={maxPosts > 0 ? (narrative.postCount / maxPosts) * 100 : 0}
+                  label={`${narrative.title} volume`}
+                  graded={false}
+                  showLabel={false}
+                  showPercent={false}
+                  meterMax={maxPosts}
+                  meterNow={narrative.postCount}
+                  meterLabel={`${narrative.title} volume, ${narrative.postCount} posts`}
+                />
+              </div>
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-ink-soft">Posts</dt>
+                  <dd className="font-mono">{narrative.postCount}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-ink-soft">Accounts</dt>
+                  <dd className="font-mono">{narrative.accountCount}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-ink-soft">Under 30d</dt>
+                  <dd className="font-mono">{narrative.age.freshVolumePct}%</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-ink-soft">Under 1y</dt>
+                  <dd className="font-mono">{narrative.age.underYearVolumePct}%</dd>
+                </div>
+              </dl>
+              <p className="flex flex-wrap items-baseline gap-2 text-sm">
+                <span className="shrink-0 text-xs uppercase tracking-wide text-ink-soft">First seen</span>
+                {narrative.originAccount ? (
+                  <Link href={`/accounts/${narrative.originAccount}`} className="tap min-w-0 max-w-full underline decoration-rule">
+                    @{narrative.originAccount}
+                  </Link>
+                ) : (
+                  "—"
+                )}
+                {narrative.firstSeen ? (
+                  <span className="basis-full text-xs text-ink-soft">{formatStamp(narrative.firstSeen)}</span>
+                ) : null}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden max-w-full min-w-0 border border-rule md:block">
+          <table className="w-full text-left text-sm">
             <caption className="sr-only">Narrative volume, sorted by post count</caption>
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>
@@ -129,9 +207,9 @@ export default function DashboardPage() {
                   key={narrative.id}
                   className={
                     narrative.age.freshAccountsDominate
-                      ? "border-t border-rule bg-fresh-soft/70"
+                      ? "border-t border-rule bg-fresh-soft"
                       : narrative.age.newAccountsDominate
-                        ? "border-t border-rule bg-yearling-soft/80"
+                        ? "border-t border-rule bg-yearling-soft"
                         : "border-t border-rule"
                   }
                 >
@@ -139,20 +217,24 @@ export default function DashboardPage() {
                     <p className="font-serif text-base text-ink">{narrative.title}</p>
                     <p className="text-xs text-ink-soft">{narrative.topic}</p>
                     {narrative.age.newAccountsDominate ? (
-                      <p className={`text-xs ${narrative.age.freshAccountsDominate ? "text-fresh" : "text-yearling"}`}>
+                      <p className="text-xs text-ink-soft">
                         {narrative.age.freshAccountsDominate
                           ? "Sewn by accounts under 30 days"
                           : "Sewn by accounts under 1 year"}
                       </p>
                     ) : null}
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="h-2.5 w-40 bg-rule/70" aria-hidden="true">
-                      <div
-                        className="h-full bg-vermilion"
-                        style={{ width: `${(narrative.postCount / maxPosts) * 100}%` }}
-                      />
-                    </div>
+                  <td className="min-w-0 px-3 py-2">
+                    <GcScale
+                      score={maxPosts > 0 ? (narrative.postCount / maxPosts) * 100 : 0}
+                      label={`${narrative.title} volume`}
+                      graded={false}
+                      showLabel={false}
+                      showPercent={false}
+                      meterMax={maxPosts}
+                      meterNow={narrative.postCount}
+                      meterLabel={`${narrative.title} volume, ${narrative.postCount} posts`}
+                    />
                   </td>
                   <td className="px-3 py-2 font-mono">{narrative.postCount}</td>
                   <td className="px-3 py-2 font-mono">{narrative.accountCount}</td>
@@ -160,7 +242,7 @@ export default function DashboardPage() {
                   <td className="px-3 py-2 font-mono">{narrative.age.underYearVolumePct}%</td>
                   <td className="px-3 py-2">
                     {narrative.originAccount ? (
-                      <Link href={`/accounts/${narrative.originAccount}`} className="underline decoration-rule">
+                      <Link href={`/accounts/${narrative.originAccount}`} className="tap underline decoration-rule">
                         @{narrative.originAccount}
                       </Link>
                     ) : (
@@ -185,10 +267,10 @@ export default function DashboardPage() {
           </div>
           <ul className="flex flex-wrap gap-3 text-xs text-ink-soft">
             <li className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-2.5 bg-fresh" /> Under 30 days
+              <span className="inline-block h-3 w-3 border border-rule bg-fresh" /> Under 30 days
             </li>
             <li className="flex items-center gap-1.5">
-              <span className="inline-block h-2.5 w-2.5 bg-yearling" /> 30 days to 1 year
+              <span className="inline-block h-3 w-3 border border-rule bg-[#d15202]" /> 30 days to 1 year
             </li>
           </ul>
         </div>
@@ -210,15 +292,15 @@ export default function DashboardPage() {
         <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">
           Node area tracks volume. A line means at least two accounts posted in both narratives, which is a hint that
           the same voices are sewing those frames together. It is not proof of coordination. A ring means new accounts
-          are at least half of that narrative: berry for under 30 days, ochre when the broader under-1-year band is the
+          are at least half of that narrative: orange for under 30 days, muted when the broader under-1-year band is the
           one that crosses half.
         </p>
         <ul className="flex flex-wrap gap-4 text-xs text-ink-soft">
           <li className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full border-2 border-fresh" /> Under 30 days dominate
+            <span className="inline-block h-3 w-3 rounded-full border-2 border-origin" /> Under 30 days dominate
           </li>
           <li className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full border-2 border-yearling" /> Under 1 year dominates
+            <span className="inline-block h-3 w-3 rounded-full border-2 border-ink-soft" /> Under 1 year dominates
           </li>
         </ul>
         <div className="overflow-hidden border border-rule bg-paper-raised p-3">
@@ -226,24 +308,25 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      <div className="grid min-w-0 gap-10 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-10">
         <section>
-          <p className="kicker">Clone speech</p>
+          <p className="kicker">Copied language</p>
           <h2 className="mt-1 font-serif text-2xl text-ink">Language clusters</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            Each row is reused wording. The first account in time is the originator, not a clone. A row is highlighted
-            when accounts under 1 year wrote at least half of its posts.
+            Each row is reused wording, most-copied first. This list is the copied language, not an authenticity ranking.
+            The first account in time is the originator, not a copy. A row is highlighted when accounts under 1 year wrote
+            at least half of its posts.
           </p>
-          <ol className="mt-4 divide-y divide-rule border-y border-rule">
+          <ol className="mt-4 grid gap-2">
             {report.clusters.map((cluster) => (
               <li key={cluster.id}>
                 <Link
                   href={`/clusters/${cluster.id}`}
-                  className={`block py-4 hover:bg-paper-raised ${
+                  className={`tap-block border border-rule px-3 py-4 hover:bg-inset ${
                     cluster.age.freshAccountsDominate
-                      ? "bg-fresh-soft/70"
+                      ? "bg-fresh-soft"
                       : cluster.age.newAccountsDominate
-                        ? "bg-yearling-soft/80"
+                        ? "bg-yearling-soft"
                         : ""
                   }`}
                 >
@@ -256,15 +339,7 @@ export default function DashboardPage() {
                     {cluster.cloneCount} copies · {cluster.exactCount} exact · {cluster.nearCount} near ·{" "}
                     {cluster.templateCount} template
                   </p>
-                  <p
-                    className={`mt-1 font-mono text-xs ${
-                      cluster.age.freshAccountsDominate
-                        ? "text-fresh"
-                        : cluster.age.newAccountsDominate
-                          ? "text-yearling"
-                          : "text-ink-soft"
-                    }`}
-                  >
+                  <p className="mt-1 font-mono text-xs text-ink-soft">
                     {cluster.age.newAccountsDominate ? "New accounts dominate · " : ""}
                     {cluster.age.freshVolumePct}% under 30 days · {cluster.age.underYearVolumePct}% under 1 year
                   </p>
@@ -275,21 +350,59 @@ export default function DashboardPage() {
         </section>
 
         <section>
-          <p className="kicker">Amplifiers</p>
-          <h2 className="mt-1 font-serif text-2xl text-ink">Leaderboard</h2>
+          <p className="kicker">Organic reach</p>
+          <h2 className="mt-1 font-serif text-2xl text-ink">Flagged amplifiers</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            Sorted by the GC Scale amplifier grade only. Follower count is shown and ignored. A new-account badge sits beside the
-            grade when the amplifier is under 30 days or under 1 year. The badge does not change the grade.
-            High-follower clone accounts are not on this list unless they also boost without copying.
+            Accounts the detector flagged for boosting. Sorted by lowest organic reach, so the most suspicious stay at the top.
+            Higher on each meter means more authentic. Follower count is shown and ignored. A new-account badge sits beside the
+            grade when the account is under 30 days or under 1 year. The badge does not change the grade.
+            High-follower copy accounts are not on this list unless they also boost without copying.
           </p>
-          <div className="mt-4 max-w-full overflow-x-auto border border-rule">
-            <table className="w-full min-w-[36rem] text-left text-sm">
-              <caption className="sr-only">Amplifier leaderboard on the GC Scale</caption>
+          <ul className="mt-4 grid gap-3 md:hidden">
+            {amplifiers.map((account) => (
+              <li key={account.handle} className="grid gap-3 border border-rule bg-paper-raised p-4">
+                <div>
+                  <Link href={`/accounts/${account.handle}`} className="tap underline decoration-rule">
+                    @{account.handle}
+                  </Link>
+                  <span className="mt-1 block">
+                    <LabelBadge label={account.label} />
+                  </span>
+                </div>
+                <div>
+                  <h3 className="font-serif text-lg text-ink">Organic reach</h3>
+                  <GcScale
+                    score={account.ampScore}
+                    label="GC Scale"
+                    signal={detectorSignal("amplifier", account.ampScore)}
+                    meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
+                  />
+                </div>
+                <div>
+                  <h3 className="font-serif text-lg text-ink">Original voice</h3>
+                  <GcScale
+                    score={account.cloneScore}
+                    label="GC Scale"
+                    signal={detectorSignal("clone", account.cloneScore)}
+                    meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
+                  />
+                </div>
+                <p className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
+                  <AgeBadge band={account.ageBand} showEstablished />
+                  <span className="font-mono text-xs">{formatAgeDays(account.ageDays)}</span>
+                  <span className="font-mono">{account.followers.toLocaleString("en-US")} followers</span>
+                </p>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4 hidden max-w-full min-w-0 border border-rule md:block">
+            <table className="w-full text-left text-sm">
+              <caption className="sr-only">Flagged amplifiers, lowest organic reach first</caption>
               <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
                 <tr>
                   <th className="px-3 py-2 font-medium">Account</th>
-                  <th className="px-3 py-2 font-medium">GC Scale amp</th>
-                  <th className="px-3 py-2 font-medium">GC Scale clone</th>
+                  <th className="px-3 py-2 font-medium">Organic reach</th>
+                  <th className="px-3 py-2 font-medium">Original voice</th>
                   <th className="px-3 py-2 font-medium">Age</th>
                   <th className="px-3 py-2 font-medium">Followers</th>
                 </tr>
@@ -298,15 +411,29 @@ export default function DashboardPage() {
                 {amplifiers.map((account) => (
                   <tr key={account.handle} className="border-t border-rule">
                     <td className="px-3 py-2">
-                      <Link href={`/accounts/${account.handle}`} className="underline decoration-rule">
+                      <Link href={`/accounts/${account.handle}`} className="tap underline decoration-rule">
                         @{account.handle}
                       </Link>
                       <span className="mt-1 block">
                         <LabelBadge label={account.label} />
                       </span>
                     </td>
-                    <td className="px-3 py-2 font-mono text-lab">{account.ampScore}</td>
-                    <td className="px-3 py-2 font-mono text-vermilion">{account.cloneScore}</td>
+                    <td className="min-w-0 px-3 py-2">
+                      <GcScale
+                        score={account.ampScore}
+                        label="GC Scale"
+                        signal={detectorSignal("amplifier", account.ampScore)}
+                        meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
+                      />
+                    </td>
+                    <td className="min-w-0 px-3 py-2">
+                      <GcScale
+                        score={account.cloneScore}
+                        label="GC Scale"
+                        signal={detectorSignal("clone", account.cloneScore)}
+                        meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
+                      />
+                    </td>
                     <td className="px-3 py-2">
                       <AgeBadge band={account.ageBand} showEstablished />
                       <span className="mt-1 block font-mono text-xs text-ink-soft">{formatAgeDays(account.ageDays)}</span>
@@ -325,7 +452,7 @@ export default function DashboardPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-paper px-4 py-3">
+    <div className="bg-paper-raised px-4 py-3">
       <dt className="kicker">{label}</dt>
       <dd className="mt-1 font-serif text-3xl text-ink">{value}</dd>
     </div>

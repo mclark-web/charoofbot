@@ -18,39 +18,42 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <header className="border-b border-rule bg-paper/90">
-      <div className="mx-auto flex min-w-0 max-w-6xl flex-col gap-5 px-5 py-6 md:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="max-w-3xl">
-            <p className="kicker">GC Scale · Phase 0 · Fixture corpus</p>
-            <Link href="/" className="mt-2 block font-serif text-4xl tracking-tight text-ink md:text-5xl">
-              GCBot
-            </Link>
-            <p className="mt-3 max-w-xl font-serif text-base italic leading-snug text-ink-soft">
-              built for accountability in an age of market fomo, prediction craze, and loud anonymous voices.
-            </p>
-          </div>
-          <nav aria-label="Primary" className="flex flex-wrap gap-2">
-            {LINKS.map((link) => {
-              const current = isCurrent(pathname, link.href);
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  aria-current={current ? "page" : undefined}
-                  className={`border px-3 py-1.5 text-sm ${
-                    current
-                      ? "border-ink bg-ink text-paper"
-                      : "border-rule bg-paper-raised text-ink hover:border-ink"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
+    <header className="site-header">
+      <div className="site-header-inner">
+        <Link href="/" className="brand" aria-label="GradedCalls home">
+          <span className="mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 3v3M12 18v3M5 12H2M22 12h-3" stroke="#eb6505" strokeWidth="1.6" strokeLinecap="round" />
+              <path
+                d="M7.5 8.5c1.8-2.2 7.2-2.2 9 0M7.5 15.5c1.8 2.2 7.2 2.2 9 0"
+                stroke="#f2f1ee"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+              />
+              <circle cx="12" cy="12" r="2.2" fill="#eb6505" />
+            </svg>
+          </span>
+          <span className="brand-name">
+            Graded<span>Calls</span>
+          </span>
+        </Link>
+        <nav className="site-nav" aria-label="Primary">
+          {LINKS.map((link) => {
+            const current = isCurrent(pathname, link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={current ? "page" : undefined}
+                className="nav-link"
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
+      <p className="fixture-label">Phase 0 · Fixture corpus</p>
     </header>
   );
 }

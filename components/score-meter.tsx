@@ -1,32 +1,20 @@
+import { GcScale, type GradeInput } from "@/components/gc-scale";
+
 export function ScoreMeter({
   label,
   score,
-  tone,
   detail,
+  signal,
 }: {
   label: string;
-  score: number;
-  tone: "clone" | "amp";
+  score: GradeInput;
   detail: string;
+  signal?: string | null;
 }) {
-  const width = `${Math.max(0, Math.min(100, score))}%`;
-  const scaleLabel = `GC Scale · ${label}`;
   return (
     <div className="border border-rule bg-paper-raised p-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h3 className="kicker">{scaleLabel}</h3>
-        <p className="font-mono text-3xl leading-none text-ink">{score}</p>
-      </div>
-      <div
-        className="mt-3 h-2 bg-rule"
-        role="meter"
-        aria-label={scaleLabel}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={score}
-      >
-        <div className={tone === "clone" ? "h-full bg-vermilion" : "h-full bg-lab"} style={{ width }} />
-      </div>
+      <h3 className="font-serif text-xl text-ink">{label}</h3>
+      <GcScale score={score} label="GC Scale" orientation="vertical" signal={signal} />
       <p className="mt-3 text-sm leading-relaxed text-ink-soft">{detail}</p>
     </div>
   );

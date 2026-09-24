@@ -16,14 +16,14 @@ export default function PastePage() {
           Paste one or more posts. Separate them with a line that is only <span className="font-mono">---</span>, or
           send a JSON array of <span className="font-mono">{`{ "account", "text" }`}</span>. An optional created date
           or age in days flags the poster. Leave both off and the age stays unknown. Text is normalized, hashed, and
-          compared with the fixture corpus and the rest of the batch. Retweets are set aside. Clone hits and amplifier
-          hits are reported on separate lines, and neither grade absorbs the age flag.
+          compared with the fixture corpus and the rest of the batch. Retweets are set aside. Copied wording and boosts
+          are reported on separate lines. The meters show authenticity, higher means more authentic, and neither grade absorbs the age flag.
         </p>
       </header>
       <PasteBench />
       <section className="max-w-3xl text-sm leading-relaxed text-ink-soft">
         <h2 className="font-serif text-xl text-ink">JSON shape</h2>
-        <pre className="mt-3 overflow-x-auto border border-rule bg-paper-raised p-3 font-mono text-xs leading-6 text-ink">{`[
+        <pre className="mt-3 max-w-full min-w-0 whitespace-pre-wrap border border-rule bg-paper-raised p-3 font-mono text-xs leading-6 text-ink">{`[
   {"account": "@pasted_demo", "text": "…", "postedAt": "2026-09-22T15:00:00.000Z"},
   {"handle": "other", "text": "…", "action": "quote", "accountCreatedAt": "2026-09-08"},
   {"account": "yearling", "text": "…", "ageDays": 120}

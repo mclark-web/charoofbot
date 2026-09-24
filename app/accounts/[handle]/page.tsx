@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
+import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
+import { organicReachMutedNote, organicReachWithheldDetail } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
 import { AGE_AS_OF } from "@/lib/thresholds";
@@ -35,7 +37,7 @@ export default async function AccountPage({ params }: PageProps) {
     <article className="grid gap-8">
       <div>
         <p className="kicker">
-          <Link href="/" className="underline decoration-rule underline-offset-4">
+          <Link href="/" className="tap underline decoration-rule underline-offset-4">
             Dashboard
           </Link>{" "}
           / account
@@ -56,24 +58,24 @@ export default async function AccountPage({ params }: PageProps) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <ScoreMeter
-          label="Clone speech"
+          label="Original voice"
           score={account.cloneScore}
-          tone="clone"
-          detail={`${account.clonePostCount} post${account.clonePostCount === 1 ? "" : "s"} matched earlier language. Exact matches weigh more than near-duplicates and templates.`}
+          signal={detectorSignal("clone", account.cloneScore)}
+          detail={`${account.clonePostCount} post${account.clonePostCount === 1 ? "" : "s"} matched earlier language. Exact matches weigh more than near-duplicates and templates. Higher means more of the voice is original.`}
         />
         <ScoreMeter
-          label="Amplifier"
-          score={account.ampScore}
-          tone="amp"
-          detail={`${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. ${
+          label="Organic reach"
+          score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
+          signal={organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays)}
+          detail={
             account.passesAmpGate
-              ? "Passes the persistence gate."
-              : "Does not pass the gate of 2 boosts on 2 days, so the amplifier label is withheld."
-          }`}
+              ? `${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. Passes the persistence gate. Higher means less of the activity is boosting someone else.`
+              : organicReachWithheldDetail(account.boostPostCount, account.boostDays, account.ampScore)
+          }
         />
       </div>
       <p className="text-sm text-ink-soft">
-        These two GC Scale grades are computed separately and are not combined. Account age is a third flag, measured at{" "}
+        These two GC Scale grades are authenticity. They are computed separately and are not combined. Higher means more authentic, and STRONG means trustworthy. Account age is a third flag, measured at{" "}
         {formatStamp(AGE_AS_OF)} from the fixture created date. It is not added to either grade.
         {account.ageDays === null ? " This handle has no created date, so the age is unknown." : ""}
       </p>
@@ -109,11 +111,11 @@ export default async function AccountPage({ params }: PageProps) {
           {posts.map((post) => {
             const narrative = report.narratives.find((item) => item.id === post.narrativeId);
             return (
-              <li key={post.id} className="border border-rule p-4">
+              <li key={post.id} className="border border-rule bg-paper-raised p-4">
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <RoleBadge role={post.role} />
                   {post.isBoost ? (
-                    <span className="bg-lab-soft px-2 py-0.5 text-xs text-lab">Boost</span>
+                    <span className="meta-badge">Boost</span>
                   ) : null}
                   <span className="text-ink-soft">{formatStamp(post.postedAt)}</span>
                   <span className="text-ink-soft">{post.action}</span>
@@ -125,7 +127,7 @@ export default async function AccountPage({ params }: PageProps) {
                     <>
                       {" "}
                       ·{" "}
-                      <Link href={`/clusters/${post.clusterId}`} className="underline decoration-rule">
+                      <Link href={`/clusters/${post.clusterId}`} className="tap underline decoration-rule">
                         {excerpt(
                           report.clusters.find((cluster) => cluster.id === post.clusterId)?.sampleText ?? "cluster",
                           64,
@@ -145,7 +147,7 @@ export default async function AccountPage({ params }: PageProps) {
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-paper px-4 py-3">
+    <div className="bg-paper-raised px-4 py-3">
       <dt className="kicker">{label}</dt>
       <dd className="mt-1 font-mono text-lg text-ink">{value}</dd>
     </div>

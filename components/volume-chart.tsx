@@ -1,15 +1,4 @@
-"use client";
-
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { GcScale } from "@/components/gc-scale";
 
 export type VolumeRow = {
   shortLabel: string;
@@ -27,59 +16,44 @@ export type VolumeRow = {
   underYearVolumePct: number;
 };
 
-const TICK = { fill: "#1c1915", fontSize: 12 };
-const AXIS = { stroke: "#d4cbb8" };
-
-function VolumeTooltip({
-  active,
-  payload,
-}: {
-  active?: boolean;
-  payload?: ReadonlyArray<{ payload?: VolumeRow }>;
-}) {
-  const row = payload?.[0]?.payload;
-  if (!active || !row) return null;
-  return (
-    <div className="border border-rule bg-paper-raised px-3 py-2 text-xs shadow-sm">
-      <p className="font-serif text-sm text-ink">{row.title}</p>
-      <p className="mt-1 font-mono text-ink">
-        {row.postCount} posts · {row.accountCount} accounts
-      </p>
-      <p className="mt-1 text-ink-soft">
-        {row.originPosts} origin · {row.clonePosts} clone · {row.boostPosts} amplifier · {row.otherPosts} other
-      </p>
-      <p className="mt-1 text-ink-soft">
-        {row.freshPosts} from accounts under 30 days · {row.underYearPosts} under 1 year ({row.freshVolumePct}% /{" "}
-        {row.underYearVolumePct}%)
-      </p>
-    </div>
-  );
-}
+const SEGMENTS = [
+  { key: "originPosts", name: "Originator", color: "#ee9a44" },
+  { key: "clonePosts", name: "Copied posts", color: "#eb6505" },
+  { key: "boostPosts", name: "Boosts", color: "#d15202" },
+  { key: "otherPosts", name: "Other notes", color: "#7a3402" },
+] as const;
 
 export function VolumeChart({ rows }: { rows: VolumeRow[] }) {
+  const max = Math.max(1, ...rows.map((row) => row.postCount));
   return (
-    <div className="h-[460px] w-full min-w-0 max-w-full overflow-hidden">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 28, bottom: 8, left: 4 }}>
-          <CartesianGrid horizontal={false} stroke="#d4cbb8" />
-          <XAxis type="number" allowDecimals={false} tick={TICK} axisLine={AXIS} tickLine={false} />
-          <YAxis
-            type="category"
-            dataKey="shortLabel"
-            width={148}
-            tick={TICK}
-            axisLine={false}
-            tickLine={false}
+    <div className="grid min-w-0 gap-4">
+      {rows.map((row) => (
+        <div key={row.title} className="min-w-0">
+          <div className="mb-2 flex items-baseline justify-between gap-3">
+            <p className="min-w-0 text-sm text-ink">{row.shortLabel}</p>
+            <p className="font-mono text-sm text-ink">{row.postCount}</p>
+          </div>
+          <GcScale
+            score={(row.postCount / max) * 100}
+            label={row.title}
+            graded={false}
+            showLabel={false}
+            showPercent={false}
+            meterMax={max}
+            meterNow={row.postCount}
+            meterLabel={`${row.title}, ${row.postCount} posts. ${row.originPosts} origin, ${row.clonePosts} copied, ${row.boostPosts} boosts, ${row.otherPosts} other.`}
+            segments={SEGMENTS.map((segment) => ({
+              name: segment.name,
+              value: row[segment.key],
+              color: segment.color,
+            }))}
           />
-          <Tooltip content={<VolumeTooltip />} cursor={{ fill: "rgba(28, 25, 21, 0.04)" }} />
-          <Bar dataKey="originPosts" name="Originator" stackId="volume" fill="#2a3d64" />
-          <Bar dataKey="clonePosts" name="Clone speech" stackId="volume" fill="#8c3b30" />
-          <Bar dataKey="boostPosts" name="Amplifier" stackId="volume" fill="#1b4a43" />
-          <Bar dataKey="otherPosts" name="Other notes" stackId="volume" fill="#b7ad9d">
-            <LabelList dataKey="postCount" position="right" fill="#1c1915" fontSize={12} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+          <p className="mt-2 text-xs leading-relaxed text-ink-soft">
+            {row.originPosts} origin · {row.clonePosts} copied · {row.boostPosts} boosts · {row.otherPosts} other ·{" "}
+            {row.freshVolumePct}% under 30 days · {row.underYearVolumePct}% under 1 year
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
