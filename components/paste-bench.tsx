@@ -220,7 +220,7 @@ function AccountSlice({ account }: { account: AccountReport }) {
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts across ${account.boostDays} days. Higher means less of the activity is boosting someone else.`
-              : `${account.boostPostCount} boosts across ${account.boostDays} days. Organic reach needs 2 boosts on 2 days, otherwise it stays ungraded.`
+              : `${account.boostPostCount} boosts across ${account.boostDays} days. Organic reach needs 2 boosts on 2 days, otherwise it reads Not graded yet.`
           }
         />
       </div>

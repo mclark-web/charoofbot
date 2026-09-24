@@ -71,7 +71,7 @@ export function gradeFor(score: GradeInput): GradeKey {
   return "provisional";
 }
 
-/** Empty glass is a graded exact zero. Skips, negatives, and ungraded tubes are not empty glasses. */
+/** Empty glass for a graded exact zero. Skips stay ungraded and render their own empty glass. */
 export function showsEmptyGlass(score: GradeInput, graded = true): boolean {
   return graded === true && typeof score === "number" && Number.isFinite(score) && score === 0;
 }
@@ -88,9 +88,9 @@ export function amplifierScaleScore(boostPostCount: number, ampScore: number): G
 export function GradePill({ score }: { score: GradeInput }) {
   const key = gradeFor(score);
   if (key === "ungraded") {
-    return <span className="gc-ungraded">— Ungraded</span>;
+    return <span className="gc-ungraded">Not graded yet</span>;
   }
-  return <span className={`grade-pill ${key}`}>{GRADE_LABEL[key]}</span>;
+  return <span className={`grade-pill gc-grade-tag ${key}`}>{GRADE_LABEL[key]}</span>;
 }
 
 export function GcScale({
@@ -129,22 +129,28 @@ export function GcScale({
   const shown = numeric === null ? 0 : Math.min(100, Math.max(0, displayScore(numeric)));
   const empty = showsEmptyGlass(reading, graded);
   const percentText = formatScorePercent(numeric);
-  const gradeLabel = ungraded ? "Ungraded" : GRADE_LABEL[grade];
-  const spoken =
-    meterLabel ??
-    (ungraded ? `${label} Ungraded` : graded ? `${label} ${percentText}, ${gradeLabel}` : label);
+  const gradeLabel = ungraded ? "Not graded yet" : GRADE_LABEL[grade];
+  const spoken = ungraded
+    ? "GC Scale, not graded yet"
+    : (meterLabel ?? (graded ? `${label} ${percentText}, ${gradeLabel}` : label));
   const style = { "--gc-fill": `${shown}%` } as CSSProperties;
   const liveSegments = (segments ?? []).filter((segment) => segment.value > 0);
 
   if (ungraded) {
     return (
-      <div className={`gc-scale is-ungraded ${orientClass}`}>
+      <div
+        className={`gc-scale is-ungraded is-empty ${orientClass}`}
+        role="img"
+        aria-label="GC Scale, not graded yet"
+      >
+        <div className="gc-tube" aria-hidden="true">
+          <div className="gc-bloom" aria-hidden="true" />
+          <div className="gc-liquid" />
+          <div className="gc-meniscus" />
+        </div>
         <div className="gc-meta">
-          {showLabel ? <div className="gc-label">{label}</div> : null}
-          <p className="gc-ungraded" aria-label={spoken}>
-            <span aria-hidden="true">— </span>
-            Ungraded
-          </p>
+          {showLabel ? <div className="gc-label">GC Scale</div> : null}
+          <p className="gc-ungraded">Not graded yet</p>
           {signal ? <p className="gc-signal">{signal}</p> : null}
         </div>
       </div>

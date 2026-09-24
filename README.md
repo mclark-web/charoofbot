@@ -1,5 +1,7 @@
 # GCBot
 
+Brand rules: read BRAND.md before any UI change; deviations are an automatic MUST-FIX.
+
 A GradedCalls product. Zero-cost proof of the GC Scale, where higher means more authentic. The demo never calls the X API, never asks for a key, and does not need a database or a language model.
 
 Built for accountability in an age of market fomo, prediction craze, and loud anonymous voices.
@@ -8,7 +10,7 @@ Built for accountability in an age of market fomo, prediction craze, and loud an
 
 - Open the dashboard. Figure 1 is narrative volume (which frames are being sewn, and how hard). Figure 1b is the same narratives split by poster age: accounts under 30 days, and accounts from 30 days to under 1 year. Figure 2 links narratives that share accounts and rings the ones new accounts dominate. Copied-language clusters and the flagged-amplifier list stay separate. The list leads with the lowest organic reach. A new-account badge sits beside a grade and does not change it.
 - Open a cluster for the originator, the timeline, and a normalized text diff.
-- Open an account. Original voice and organic reach are two authenticity meters. Higher means more trustworthy. They are not added together. A withheld amplifier signal stays ungraded.
+- Open an account. Original voice and organic reach are two authenticity meters. Higher means more trustworthy. They are not added together. A withheld amplifier signal reads Not graded yet.
 - Paste a duplicate of a fixture post on `/paste`. Decorations (links, @handles, cashtags, emoji) are stripped, and an exact copy lowers original voice. A slogan without the copied paragraph is a boost hit, not copied wording.
 
 ## Run locally

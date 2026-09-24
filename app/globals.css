@@ -171,6 +171,7 @@ thead {
   top: 0;
   z-index: 20;
   box-sizing: border-box;
+  overflow: visible;
   border-bottom: 1px solid #2a2e38;
   background-color: #0b0c0e;
   backdrop-filter: blur(16px);
@@ -234,6 +235,7 @@ thead {
   gap: 4px;
   margin-left: auto;
   min-width: 0;
+  overflow: visible;
 }
 
 .nav-link {
@@ -268,6 +270,44 @@ thead {
   box-sizing: border-box;
   min-width: 44px;
   min-height: 44px;
+  line-height: inherit;
+}
+
+p .tap,
+li .tap,
+dd .tap,
+dt .tap {
+  display: inline;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  line-height: inherit;
+  vertical-align: baseline;
+}
+
+p .tap::before,
+li .tap::before,
+dd .tap::before,
+dt .tap::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: max(100%, 44px);
+  height: 44px;
+  transform: translate(-50%, -50%);
+}
+
+.tap-row .tap {
+  display: inline-flex;
+  position: static;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.tap-row .tap::before {
+  content: none;
 }
 
 .tap-block {
@@ -327,14 +367,15 @@ thead {
   font-size: 12px;
   font-weight: 650;
   letter-spacing: 0.04em;
-  line-height: 1.2;
+  line-height: 18px;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
-.grade-pill.strong {
+.grade-pill.strong,
+.gc-grade-tag.strong {
   color: #eb6505;
-  background-color: rgba(235, 101, 5, 0.12);
+  background: linear-gradient(rgba(235, 101, 5, 0.12), rgba(235, 101, 5, 0.12)), #14171e;
   border-color: rgba(235, 101, 5, 0.35);
 }
 
@@ -354,7 +395,7 @@ thead {
 .grade-pill.exit {
   color: #9a9aa3;
   background-color: transparent;
-  border-color: rgba(154, 154, 163, 0.45);
+  border-color: rgba(154, 154, 163, 0.35);
 }
 
 .gc-scale {
@@ -585,25 +626,27 @@ thead {
   align-items: center;
   column-gap: 8px;
   row-gap: 8px;
+  background-color: #14171e;
+}
+
+.gc-scale.is-horizontal .gc-meta {
+  margin-top: -8px;
+  padding-top: 8px;
 }
 
 .gc-scale.is-vertical .gc-meta {
   flex-direction: column;
   justify-content: center;
+  margin-top: -12px;
+  padding-top: 12px;
 }
 
 .gc-label {
   color: #ee9a44;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.gc-scale.is-vertical .gc-meta > .gc-label {
-  color: #ee9a44;
-  font-size: 12px;
   letter-spacing: 0.04em;
+  line-height: 18px;
   text-transform: none;
 }
 

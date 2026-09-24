@@ -307,18 +307,24 @@ export default function DashboardPage() {
                     <LabelBadge label={account.label} />
                   </span>
                 </div>
-                <GcScale
-                  score={account.ampScore}
-                  label="Organic reach"
-                  signal={detectorSignal("amplifier", account.ampScore)}
-                  meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
-                />
-                <GcScale
-                  score={account.cloneScore}
-                  label="Original voice"
-                  signal={detectorSignal("clone", account.cloneScore)}
-                  meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
-                />
+                <div>
+                  <h3 className="font-serif text-lg text-ink">Organic reach</h3>
+                  <GcScale
+                    score={account.ampScore}
+                    label="GC Scale"
+                    signal={detectorSignal("amplifier", account.ampScore)}
+                    meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
+                  />
+                </div>
+                <div>
+                  <h3 className="font-serif text-lg text-ink">Original voice</h3>
+                  <GcScale
+                    score={account.cloneScore}
+                    label="GC Scale"
+                    signal={detectorSignal("clone", account.cloneScore)}
+                    meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
+                  />
+                </div>
                 <p className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
                   <AgeBadge band={account.ageBand} showEstablished />
                   <span className="font-mono text-xs">{formatAgeDays(account.ageDays)}</span>
@@ -353,7 +359,7 @@ export default function DashboardPage() {
                     <td className="min-w-0 px-3 py-2">
                       <GcScale
                         score={account.ampScore}
-                        label="Organic reach"
+                        label="GC Scale"
                         signal={detectorSignal("amplifier", account.ampScore)}
                         meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
                       />
@@ -361,7 +367,7 @@ export default function DashboardPage() {
                     <td className="min-w-0 px-3 py-2">
                       <GcScale
                         score={account.cloneScore}
-                        label="Original voice"
+                        label="GC Scale"
                         signal={detectorSignal("clone", account.cloneScore)}
                         meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
                       />
