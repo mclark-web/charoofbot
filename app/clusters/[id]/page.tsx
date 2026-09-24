@@ -46,7 +46,7 @@ export default async function ClusterPage({ params }: PageProps) {
           <Link href="/" className="tap underline decoration-rule underline-offset-4">
             Dashboard
           </Link>{" "}
-          / clone cluster
+          / copied language
         </p>
         <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-ink">{cluster.sampleText}</h1>
         <p className="mt-4 text-sm text-ink-soft">
@@ -159,13 +159,13 @@ export default async function ClusterPage({ params }: PageProps) {
       </section>
 
       <section>
-        <h2 className="font-serif text-2xl text-ink">Amplifiers on this narrative</h2>
+        <h2 className="font-serif text-2xl text-ink">Boosts on this narrative</h2>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-          These posts reuse the frame or quote it. They are not in the clone cluster unless their wording also
-          matched. The lists stay separate on purpose.
+          These posts reuse the frame or quote it. They are not in the copied-language cluster unless their wording also
+          matched. The lists stay separate on purpose. This is the boost list, not an organic-reach ranking.
         </p>
         {amplifiers.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-soft">No amplifier posts on this narrative.</p>
+          <p className="mt-4 text-sm text-ink-soft">No boost posts on this narrative.</p>
         ) : (
           <ul className="mt-4 divide-y divide-rule border-y border-rule">
             {amplifiers.map((post) => (

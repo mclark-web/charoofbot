@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GcScale } from "@/components/gc-scale";
+import { authenticityFrom, detectorSignal, GcScale } from "@/components/gc-scale";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
 import { NarrativeGraph } from "@/components/narrative-graph";
 import { NewAccountChart, type NewAccountRow } from "@/components/new-account-chart";
@@ -54,11 +54,17 @@ export default function DashboardPage() {
       newAccountsDominate: narrative.age.newAccountsDominate,
     }));
   const maxPosts = Math.max(...report.narratives.map((narrative) => narrative.postCount));
+  const authenticity = (score: number) => {
+    const flipped = authenticityFrom(score);
+    return typeof flipped === "number" ? flipped : Number.POSITIVE_INFINITY;
+  };
   const amplifiers = report.accounts
     .filter((account) => account.label === "Amplifier" || account.label === "Clone+Amp")
     .sort(
       (a, b) =>
-        b.ampScore - a.ampScore || b.boostPostCount - a.boostPostCount || a.handle.localeCompare(b.handle),
+        authenticity(a.ampScore) - authenticity(b.ampScore) ||
+        b.boostPostCount - a.boostPostCount ||
+        a.handle.localeCompare(b.handle),
     );
 
   return (
@@ -69,11 +75,12 @@ export default function DashboardPage() {
           Which narratives are being sewn, and who is copying the language.
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          Two signals, kept apart. <strong className="font-medium text-ink">Clone speech</strong> is the same or
-          near-same wording posted as an original, not a retweet. <strong className="font-medium text-ink">Amplifiers</strong>{" "}
-          boost a narrative without being the source. An account can be either, both, or neither. GC Scale scores are
-          never added into one number. A third flag, also kept off both grades, marks volume from accounts under 30
-          days and under 1 year. Those ages are fixture dates measured at {formatStamp(AGE_AS_OF)}, not a live lookup.
+          Two authenticity readings, kept apart. <strong className="font-medium text-ink">Original voice</strong> is
+          how little of the wording is copied and posted as original. <strong className="font-medium text-ink">Organic reach</strong>{" "}
+          is how little of the activity is boosting someone else’s narrative. Higher on the GC Scale means more authentic,
+          and STRONG means trustworthy. The two readings are never added into one number. A third flag, also kept off both
+          grades, marks volume from accounts under 30 days and under 1 year. Those ages are fixture dates measured at{" "}
+          {formatStamp(AGE_AS_OF)}, not a live lookup.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           This page is a {report.totals.postCount}-post synthetic corpus across {report.totals.narrativeCount}{" "}
@@ -89,7 +96,7 @@ export default function DashboardPage() {
         <Stat label="Narratives" value={String(report.totals.narrativeCount)} />
         <Stat label="Posts" value={String(report.totals.postCount)} />
         <Stat label="Clone clusters" value={String(report.totals.clusterCount)} />
-        <Stat label="Amplifier accounts" value={String(report.totals.amplifierAccountCount)} />
+        <Stat label="Flagged amplifiers" value={String(report.totals.amplifierAccountCount)} />
       </dl>
 
       <section className="grid gap-4">
@@ -100,8 +107,8 @@ export default function DashboardPage() {
           </div>
           <ul className="flex flex-wrap gap-3 text-xs text-ink-soft">
             <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-origin" /> Originator</li>
-            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-vermilion" /> Clone speech</li>
-            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-yearling" /> Amplifier</li>
+            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-vermilion" /> Copied posts</li>
+            <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-yearling" /> Boosts</li>
             <li className="flex items-center gap-1.5"><span className="inline-block h-3 w-3 border border-rule bg-other" /> Other notes</li>
           </ul>
         </div>
@@ -233,11 +240,12 @@ export default function DashboardPage() {
 
       <div className="grid min-w-0 gap-10 lg:grid-cols-2">
         <section>
-          <p className="kicker">Clone speech</p>
+          <p className="kicker">Copied language</p>
           <h2 className="mt-1 font-serif text-2xl text-ink">Language clusters</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            Each row is reused wording. The first account in time is the originator, not a clone. A row is highlighted
-            when accounts under 1 year wrote at least half of its posts.
+            Each row is reused wording, most-copied first. This list is the copied language, not an authenticity ranking.
+            The first account in time is the originator, not a copy. A row is highlighted when accounts under 1 year wrote
+            at least half of its posts.
           </p>
           <ol className="mt-4 grid gap-2">
             {report.clusters.map((cluster) => (
@@ -280,21 +288,22 @@ export default function DashboardPage() {
         </section>
 
         <section>
-          <p className="kicker">Amplifiers</p>
-          <h2 className="mt-1 font-serif text-2xl text-ink">Leaderboard</h2>
+          <p className="kicker">Organic reach</p>
+          <h2 className="mt-1 font-serif text-2xl text-ink">Flagged amplifiers</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            Sorted by the GC Scale amplifier grade only. Follower count is shown and ignored. A new-account badge sits beside the
-            grade when the amplifier is under 30 days or under 1 year. The badge does not change the grade.
-            High-follower clone accounts are not on this list unless they also boost without copying.
+            Accounts the detector flagged for boosting. Sorted by lowest organic reach, so the most suspicious stay at the top.
+            Higher on each meter means more authentic. Follower count is shown and ignored. A new-account badge sits beside the
+            grade when the account is under 30 days or under 1 year. The badge does not change the grade.
+            High-follower copy accounts are not on this list unless they also boost without copying.
           </p>
           <div className="mt-4 max-w-full min-w-0 overflow-x-auto border border-rule">
             <table className="w-full min-w-[36rem] text-left text-sm">
-              <caption className="sr-only">Amplifier leaderboard on the GC Scale</caption>
+              <caption className="sr-only">Flagged amplifiers, lowest organic reach first</caption>
               <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
                 <tr>
                   <th className="px-3 py-2 font-medium">Account</th>
-                  <th className="px-3 py-2 font-medium">GC Scale amp</th>
-                  <th className="px-3 py-2 font-medium">GC Scale clone</th>
+                  <th className="px-3 py-2 font-medium">Organic reach</th>
+                  <th className="px-3 py-2 font-medium">Original voice</th>
                   <th className="px-3 py-2 font-medium">Age</th>
                   <th className="px-3 py-2 font-medium">Followers</th>
                 </tr>
@@ -313,15 +322,17 @@ export default function DashboardPage() {
                     <td className="min-w-52 px-3 py-2">
                       <GcScale
                         score={account.ampScore}
-                        label="GC Scale"
-                        meterLabel={`GC Scale amplifier ${account.ampScore}%`}
+                        label="Organic reach"
+                        signal={detectorSignal("amplifier", account.ampScore)}
+                        meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
                       />
                     </td>
                     <td className="min-w-52 px-3 py-2">
                       <GcScale
                         score={account.cloneScore}
-                        label="GC Scale"
-                        meterLabel={`GC Scale clone speech ${account.cloneScore}%`}
+                        label="Original voice"
+                        signal={detectorSignal("clone", account.cloneScore)}
+                        meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
                       />
                     </td>
                     <td className="px-3 py-2">

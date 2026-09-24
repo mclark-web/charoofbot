@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
-import { amplifierScaleScore } from "@/components/gc-scale";
+import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
 import { ScoreMeter } from "@/components/score-meter";
 import { formatAgeDays, formatLatency, matchLabel } from "@/lib/format";
 import { runPaste, type PasteRun } from "@/lib/paste";
@@ -13,9 +13,9 @@ import type { AccountReport, AnnotatedPost } from "@/lib/types";
 const SAMPLES = [
   { id: "exact", label: "Exact fixture duplicate", text: samplePastes.exact },
   { id: "near", label: "Near-duplicate", text: samplePastes.near },
-  { id: "amp", label: "Amplifier framing", text: samplePastes.amp },
+  { id: "amp", label: "Boost framing", text: samplePastes.amp },
   { id: "clean", label: "Unrelated note", text: samplePastes.clean },
-  { id: "fresh", label: "New-account amplifier", text: samplePastes.fresh },
+  { id: "fresh", label: "New-account boost", text: samplePastes.fresh },
 ] as const;
 
 export function PasteBench() {
@@ -100,7 +100,7 @@ function PasteResults({ outcome }: { outcome: PasteRun }) {
         <section>
           <h2 className="font-serif text-2xl text-ink">Handles in this paste</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            GC Scale clone speech and amplifier grades stay in separate meters. A handle that already exists in the fixture
+            Original voice and organic reach stay in separate meters. Higher means more authentic. A handle that already exists in the fixture
             directory is rescored with its fixture posts plus this paste. A new handle is scored from the paste alone.
           </p>
           <div className="mt-4 grid gap-4">
@@ -141,9 +141,9 @@ function FindingCard({
           <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">No clone match</span>
         )}
         {finding.isBoost ? (
-          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink">Amplifier-style frame hit</span>
+          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink">Boost frame hit</span>
         ) : (
-          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">No amplifier frame</span>
+          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">No boost frame</span>
         )}
         <AgeBadge band={finding.ageBand} showEstablished showUnknown />
         <span className="font-mono text-xs text-ink-soft">{formatAgeDays(finding.ageDays)}</span>
@@ -151,7 +151,7 @@ function FindingCard({
       <p className="mt-3 font-serif text-lg leading-snug text-ink">{finding.text}</p>
       {finding.isRetweet ? (
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-          A leading RT @handle: is not clone speech. Clone speech is the same language posted as an original.
+          A leading RT @handle: is set aside. It does not lower original voice, and it does not count as organic reach.
         </p>
       ) : null}
       {cloneKind ? (
@@ -208,17 +208,19 @@ function AccountSlice({ account }: { account: AccountReport }) {
       </div>
       <div className="grid gap-3">
         <ScoreMeter
-          label="Clone speech"
+          label="Original voice"
           score={account.cloneScore}
-          detail={`${account.clonePostCount} copied post${account.clonePostCount === 1 ? "" : "s"}. Not mixed with the amplifier grade.`}
+          signal={detectorSignal("clone", account.cloneScore)}
+          detail={`${account.clonePostCount} copied post${account.clonePostCount === 1 ? "" : "s"}. Higher means more original. Not mixed with organic reach.`}
         />
         <ScoreMeter
-          label="Amplifier"
+          label="Organic reach"
           score={amplifierScaleScore(account.boostPostCount, account.ampScore)}
+          signal={detectorSignal("amplifier", amplifierScaleScore(account.boostPostCount, account.ampScore))}
           detail={
             account.passesAmpGate
-              ? `${account.boostPostCount} boosts across ${account.boostDays} days.`
-              : `${account.boostPostCount} boosts across ${account.boostDays} days. Label needs 2 boosts on 2 days.`
+              ? `${account.boostPostCount} boosts across ${account.boostDays} days. Higher means less of the activity is boosting someone else.`
+              : `${account.boostPostCount} boosts across ${account.boostDays} days. Organic reach needs 2 boosts on 2 days, otherwise it stays ungraded.`
           }
         />
       </div>

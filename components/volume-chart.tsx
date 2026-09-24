@@ -18,8 +18,8 @@ export type VolumeRow = {
 
 const SEGMENTS = [
   { key: "originPosts", name: "Originator", color: "#ee9a44" },
-  { key: "clonePosts", name: "Clone speech", color: "#eb6505" },
-  { key: "boostPosts", name: "Amplifier", color: "#9a9aa3" },
+  { key: "clonePosts", name: "Copied posts", color: "#eb6505" },
+  { key: "boostPosts", name: "Boosts", color: "#9a9aa3" },
   { key: "otherPosts", name: "Other notes", color: "#3a3e48" },
 ] as const;
 
@@ -41,7 +41,7 @@ export function VolumeChart({ rows }: { rows: VolumeRow[] }) {
             showPercent={false}
             meterMax={max}
             meterNow={row.postCount}
-            meterLabel={`${row.title}, ${row.postCount} posts. ${row.originPosts} origin, ${row.clonePosts} clone, ${row.boostPosts} amplifier, ${row.otherPosts} other.`}
+            meterLabel={`${row.title}, ${row.postCount} posts. ${row.originPosts} origin, ${row.clonePosts} copied, ${row.boostPosts} boosts, ${row.otherPosts} other.`}
             segments={SEGMENTS.map((segment) => ({
               name: segment.name,
               value: row[segment.key],
@@ -49,7 +49,7 @@ export function VolumeChart({ rows }: { rows: VolumeRow[] }) {
             }))}
           />
           <p className="mt-2 text-xs leading-relaxed text-ink-soft">
-            {row.originPosts} origin · {row.clonePosts} clone · {row.boostPosts} amplifier · {row.otherPosts} other ·{" "}
+            {row.originPosts} origin · {row.clonePosts} copied · {row.boostPosts} boosts · {row.otherPosts} other ·{" "}
             {row.freshVolumePct}% under 30 days · {row.underYearVolumePct}% under 1 year
           </p>
         </div>

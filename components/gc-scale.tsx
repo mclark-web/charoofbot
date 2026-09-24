@@ -38,7 +38,29 @@ export function formatScorePercent(score: GradeInput): string {
   return Number.isInteger(shown) ? `${shown}%` : `${shown.toFixed(1)}%`;
 }
 
-/** Visual grade only. Does not change the underlying score. */
+/**
+ * Display-only flip. A graded, finite detector score becomes authenticity.
+ * Skips, null, NaN, and negatives are returned unchanged so they stay ungraded
+ * instead of becoming 100 STRONG.
+ */
+export function authenticityFrom(botScore: GradeInput): GradeInput {
+  if (typeof botScore !== "number" || !Number.isFinite(botScore) || botScore < 0) return botScore;
+  return 100 - botScore;
+}
+
+/** Raw detector reading shown beside the authenticity grade. */
+export function detectorSignal(kind: "clone" | "amplifier", botScore: GradeInput): string {
+  const name = kind === "clone" ? "clone signal" : "amplifier signal";
+  if (typeof botScore !== "number" || !Number.isFinite(botScore) || botScore < 0) {
+    return `${name} withheld`;
+  }
+  return `${name} ${formatScorePercent(botScore)}`;
+}
+
+/**
+ * Grades an authenticity reading. Pass authenticityFrom(detector) first.
+ * 70+ STRONG, 40–69 PROVISIONAL, 1–39 WEAK, exact 0 EXIT. Does not change detection.
+ */
 export function gradeFor(score: GradeInput): GradeKey {
   if (score == null || (typeof score === "string" && UNGRADED_TOKENS.has(score))) return "ungraded";
   if (typeof score !== "number" || !Number.isFinite(score) || score < 0) return "ungraded";
@@ -83,6 +105,7 @@ export function GcScale({
   meterMax = 100,
   meterNow,
   segments,
+  signal,
 }: {
   score: GradeInput;
   label: string;
@@ -95,13 +118,16 @@ export function GcScale({
   meterMax?: number;
   meterNow?: number;
   segments?: TubeSegment[];
+  /** Small muted detector reading, for example "clone signal 90%". */
+  signal?: string | null;
 }) {
-  const grade = gradeFor(score);
+  const reading = graded ? authenticityFrom(score) : score;
+  const grade = gradeFor(reading);
   const ungraded = grade === "ungraded";
   const orientClass = orientation === "vertical" ? "is-vertical" : "is-horizontal";
-  const numeric = typeof score === "number" && Number.isFinite(score) && score >= 0 ? score : null;
+  const numeric = typeof reading === "number" && Number.isFinite(reading) && reading >= 0 ? reading : null;
   const shown = numeric === null ? 0 : Math.min(100, Math.max(0, displayScore(numeric)));
-  const empty = showsEmptyGlass(score, graded);
+  const empty = showsEmptyGlass(reading, graded);
   const percentText = formatScorePercent(numeric);
   const gradeLabel = ungraded ? "Ungraded" : GRADE_LABEL[grade];
   const spoken =
@@ -119,6 +145,7 @@ export function GcScale({
             <span aria-hidden="true">— </span>
             Ungraded
           </p>
+          {signal ? <p className="gc-signal">{signal}</p> : null}
         </div>
       </div>
     );
@@ -157,7 +184,8 @@ export function GcScale({
         <div className="gc-meta">
           {showLabel ? <div className="gc-label">{label}</div> : null}
           {showPercent ? <div className="gc-pct">{percentText}</div> : null}
-          {graded ? <GradePill score={score} /> : null}
+          {graded ? <GradePill score={reading} /> : null}
+          {signal ? <p className="gc-signal">{signal}</p> : null}
         </div>
       ) : null}
     </div>

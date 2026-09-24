@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
-import { amplifierScaleScore } from "@/components/gc-scale";
+import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
 import { AGE_AS_OF } from "@/lib/thresholds";
@@ -57,22 +57,24 @@ export default async function AccountPage({ params }: PageProps) {
 
       <div className="grid gap-4 md:grid-cols-2">
         <ScoreMeter
-          label="Clone speech"
+          label="Original voice"
           score={account.cloneScore}
-          detail={`${account.clonePostCount} post${account.clonePostCount === 1 ? "" : "s"} matched earlier language. Exact matches weigh more than near-duplicates and templates.`}
+          signal={detectorSignal("clone", account.cloneScore)}
+          detail={`${account.clonePostCount} post${account.clonePostCount === 1 ? "" : "s"} matched earlier language. Exact matches weigh more than near-duplicates and templates. Higher means more of the voice is original.`}
         />
         <ScoreMeter
-          label="Amplifier"
+          label="Organic reach"
           score={amplifierScaleScore(account.boostPostCount, account.ampScore)}
+          signal={detectorSignal("amplifier", amplifierScaleScore(account.boostPostCount, account.ampScore))}
           detail={`${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. ${
             account.passesAmpGate
-              ? "Passes the persistence gate."
-              : "Does not pass the gate of 2 boosts on 2 days, so the amplifier label is withheld."
+              ? "Passes the persistence gate. Higher means less of the activity is boosting someone else."
+              : "Does not pass the gate of 2 boosts on 2 days, so organic reach is withheld."
           }`}
         />
       </div>
       <p className="text-sm text-ink-soft">
-        These two GC Scale grades are computed separately and are not combined. Account age is a third flag, measured at{" "}
+        These two GC Scale grades are authenticity. They are computed separately and are not combined. Higher means more authentic, and STRONG means trustworthy. Account age is a third flag, measured at{" "}
         {formatStamp(AGE_AS_OF)} from the fixture created date. It is not added to either grade.
         {account.ageDays === null ? " This handle has no created date, so the age is unknown." : ""}
       </p>

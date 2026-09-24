@@ -1,15 +1,15 @@
 # GCBot
 
-A GradedCalls product. Zero-cost proof of clone speech, narrative amplifiers, and a volume graph. The demo never calls the X API, never asks for a key, and does not need a database or a language model.
+A GradedCalls product. Zero-cost proof of the GC Scale, where higher means more authentic. The demo never calls the X API, never asks for a key, and does not need a database or a language model.
 
 Built for accountability in an age of market fomo, prediction craze, and loud anonymous voices.
 
 ## What you can do
 
-- Open the dashboard. Figure 1 is narrative volume (which frames are being sewn, and how hard). Figure 1b is the same narratives split by poster age: accounts under 30 days, and accounts from 30 days to under 1 year. Figure 2 links narratives that share accounts and rings the ones new accounts dominate. Clone clusters and the amplifier leaderboard stay separate. A new-account badge sits beside an amplifier grade and does not change it.
+- Open the dashboard. Figure 1 is narrative volume (which frames are being sewn, and how hard). Figure 1b is the same narratives split by poster age: accounts under 30 days, and accounts from 30 days to under 1 year. Figure 2 links narratives that share accounts and rings the ones new accounts dominate. Copied-language clusters and the flagged-amplifier list stay separate. The list leads with the lowest organic reach. A new-account badge sits beside a grade and does not change it.
 - Open a cluster for the originator, the timeline, and a normalized text diff.
-- Open an account. Clone speech and amplifier grades are two meters. They are not added together.
-- Paste a duplicate of a fixture post on `/paste`. Decorations (links, @handles, cashtags, emoji) are stripped, and an exact copy is flagged as clone speech. A slogan without the copied paragraph is an amplifier-style hit, not a clone.
+- Open an account. Original voice and organic reach are two authenticity meters. Higher means more trustworthy. They are not added together. A withheld amplifier signal stays ungraded.
+- Paste a duplicate of a fixture post on `/paste`. Decorations (links, @handles, cashtags, emoji) are stripped, and an exact copy lowers original voice. A slogan without the copied paragraph is a boost hit, not copied wording.
 
 ## Run locally
 
@@ -50,7 +50,7 @@ Thresholds, the amplifier formula, and the new-account rules are printed on `/me
 
 A cluster or narrative is highlighted when accounts under 1 year wrote at least half of its posts. The under-30-day share is reported separately and uses the same half-volume line.
 
-The corpus is synthetic (`data/corpus.json`): 12 narratives and a few dozen posts, with deliberate clones and boosters. Follower counts are bait. They are displayed and not scored, so a large clone account does not top the amplifier board.
+The corpus is synthetic (`data/corpus.json`): 12 narratives and a few dozen posts, with deliberate copies and boosters. Follower counts are bait. They are displayed and not scored, so a large copied account does not rise on organic reach unless it also boosts. The flagged-amplifier list still leads with the lowest authenticity.
 
 ## Deploy on Vercel Hobby ($0)
 
