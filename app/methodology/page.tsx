@@ -72,7 +72,7 @@ export default function MethodologyPage() {
 
       <section className="grid gap-3">
         <h2 className="font-serif text-2xl">Thresholds</h2>
-        <div className="overflow-x-auto border border-rule">
+        <div className="max-w-full min-w-0 overflow-x-auto border border-rule">
           <table className="w-full text-left text-sm">
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>

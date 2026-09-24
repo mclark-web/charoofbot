@@ -29,7 +29,7 @@ export function PasteBench() {
   return (
     <div className="grid gap-8">
       <form
-        className="grid gap-4"
+        className="grid gap-4 border border-rule bg-paper-raised p-4"
         onSubmit={(event) => {
           event.preventDefault();
           setOutcome(runPaste(draft));
@@ -45,24 +45,24 @@ export function PasteBench() {
             onChange={(event) => setDraft(event.target.value)}
             rows={10}
             spellCheck={false}
-            className="mt-2 w-full border border-rule bg-paper-raised p-3 font-mono text-sm leading-6 text-ink"
+            className="mt-2 w-full min-w-11 border border-rule bg-inset p-3 font-mono text-sm leading-6 text-ink placeholder:text-ink-soft"
             placeholder={"@handle\nTweet text\n\n---\n\n@other\nSecond tweet"}
           />
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="tap-row">
           {SAMPLES.map((sample) => (
             <button
               key={sample.id}
               type="button"
               onClick={() => score(sample.text)}
-              className="border border-rule bg-paper-raised px-3 py-1.5 text-sm text-ink hover:border-ink"
+              className="btn"
             >
               {sample.label}
             </button>
           ))}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <button type="submit" className="border border-ink bg-ink px-4 py-2 text-sm text-paper">
+        <div className="tap-row">
+          <button type="submit" className="btn btn-primary">
             Score against fixtures
           </button>
           <p className="text-sm text-ink-soft">Runs in the browser. Nothing is uploaded.</p>
@@ -133,16 +133,16 @@ function FindingCard({
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-mono text-xs text-ink-soft">@{finding.account}</span>
         {finding.isRetweet ? (
-          <span className="bg-paper px-2 py-0.5 text-xs text-ink-soft">Retweet excluded</span>
+          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">Retweet excluded</span>
         ) : cloneKind ? (
-          <span className="bg-vermilion-soft px-2 py-0.5 text-xs text-vermilion">{matchLabel(cloneKind)}</span>
+          <span className="border border-vermilion/40 bg-vermilion-soft px-2 py-1 text-xs text-vermilion">{matchLabel(cloneKind)}</span>
         ) : (
-          <span className="bg-paper px-2 py-0.5 text-xs text-ink-soft">No clone match</span>
+          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">No clone match</span>
         )}
         {finding.isBoost ? (
-          <span className="bg-lab-soft px-2 py-0.5 text-xs text-lab">Amplifier-style frame hit</span>
+          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink">Amplifier-style frame hit</span>
         ) : (
-          <span className="bg-paper px-2 py-0.5 text-xs text-ink-soft">No amplifier frame</span>
+          <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink-soft">No amplifier frame</span>
         )}
         <AgeBadge band={finding.ageBand} showEstablished showUnknown />
         <span className="font-mono text-xs text-ink-soft">{formatAgeDays(finding.ageDays)}</span>
@@ -157,22 +157,18 @@ function FindingCard({
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
           <div>
             <dt className="kicker">Matched</dt>
-            <dd className="mt-1">
+            <dd className="tap-row mt-1">
               {finding.matchedAccount ? (
-                <Link href={`/accounts/${finding.matchedAccount}`} className="underline decoration-rule">
+                <Link href={`/accounts/${finding.matchedAccount}`} className="tap underline decoration-rule">
                   @{finding.matchedAccount}
                 </Link>
               ) : (
                 "—"
               )}
               {finding.clusterId ? (
-                <>
-                  {" "}
-                  ·{" "}
-                  <Link href={`/clusters/${finding.clusterId}`} className="underline decoration-rule">
-                    open cluster
-                  </Link>
-                </>
+                <Link href={`/clusters/${finding.clusterId}`} className="tap underline decoration-rule">
+                  open cluster
+                </Link>
               ) : null}
             </dd>
           </div>
@@ -188,14 +184,14 @@ function FindingCard({
       {frameTitles.length > 0 ? (
         <p className="mt-3 text-sm text-ink-soft">Frame phrase hits {frameTitles.join(", ")}.</p>
       ) : null}
-      <p className="mt-3 break-all font-mono text-[11px] text-ink-soft">{finding.hash}</p>
+      <p className="mt-3 break-all font-mono text-xs text-ink-soft">{finding.hash}</p>
     </article>
   );
 }
 
 function AccountSlice({ account }: { account: AccountReport }) {
   return (
-    <div className="grid gap-3 border border-rule p-4 md:grid-cols-2">
+    <div className="grid gap-3 border border-rule bg-paper-raised p-4 md:grid-cols-2">
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-serif text-xl">@{account.handle}</h3>
@@ -213,13 +209,11 @@ function AccountSlice({ account }: { account: AccountReport }) {
         <ScoreMeter
           label="Clone speech"
           score={account.cloneScore}
-          tone="clone"
           detail={`${account.clonePostCount} copied post${account.clonePostCount === 1 ? "" : "s"}. Not mixed with the amplifier grade.`}
         />
         <ScoreMeter
           label="Amplifier"
           score={account.ampScore}
-          tone="amp"
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts across ${account.boostDays} days.`

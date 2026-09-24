@@ -43,7 +43,7 @@ export default async function ClusterPage({ params }: PageProps) {
     <article className="grid gap-8">
       <div>
         <p className="kicker">
-          <Link href="/" className="underline decoration-rule underline-offset-4">
+          <Link href="/" className="tap underline decoration-rule underline-offset-4">
             Dashboard
           </Link>{" "}
           / clone cluster
@@ -62,7 +62,7 @@ export default async function ClusterPage({ params }: PageProps) {
         <div>
           <p className="kicker">Originator</p>
           <p className="mt-2 font-serif text-xl">
-            <Link href={`/accounts/${cluster.originAccount}`} className="underline decoration-rule">
+            <Link href={`/accounts/${cluster.originAccount}`} className="tap underline decoration-rule">
               @{cluster.originAccount}
             </Link>
           </p>
@@ -91,7 +91,7 @@ export default async function ClusterPage({ params }: PageProps) {
 
       <section>
         <h2 className="font-serif text-2xl text-ink">Timeline</h2>
-        <div className="mt-4 max-w-full overflow-x-auto border border-rule">
+        <div className="mt-4 max-w-full min-w-0 overflow-x-auto border border-rule">
           <table className="w-full min-w-[46rem] text-left text-sm">
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>
@@ -107,7 +107,7 @@ export default async function ClusterPage({ params }: PageProps) {
                 <tr key={post.id} className="border-t border-rule">
                   <td className="px-3 py-2 whitespace-nowrap">{formatStamp(post.postedAt)}</td>
                   <td className="px-3 py-2">
-                    <Link href={`/accounts/${post.account}`} className="underline decoration-rule">
+                    <Link href={`/accounts/${post.account}`} className="tap underline decoration-rule">
                       @{post.account}
                     </Link>
                   </td>
@@ -135,13 +135,13 @@ export default async function ClusterPage({ params }: PageProps) {
           <h2 className="font-serif text-2xl text-ink">Text diffs</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
             Diffs compare normalized text: lowercase, with URLs, @handles, cashtags, emoji, and extra whitespace
-            removed. Struck words were in the originator post. Green words appear only in the copy.
+            removed. Struck words were in the originator post. Orange words appear only in the copy.
           </p>
         </div>
         {copies.map((copy) => (
-          <div key={copy.id} className="border border-rule p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Link href={`/accounts/${copy.account}`} className="font-serif text-lg underline decoration-rule">
+          <div key={copy.id} className="border border-rule bg-paper-raised p-4">
+            <div className="tap-row">
+              <Link href={`/accounts/${copy.account}`} className="tap font-serif text-lg underline decoration-rule">
                 @{copy.account}
               </Link>
               <RoleBadge role={copy.role} />
@@ -170,10 +170,10 @@ export default async function ClusterPage({ params }: PageProps) {
           <ul className="mt-4 divide-y divide-rule border-y border-rule">
             {amplifiers.map((post) => (
               <li key={post.id} className="py-3">
-                <p className="text-sm">
-                  <Link href={`/accounts/${post.account}`} className="underline decoration-rule">
+                <p className="tap-row text-sm">
+                  <Link href={`/accounts/${post.account}`} className="tap underline decoration-rule">
                     @{post.account}
-                  </Link>{" "}
+                  </Link>
                   <span className="text-ink-soft">
                     {post.action} · {formatStamp(post.postedAt)}
                   </span>{" "}

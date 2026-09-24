@@ -36,15 +36,15 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable} h-full`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable} min-h-full`}>
       <body className="flex min-h-full flex-col antialiased">
-        <a href="#content" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-10 focus:bg-paper focus:px-3 focus:py-2">
+        <a href="#content" className="skip">
           Skip to content
         </a>
-        <Suspense fallback={<div className="h-36 border-b border-rule" />}>
+        <Suspense fallback={<div className="h-14 border-b border-rule" />}>
           <SiteHeader />
         </Suspense>
-        <main id="content" className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-5 py-8 md:px-8">
+        <main id="content" className="mx-auto w-full min-w-0 max-w-6xl flex-1 overflow-x-clip px-5 py-8 md:px-8">
           {children}
         </main>
         <SiteFooter />

@@ -1,15 +1,4 @@
-"use client";
-
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  LabelList,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { GcScale } from "@/components/gc-scale";
 
 export type NewAccountRow = {
   shortLabel: string;
@@ -27,65 +16,41 @@ export type NewAccountRow = {
   newAccountsDominate: boolean;
 };
 
-const TICK = { fill: "#1c1915", fontSize: 12 };
-const AXIS = { stroke: "#d4cbb8" };
-
-function NewAccountTooltip({
-  active,
-  payload,
-}: {
-  active?: boolean;
-  payload?: ReadonlyArray<{ payload?: NewAccountRow }>;
-}) {
-  const row = payload?.[0]?.payload;
-  if (!active || !row) return null;
-  return (
-    <div className="border border-rule bg-paper-raised px-3 py-2 text-xs shadow-sm">
-      <p className="font-serif text-sm text-ink">{row.title}</p>
-      <p className="mt-1 font-mono text-ink">
-        {row.underYearPosts} of {row.postCount} posts from accounts under 1 year
-      </p>
-      <p className="mt-1 text-ink-soft">
-        {row.freshPosts} under 30 days · {row.youngPosts} from 30 days to 1 year
-      </p>
-      <p className="mt-1 text-ink-soft">
-        {row.underYearBoostPosts} amplifier posts from accounts under 1 year ({row.freshBoostPosts} of them under 30
-        days)
-      </p>
-      <p className="mt-1 text-ink-soft">
-        {row.freshVolumePct}% under 30 days · {row.underYearVolumePct}% under 1 year
-        {row.freshAccountsDominate
-          ? " · fresh accounts dominate"
-          : row.newAccountsDominate
-            ? " · new accounts dominate"
-            : ""}
-      </p>
-    </div>
-  );
-}
-
 export function NewAccountChart({ rows }: { rows: NewAccountRow[] }) {
+  const max = Math.max(1, ...rows.map((row) => row.underYearPosts));
   return (
-    <div className="h-[460px] w-full min-w-0 max-w-full overflow-hidden">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={rows} layout="vertical" margin={{ top: 8, right: 28, bottom: 8, left: 4 }}>
-          <CartesianGrid horizontal={false} stroke="#d4cbb8" />
-          <XAxis type="number" allowDecimals={false} tick={TICK} axisLine={AXIS} tickLine={false} />
-          <YAxis
-            type="category"
-            dataKey="shortLabel"
-            width={148}
-            tick={TICK}
-            axisLine={false}
-            tickLine={false}
+    <div className="grid min-w-0 gap-4">
+      {rows.map((row) => (
+        <div key={row.title} className="min-w-0">
+          <div className="mb-2 flex items-baseline justify-between gap-3">
+            <p className="min-w-0 text-sm text-ink">{row.shortLabel}</p>
+            <p className="font-mono text-sm text-ink">{row.underYearPosts}</p>
+          </div>
+          <GcScale
+            score={(row.underYearPosts / max) * 100}
+            label={row.title}
+            graded={false}
+            showLabel={false}
+            showPercent={false}
+            meterMax={max}
+            meterNow={row.underYearPosts}
+            meterLabel={`${row.title}, ${row.underYearPosts} of ${row.postCount} posts from accounts under 1 year. ${row.freshPosts} under 30 days, ${row.youngPosts} from 30 days to 1 year.`}
+            segments={[
+              { name: "Under 30 days", value: row.freshPosts, color: "#eb6505" },
+              { name: "30 days to 1 year", value: row.youngPosts, color: "#9a9aa3" },
+            ]}
           />
-          <Tooltip content={<NewAccountTooltip />} cursor={{ fill: "rgba(28, 25, 21, 0.04)" }} />
-          <Bar dataKey="freshPosts" name="Under 30 days" stackId="age" fill="#6e2f4a" />
-          <Bar dataKey="youngPosts" name="30 days to 1 year" stackId="age" fill="#9a6b2f">
-            <LabelList dataKey="underYearPosts" position="right" fill="#1c1915" fontSize={12} />
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+          <p className="mt-2 text-xs leading-relaxed text-ink-soft">
+            {row.freshPosts} under 30 days · {row.youngPosts} from 30 days to 1 year · {row.freshVolumePct}% under 30
+            days · {row.underYearVolumePct}% under 1 year
+            {row.freshAccountsDominate
+              ? " · fresh accounts dominate"
+              : row.newAccountsDominate
+                ? " · new accounts dominate"
+                : ""}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }

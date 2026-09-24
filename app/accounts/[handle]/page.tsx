@@ -35,7 +35,7 @@ export default async function AccountPage({ params }: PageProps) {
     <article className="grid gap-8">
       <div>
         <p className="kicker">
-          <Link href="/" className="underline decoration-rule underline-offset-4">
+          <Link href="/" className="tap underline decoration-rule underline-offset-4">
             Dashboard
           </Link>{" "}
           / account
@@ -58,13 +58,11 @@ export default async function AccountPage({ params }: PageProps) {
         <ScoreMeter
           label="Clone speech"
           score={account.cloneScore}
-          tone="clone"
           detail={`${account.clonePostCount} post${account.clonePostCount === 1 ? "" : "s"} matched earlier language. Exact matches weigh more than near-duplicates and templates.`}
         />
         <ScoreMeter
           label="Amplifier"
           score={account.ampScore}
-          tone="amp"
           detail={`${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. ${
             account.passesAmpGate
               ? "Passes the persistence gate."
@@ -109,11 +107,11 @@ export default async function AccountPage({ params }: PageProps) {
           {posts.map((post) => {
             const narrative = report.narratives.find((item) => item.id === post.narrativeId);
             return (
-              <li key={post.id} className="border border-rule p-4">
+              <li key={post.id} className="border border-rule bg-paper-raised p-4">
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <RoleBadge role={post.role} />
                   {post.isBoost ? (
-                    <span className="bg-lab-soft px-2 py-0.5 text-xs text-lab">Boost</span>
+                    <span className="border border-rule bg-inset px-2 py-1 text-xs text-ink">Boost</span>
                   ) : null}
                   <span className="text-ink-soft">{formatStamp(post.postedAt)}</span>
                   <span className="text-ink-soft">{post.action}</span>
@@ -125,7 +123,7 @@ export default async function AccountPage({ params }: PageProps) {
                     <>
                       {" "}
                       ·{" "}
-                      <Link href={`/clusters/${post.clusterId}`} className="underline decoration-rule">
+                      <Link href={`/clusters/${post.clusterId}`} className="tap underline decoration-rule">
                         {excerpt(
                           report.clusters.find((cluster) => cluster.id === post.clusterId)?.sampleText ?? "cluster",
                           64,
@@ -145,7 +143,7 @@ export default async function AccountPage({ params }: PageProps) {
 
 function Meta({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-paper px-4 py-3">
+    <div className="bg-paper-raised px-4 py-3">
       <dt className="kicker">{label}</dt>
       <dd className="mt-1 font-mono text-lg text-ink">{value}</dd>
     </div>
