@@ -36,7 +36,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable} min-h-full`}>
+    <html lang="en" className={`${sans.variable} ${serif.variable} ${mono.variable} h-full`}>
       <body className="flex min-h-full flex-col antialiased">
         <a href="#content" className="skip">
           Skip to content

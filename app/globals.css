@@ -54,18 +54,18 @@
 }
 
 html {
+  height: 100%;
   color-scheme: dark;
   background-color: #0b0c0e;
-  min-height: 100%;
 }
 
 html,
 body {
   background-color: #0b0c0e;
-  min-height: 100%;
 }
 
 body {
+  min-height: 100%;
   background-color: #0b0c0e;
   background-image:
     radial-gradient(900px 420px at 12% -10%, rgba(235, 101, 5, 0.14), transparent 58%),
@@ -95,11 +95,32 @@ body {
 textarea,
 input,
 select {
-  min-width: 44px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 44px;
   background-color: #161820;
   color: #f2f1ee;
   border-color: #2a2e38;
+}
+
+main .grid > *,
+form,
+.tap-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+p,
+h1,
+h2,
+h3,
+li,
+dd,
+dt,
+pre,
+span {
+  overflow-wrap: anywhere;
 }
 
 pre,
