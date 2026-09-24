@@ -21,7 +21,6 @@
   --fresh: #eb6505;
   --fresh-soft: rgba(235, 101, 5, 0.14);
   --yearling-soft: rgba(154, 154, 163, 0.08);
-  --sewn: #96969e;
   --ok: #4cc38a;
   --bad: #f26d7d;
 }
@@ -45,7 +44,6 @@
   --color-fresh: var(--fresh);
   --color-fresh-soft: var(--fresh-soft);
   --color-yearling-soft: var(--yearling-soft);
-  --color-sewn: var(--sewn);
   --font-sans: var(--font-source-sans), "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
   --font-mono: var(--font-ibm-mono), "IBM Plex Mono", ui-monospace, monospace;

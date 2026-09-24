@@ -133,7 +133,7 @@ export default function DashboardPage() {
                 <h3 className="font-serif text-lg text-ink">{narrative.title}</h3>
                 <p className="text-xs text-ink-soft">{narrative.topic}</p>
                 {narrative.age.newAccountsDominate ? (
-                  <p className={`text-xs ${narrative.age.freshAccountsDominate ? "text-sewn" : "text-ink-soft"}`}>
+                  <p className="text-xs text-ink-soft">
                     {narrative.age.freshAccountsDominate
                       ? "Sewn by accounts under 30 days"
                       : "Sewn by accounts under 1 year"}
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                     <p className="font-serif text-base text-ink">{narrative.title}</p>
                     <p className="text-xs text-ink-soft">{narrative.topic}</p>
                     {narrative.age.newAccountsDominate ? (
-                      <p className={`text-xs ${narrative.age.freshAccountsDominate ? "text-sewn" : "text-ink-soft"}`}>
+                      <p className="text-xs text-ink-soft">
                         {narrative.age.freshAccountsDominate
                           ? "Sewn by accounts under 30 days"
                           : "Sewn by accounts under 1 year"}
@@ -339,7 +339,7 @@ export default function DashboardPage() {
                     {cluster.cloneCount} copies · {cluster.exactCount} exact · {cluster.nearCount} near ·{" "}
                     {cluster.templateCount} template
                   </p>
-                  <p className={`mt-1 font-mono text-xs ${cluster.age.freshAccountsDominate ? "text-sewn" : "text-ink-soft"}`}>
+                  <p className="mt-1 font-mono text-xs text-ink-soft">
                     {cluster.age.newAccountsDominate ? "New accounts dominate · " : ""}
                     {cluster.age.freshVolumePct}% under 30 days · {cluster.age.underYearVolumePct}% under 1 year
                   </p>
