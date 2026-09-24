@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { THRESHOLDS } from "@/lib/thresholds";
 
 export type GradeKey = "strong" | "weak" | "provisional" | "exit" | "ungraded";
 
@@ -33,8 +34,8 @@ export function displayScore(score: number): number {
 }
 
 export function formatScorePercent(score: GradeInput): string {
-  if (typeof score !== "number" || !Number.isFinite(score) || score < 0) return "—";
-  const shown = Math.min(100, Math.max(0, displayScore(score)));
+  if (typeof score !== "number" || !Number.isFinite(score) || score < 0 || score > 100) return "—";
+  const shown = displayScore(score);
   return Number.isInteger(shown) ? `${shown}%` : `${shown.toFixed(1)}%`;
 }
 
@@ -59,29 +60,32 @@ export function detectorSignal(kind: "clone" | "amplifier", botScore: GradeInput
 
 /**
  * Grades an authenticity reading. Pass authenticityFrom(detector) first.
- * 70+ STRONG, 40–69 PROVISIONAL, 1–39 WEAK, exact 0 EXIT. Does not change detection.
+ * Bands follow the truncated display: 70+ STRONG, 40–69 PROVISIONAL,
+ * above 0 and under 40 WEAK, displayed 0% EXIT. Above 100 is ungraded.
+ * Does not change detection.
  */
 export function gradeFor(score: GradeInput): GradeKey {
   if (score == null || (typeof score === "string" && UNGRADED_TOKENS.has(score))) return "ungraded";
-  if (typeof score !== "number" || !Number.isFinite(score) || score < 0) return "ungraded";
-  if (score === 0) return "exit";
+  if (typeof score !== "number" || !Number.isFinite(score) || score < 0 || score > 100) return "ungraded";
   const shown = displayScore(score);
+  if (shown <= 0) return "exit";
   if (shown >= 70) return "strong";
   if (shown < 40) return "weak";
   return "provisional";
 }
 
-/** Empty glass for a graded exact zero. Skips stay ungraded and render their own empty glass. */
+/** Empty glass when the graded display is 0%. Withheld values render their own empty glass. */
 export function showsEmptyGlass(score: GradeInput, graded = true): boolean {
-  return graded === true && typeof score === "number" && Number.isFinite(score) && score === 0;
+  return graded === true && gradeFor(score) === "exit";
 }
 
 /**
- * A zero amplifier score with no boosts is the skip in detect.ts, not a graded exit.
+ * Organic reach is withheld unless the persistence gate passes: at least
+ * 2 boosts on 2 days. A failed gate is not a graded 0 and is not flipped.
  * Scoring itself is unchanged; only the scale input is.
  */
-export function amplifierScaleScore(boostPostCount: number, ampScore: number): GradeInput {
-  if (boostPostCount === 0) return "skip";
+export function amplifierScaleScore(boostPostCount: number, ampScore: number, boostDays: number): GradeInput {
+  if (boostPostCount < THRESHOLDS.ampMinBoostPosts || boostDays < THRESHOLDS.ampMinBoostDays) return "withheld";
   return ampScore;
 }
 
@@ -150,8 +154,10 @@ export function GcScale({
         </div>
         <div className="gc-meta">
           {showLabel ? <div className="gc-label">GC Scale</div> : null}
-          <p className="gc-ungraded">Not graded yet</p>
-          {signal ? <p className="gc-signal">{signal}</p> : null}
+          <p className="gc-ungraded">
+            Not graded yet
+            {signal ? ` · ${signal}` : ""}
+          </p>
         </div>
       </div>
     );

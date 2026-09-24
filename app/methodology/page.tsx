@@ -60,13 +60,14 @@ export default function MethodologyPage() {
         <h2 className="font-serif text-2xl">How the GC Scale is shown</h2>
         <p className="leading-relaxed">
           Display only: authenticity = 100 − detector signal. A graded, finite signal is flipped. Withheld values
-          read Not graded yet, including an amplifier signal with no boosts. They are never flipped into 100 STRONG.
+          read Not graded yet, including an amplifier signal with no boosts and any organic-reach reading that
+          misses 2 boosts on 2 days. They are never flipped into 100 STRONG. A reading above 100 is not graded.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           <li>70 and above is STRONG. That is the trustworthy band.</li>
           <li>40–69 is PROVISIONAL.</li>
-          <li>1–39 is WEAK.</li>
-          <li>A graded authenticity of exactly 0 is EXIT LIQUIDITY, shown as an empty glass.</li>
+          <li>Above 0 and under 40 is WEAK.</li>
+          <li>A graded authenticity that displays as 0% is EXIT LIQUIDITY, shown as an empty glass.</li>
         </ul>
         <p className="leading-relaxed text-ink-soft">
           A clean account whose detector clone signal is 0 shows 100% STRONG original voice. A copy at a detector
@@ -129,7 +130,8 @@ export default function MethodologyPage() {
           are not first-seen + {THRESHOLDS.ampVolumeWeight} × boost count / {THRESHOLDS.ampVolumePostsForFull}). Each
           ratio is capped at 1. A boost is a quote, reply, or non-copied slogan on someone else’s narrative. Verbatim
           copies do not count as boosts. A pure clone has no boosts, so the detector records amplifier 0 as a skip and
-          organic reach reads Not graded yet. It is not shown as 100 STRONG or as 0%. When the signal is graded, organic reach is 100 minus that signal.
+          organic reach reads Not graded yet. The same withheld reading is used when there are boosts but fewer than 2
+          on 2 days. It is not shown as 100 STRONG, as WEAK, or as 0%. When the signal is graded, organic reach is 100 minus that signal.
         </p>
       </section>
 

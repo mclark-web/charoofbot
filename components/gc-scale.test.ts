@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { getReport } from "../lib/corpus";
+import { runPaste } from "../lib/paste";
+import { samplePastes } from "../lib/samples";
 import {
   amplifierScaleScore,
   authenticityFrom,
@@ -27,6 +30,28 @@ describe("gradeFor", () => {
     assert.equal(gradeFor(69.99), "provisional");
     assert.equal(gradeFor(70), "strong");
     assert.equal(gradeFor(100), "strong");
+  });
+
+  it("leaves out-of-range readings ungraded instead of clamping them to 100 STRONG", () => {
+    assert.equal(gradeFor(100.5), "ungraded");
+    assert.equal(gradeFor(150), "ungraded");
+    assert.equal(formatScorePercent(100.5), "—");
+    assert.equal(formatScorePercent(150), "—");
+    assert.equal(showsEmptyGlass(100.5, true), false);
+    assert.equal(showsEmptyGlass(150, true), false);
+    assert.notEqual(formatScorePercent(150), "100%");
+  });
+
+  it("grades from the displayed percent, so 0.04 is 0% EXIT with an empty glass", () => {
+    assert.equal(displayScore(0.04), 0);
+    assert.equal(formatScorePercent(0.04), "0%");
+    assert.equal(gradeFor(0.04), "exit");
+    assert.equal(showsEmptyGlass(0.04, true), true);
+    assert.equal(displayScore(0.09), 0);
+    assert.equal(gradeFor(0.09), "exit");
+    assert.equal(formatScorePercent(0.1), "0.1%");
+    assert.equal(gradeFor(0.1), "weak");
+    assert.equal(showsEmptyGlass(0.1, true), false);
   });
 
   it("truncates the printed authenticity so 39.95 does not read as 40", () => {
@@ -93,38 +118,81 @@ describe("authenticityFrom", () => {
 });
 
 describe("showsEmptyGlass", () => {
-  it("is only a graded authenticity of exact zero", () => {
+  it("is a graded authenticity that displays as 0%", () => {
     assert.equal(showsEmptyGlass(0, true), true);
+    assert.equal(showsEmptyGlass(0.04, true), true);
     assert.equal(showsEmptyGlass(0, false), false);
+    assert.equal(showsEmptyGlass(0.04, false), false);
     assert.equal(showsEmptyGlass(authenticityFrom(100), true), true);
     assert.equal(showsEmptyGlass(authenticityFrom(0), true), false);
     assert.equal(showsEmptyGlass("skip", true), false);
+    assert.equal(showsEmptyGlass("withheld", true), false);
     assert.equal(showsEmptyGlass(null, true), false);
     assert.equal(showsEmptyGlass(undefined, true), false);
     assert.equal(showsEmptyGlass(Number.NaN, true), false);
     assert.equal(showsEmptyGlass(-1, true), false);
+    assert.equal(showsEmptyGlass(150, true), false);
   });
 });
 
 describe("amplifierScaleScore", () => {
   it("keeps a zero-boost skip ungraded after the authenticity flip", () => {
-    const skipped = amplifierScaleScore(0, 0);
-    assert.equal(skipped, "skip");
-    assert.equal(authenticityFrom(skipped), "skip");
+    const skipped = amplifierScaleScore(0, 0, 0);
+    assert.equal(skipped, "withheld");
+    assert.equal(authenticityFrom(skipped), "withheld");
     assert.equal(gradeFor(authenticityFrom(skipped)), "ungraded");
     assert.equal(detectorSignal("amplifier", skipped), "amplifier signal withheld");
 
-    const gradedZero = amplifierScaleScore(2, 0);
+    const gradedZero = amplifierScaleScore(2, 0, 2);
     assert.equal(gradedZero, 0);
     assert.equal(authenticityFrom(gradedZero), 100);
     assert.equal(gradeFor(authenticityFrom(gradedZero)), "strong");
 
-    const gradedFull = amplifierScaleScore(2, 100);
+    const gradedFull = amplifierScaleScore(2, 100, 2);
     assert.equal(authenticityFrom(gradedFull), 0);
     assert.equal(gradeFor(authenticityFrom(gradedFull)), "exit");
 
-    assert.equal(authenticityFrom(amplifierScaleScore(3, 63)), 37);
-    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(3, 63))), "weak");
+    assert.equal(authenticityFrom(amplifierScaleScore(3, 63, 2)), 37);
+    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(3, 63, 2))), "weak");
     assert.equal(detectorSignal("clone", 90), "clone signal 90%");
+  });
+
+  it("withholds the paste bench Boost framing sample that fails 2 boosts on 2 days", () => {
+    const account = runPaste(samplePastes.amp).accounts.find((item) => item.handle === "pasted_demo");
+    assert.ok(account);
+    assert.equal(account.boostPostCount, 1);
+    assert.equal(account.boostDays, 1);
+    assert.equal(account.passesAmpGate, false);
+    assert.equal(account.ampScore, 69);
+    const score = amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays);
+    assert.equal(score, "withheld");
+    assert.equal(authenticityFrom(score), "withheld");
+    assert.equal(gradeFor(authenticityFrom(score)), "ungraded");
+    assert.equal(detectorSignal("amplifier", score), "amplifier signal withheld");
+    assert.notEqual(gradeFor(authenticityFrom(score)), "weak");
+    assert.equal(authenticityFrom(account.ampScore), 31);
+  });
+
+  it("withholds a failed gate on the account page path and still grades a passing gate", () => {
+    const report = getReport();
+    const withheld = report.accounts.find((account) => account.handle === "assay_paul");
+    assert.ok(withheld);
+    assert.equal(withheld.passesAmpGate, false);
+    const withheldScore = amplifierScaleScore(withheld.boostPostCount, withheld.ampScore, withheld.boostDays);
+    assert.equal(withheldScore, "withheld");
+    assert.equal(gradeFor(authenticityFrom(withheldScore)), "ungraded");
+    assert.equal(detectorSignal("amplifier", withheldScore), "amplifier signal withheld");
+
+    const passing = report.accounts.find((account) => account.passesAmpGate);
+    assert.ok(passing);
+    const graded = amplifierScaleScore(passing.boostPostCount, passing.ampScore, passing.boostDays);
+    assert.equal(graded, passing.ampScore);
+    assert.notEqual(gradeFor(authenticityFrom(graded)), "ungraded");
+
+    assert.equal(amplifierScaleScore(2, 80, 1), "withheld");
+    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(2, 80, 1))), "ungraded");
+    assert.equal(amplifierScaleScore(1, 80, 2), "withheld");
+    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(1, 80, 2))), "ungraded");
+    assert.equal(amplifierScaleScore(2, 69, 2), 69);
   });
 });

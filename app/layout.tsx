@@ -33,6 +33,7 @@ export const metadata: Metadata = {
   },
   description:
     "GCBot, a GradedCalls product. The GC Scale reads authenticity: higher means more trustworthy. Fixture corpus and a paste bench. No API keys.",
+  robots: "noindex",
   openGraph: {
     title: { absolute: "GCBot · GradedCalls" },
     siteName: "GradedCalls",

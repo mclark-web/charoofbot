@@ -215,8 +215,8 @@ function AccountSlice({ account }: { account: AccountReport }) {
         />
         <ScoreMeter
           label="Organic reach"
-          score={amplifierScaleScore(account.boostPostCount, account.ampScore)}
-          signal={detectorSignal("amplifier", amplifierScaleScore(account.boostPostCount, account.ampScore))}
+          score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
+          signal={detectorSignal("amplifier", amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays))}
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts across ${account.boostDays} days. Higher means less of the activity is boosting someone else.`

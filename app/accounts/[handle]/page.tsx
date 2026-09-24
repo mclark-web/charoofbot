@@ -64,8 +64,8 @@ export default async function AccountPage({ params }: PageProps) {
         />
         <ScoreMeter
           label="Organic reach"
-          score={amplifierScaleScore(account.boostPostCount, account.ampScore)}
-          signal={detectorSignal("amplifier", amplifierScaleScore(account.boostPostCount, account.ampScore))}
+          score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
+          signal={detectorSignal("amplifier", amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays))}
           detail={`${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. ${
             account.passesAmpGate
               ? "Passes the persistence gate. Higher means less of the activity is boosting someone else."
