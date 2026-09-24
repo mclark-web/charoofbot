@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
 import { formatStamp } from "@/lib/format";
-import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
+import { AGE_AS_OF, ORGANIC_REACH_RULE, THRESHOLDS } from "@/lib/thresholds";
 
 export const metadata: Metadata = {
   title: "Methodology",
@@ -60,8 +60,7 @@ export default function MethodologyPage() {
         <h2 className="font-serif text-2xl">How the GC Scale is shown</h2>
         <p className="leading-relaxed">
           Display only: authenticity = 100 − detector signal. A graded, finite signal is flipped. Withheld values
-          read Not graded yet, including an amplifier signal with no boosts and any organic-reach reading that
-          misses 2 boosts on 2 days. They are never flipped into 100 STRONG. A reading above 100 is not graded.
+          read Not graded yet. {ORGANIC_REACH_RULE} They are never flipped into 100 STRONG. A reading above 100 is not graded.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           <li>70 and above is STRONG. That is the trustworthy band.</li>
@@ -130,8 +129,8 @@ export default function MethodologyPage() {
           are not first-seen + {THRESHOLDS.ampVolumeWeight} × boost count / {THRESHOLDS.ampVolumePostsForFull}). Each
           ratio is capped at 1. A boost is a quote, reply, or non-copied slogan on someone else’s narrative. Verbatim
           copies do not count as boosts. A pure clone has no boosts, so the detector records amplifier 0 as a skip and
-          organic reach reads Not graded yet. The same withheld reading is used when there are boosts but fewer than 2
-          on 2 days. It is not shown as 100 STRONG, as WEAK, or as 0%. When the signal is graded, organic reach is 100 minus that signal.
+          organic reach reads Not graded yet. {ORGANIC_REACH_RULE} It is not shown as 100 STRONG, as WEAK, or as 0%.
+          When the signal is graded, organic reach is 100 minus that signal.
         </p>
       </section>
 

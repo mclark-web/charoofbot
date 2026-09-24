@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
 import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
+import { organicReachWithheldDetail } from "@/lib/thresholds";
 import { ScoreMeter } from "@/components/score-meter";
 import { formatAgeDays, formatLatency, matchLabel } from "@/lib/format";
 import { runPaste, type PasteRun } from "@/lib/paste";
@@ -220,7 +221,7 @@ function AccountSlice({ account }: { account: AccountReport }) {
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts across ${account.boostDays} days. Higher means less of the activity is boosting someone else.`
-              : `${account.boostPostCount} boosts across ${account.boostDays} days. Organic reach needs 2 boosts on 2 days, otherwise it reads Not graded yet.`
+              : organicReachWithheldDetail(account.boostPostCount, account.boostDays, account.ampScore)
           }
         />
       </div>

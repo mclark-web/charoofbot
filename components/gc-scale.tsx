@@ -50,12 +50,11 @@ export function authenticityFrom(botScore: GradeInput): GradeInput {
 }
 
 /**
- * Printed detector percent that adds to the printed authenticity.
- * Both come from one truncation of the authenticity headline.
+ * Printed detector percent. Truncate toward zero, same as the headline,
+ * so 39.95 stays 39.9 and does not print as a threshold it did not cross.
  */
 export function signalDisplayPercent(botScore: number): number {
-  const headline = displayScore(100 - botScore);
-  return Math.round((100 - headline) * 10) / 10;
+  return displayScore(botScore);
 }
 
 /** Raw detector reading shown beside the authenticity grade. */

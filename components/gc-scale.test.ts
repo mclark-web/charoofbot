@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { getReport } from "../lib/corpus";
 import { runPaste } from "../lib/paste";
 import { samplePastes } from "../lib/samples";
+import { ORGANIC_REACH_RULE, organicReachWithheldDetail } from "../lib/thresholds";
 import {
   amplifierScaleScore,
   authenticityFrom,
@@ -100,8 +101,10 @@ describe("authenticityFrom", () => {
     assert.equal(authenticityFrom(60.05), 39.95);
     assert.equal(gradeFor(authenticityFrom(60.05)), "weak");
     assert.equal(formatScorePercent(authenticityFrom(60.05)), "39.9%");
-    assert.equal(detectorSignal("clone", 30.01), "clone signal 30.1%");
-    assert.equal(detectorSignal("amplifier", 60.05), "amplifier signal 60.1%");
+    assert.equal(detectorSignal("clone", 30.01), "clone signal 30%");
+    assert.equal(detectorSignal("amplifier", 60.05), "amplifier signal 60%");
+    assert.equal(detectorSignal("clone", 39.95), "clone signal 39.9%");
+    assert.notEqual(detectorSignal("clone", 39.95), "clone signal 40%");
   });
 
   it("does not flip skips, null, NaN, or negatives into 100 STRONG", () => {
@@ -224,5 +227,21 @@ describe("amplifierScaleScore", () => {
     const above = amplifierScaleScore(2, 80, 2);
     assert.equal(above, 80);
     assert.equal(gradeFor(authenticityFrom(above)), "weak");
+  });
+
+  it("names the failed gate, including a signal under 45 when the boost counts pass", () => {
+    const detail = organicReachWithheldDetail(2, 2, 38);
+    assert.match(detail, /2 boosts across 2 days, amplifier signal 38%/);
+    assert.match(detail, /Failed: amplifier signal 38 is under 45/);
+    assert.equal(detail.endsWith(ORGANIC_REACH_RULE), true);
+    assert.equal(
+      ORGANIC_REACH_RULE,
+      "Organic reach is graded only when the amplifier signal is 45 or higher with at least 2 boosts on 2 different days; otherwise it reads Not graded yet.",
+    );
+    const short = organicReachWithheldDetail(1, 1, 69);
+    assert.match(short, /1 boost across 1 day, amplifier signal 69%/);
+    assert.match(short, /1 boost is under 2/);
+    assert.match(short, /1 day is under 2 different days/);
+    assert.equal(short.includes("amplifier signal 69 is under 45"), false);
   });
 });

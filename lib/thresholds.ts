@@ -50,5 +50,29 @@ export function passesAmplifierGate(ampScore: number, boostPostCount: number, bo
   );
 }
 
+/** Withheld-gate explanation. Numbers come from the same thresholds the detector uses. */
+export const ORGANIC_REACH_RULE = `Organic reach is graded only when the amplifier signal is ${THRESHOLDS.ampLabel} or higher with at least ${THRESHOLDS.ampMinBoostPosts} boosts on ${THRESHOLDS.ampMinBoostDays} different days; otherwise it reads Not graded yet.`;
+
+/** Facts for this account, then which part of the gate failed, then the rule. */
+export function organicReachWithheldDetail(boostPostCount: number, boostDays: number, ampScore: number): string {
+  const missed: string[] = [];
+  if (!(ampScore >= THRESHOLDS.ampLabel)) {
+    missed.push(`amplifier signal ${ampScore} is under ${THRESHOLDS.ampLabel}`);
+  }
+  if (boostPostCount < THRESHOLDS.ampMinBoostPosts) {
+    missed.push(
+      `${boostPostCount} boost${boostPostCount === 1 ? "" : "s"} is under ${THRESHOLDS.ampMinBoostPosts}`,
+    );
+  }
+  if (boostDays < THRESHOLDS.ampMinBoostDays) {
+    missed.push(
+      `${boostDays} day${boostDays === 1 ? "" : "s"} is under ${THRESHOLDS.ampMinBoostDays} different days`,
+    );
+  }
+  const facts = `${boostPostCount} boost${boostPostCount === 1 ? "" : "s"} across ${boostDays} day${boostDays === 1 ? "" : "s"}, amplifier signal ${ampScore}%.`;
+  const which = missed.length > 0 ? ` Failed: ${missed.join("; ")}.` : "";
+  return `${facts}${which} ${ORGANIC_REACH_RULE}`;
+}
+
 /** Fixture and paste ages are measured against this stamp, not the wall clock and not the X API. */
 export const AGE_AS_OF = DEMO_PASTE_STAMP;
