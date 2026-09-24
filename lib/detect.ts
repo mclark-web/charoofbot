@@ -8,7 +8,7 @@ import {
   sharedCount,
   tokensOf,
 } from "./normalize";
-import { THRESHOLDS } from "./thresholds";
+import { passesAmplifierGate, THRESHOLDS } from "./thresholds";
 import type {
   AccountLabel,
   AccountReport,
@@ -458,10 +458,7 @@ function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): Acc
                 THRESHOLDS.ampVolumeWeight * volume),
           );
 
-    const passesAmpGate =
-      ampScore >= THRESHOLDS.ampLabel &&
-      boostPosts.length >= THRESHOLDS.ampMinBoostPosts &&
-      boostDays >= THRESHOLDS.ampMinBoostDays;
+    const passesAmpGate = passesAmplifierGate(ampScore, boostPosts.length, boostDays);
     const cloneHit = cloneScore >= THRESHOLDS.cloneLabel;
     let label: AccountLabel = "Clean";
     if (cloneHit && passesAmpGate) label = "Clone+Amp";

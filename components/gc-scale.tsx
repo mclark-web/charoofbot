@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { THRESHOLDS } from "@/lib/thresholds";
+import { passesAmplifierGate } from "@/lib/thresholds";
 
 export type GradeKey = "strong" | "weak" | "provisional" | "exit" | "ungraded";
 
@@ -49,13 +49,24 @@ export function authenticityFrom(botScore: GradeInput): GradeInput {
   return 100 - botScore;
 }
 
+/**
+ * Printed detector percent that adds to the printed authenticity.
+ * Both come from one truncation of the authenticity headline.
+ */
+export function signalDisplayPercent(botScore: number): number {
+  const headline = displayScore(100 - botScore);
+  return Math.round((100 - headline) * 10) / 10;
+}
+
 /** Raw detector reading shown beside the authenticity grade. */
 export function detectorSignal(kind: "clone" | "amplifier", botScore: GradeInput): string {
   const name = kind === "clone" ? "clone signal" : "amplifier signal";
-  if (typeof botScore !== "number" || !Number.isFinite(botScore) || botScore < 0) {
+  if (typeof botScore !== "number" || !Number.isFinite(botScore) || botScore < 0 || botScore > 100) {
     return `${name} withheld`;
   }
-  return `${name} ${formatScorePercent(botScore)}`;
+  const shown = signalDisplayPercent(botScore);
+  const text = Number.isInteger(shown) ? `${shown}%` : `${shown.toFixed(1)}%`;
+  return `${name} ${text}`;
 }
 
 /**
@@ -74,18 +85,23 @@ export function gradeFor(score: GradeInput): GradeKey {
   return "provisional";
 }
 
-/** Empty glass when the graded display is 0%. Withheld values render their own empty glass. */
+/**
+ * Empty glass for a displayed 0% (EXIT) and for anything ungraded.
+ * Ungraded still does not draw an EXIT pill or a percent.
+ */
 export function showsEmptyGlass(score: GradeInput, graded = true): boolean {
-  return graded === true && gradeFor(score) === "exit";
+  const grade = gradeFor(score);
+  if (grade === "ungraded") return true;
+  return graded === true && grade === "exit";
 }
 
 /**
- * Organic reach is withheld unless the persistence gate passes: at least
- * 2 boosts on 2 days. A failed gate is not a graded 0 and is not flipped.
+ * Organic reach uses the detector amplifier gate: 2+ boosts on 2+ days and a
+ * signal of at least 45. Anything else is withheld, not flipped.
  * Scoring itself is unchanged; only the scale input is.
  */
 export function amplifierScaleScore(boostPostCount: number, ampScore: number, boostDays: number): GradeInput {
-  if (boostPostCount < THRESHOLDS.ampMinBoostPosts || boostDays < THRESHOLDS.ampMinBoostDays) return "withheld";
+  if (!passesAmplifierGate(ampScore, boostPostCount, boostDays)) return "withheld";
   return ampScore;
 }
 
@@ -143,7 +159,7 @@ export function GcScale({
   if (ungraded) {
     return (
       <div
-        className={`gc-scale is-ungraded is-empty ${orientClass}`}
+        className={`gc-scale is-ungraded${empty ? " is-empty" : ""} ${orientClass}`}
         role="img"
         aria-label="GC Scale, not graded yet"
       >

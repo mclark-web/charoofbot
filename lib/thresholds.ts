@@ -41,5 +41,14 @@ export const THRESHOLDS = {
 
 export const DEMO_PASTE_STAMP = "2026-09-22T15:00:00.000Z";
 
+/** Same predicate detect.ts uses for the amplifier label. Display must not invent a second gate. */
+export function passesAmplifierGate(ampScore: number, boostPostCount: number, boostDays: number): boolean {
+  return (
+    ampScore >= THRESHOLDS.ampLabel &&
+    boostPostCount >= THRESHOLDS.ampMinBoostPosts &&
+    boostDays >= THRESHOLDS.ampMinBoostDays
+  );
+}
+
 /** Fixture and paste ages are measured against this stamp, not the wall clock and not the X API. */
 export const AGE_AS_OF = DEMO_PASTE_STAMP;

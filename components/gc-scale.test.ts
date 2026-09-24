@@ -37,8 +37,8 @@ describe("gradeFor", () => {
     assert.equal(gradeFor(150), "ungraded");
     assert.equal(formatScorePercent(100.5), "—");
     assert.equal(formatScorePercent(150), "—");
-    assert.equal(showsEmptyGlass(100.5, true), false);
-    assert.equal(showsEmptyGlass(150, true), false);
+    assert.equal(showsEmptyGlass(100.5, true), true);
+    assert.equal(showsEmptyGlass(150, true), true);
     assert.notEqual(formatScorePercent(150), "100%");
   });
 
@@ -100,6 +100,8 @@ describe("authenticityFrom", () => {
     assert.equal(authenticityFrom(60.05), 39.95);
     assert.equal(gradeFor(authenticityFrom(60.05)), "weak");
     assert.equal(formatScorePercent(authenticityFrom(60.05)), "39.9%");
+    assert.equal(detectorSignal("clone", 30.01), "clone signal 30.1%");
+    assert.equal(detectorSignal("amplifier", 60.05), "amplifier signal 60.1%");
   });
 
   it("does not flip skips, null, NaN, or negatives into 100 STRONG", () => {
@@ -125,13 +127,16 @@ describe("showsEmptyGlass", () => {
     assert.equal(showsEmptyGlass(0.04, false), false);
     assert.equal(showsEmptyGlass(authenticityFrom(100), true), true);
     assert.equal(showsEmptyGlass(authenticityFrom(0), true), false);
-    assert.equal(showsEmptyGlass("skip", true), false);
-    assert.equal(showsEmptyGlass("withheld", true), false);
-    assert.equal(showsEmptyGlass(null, true), false);
-    assert.equal(showsEmptyGlass(undefined, true), false);
-    assert.equal(showsEmptyGlass(Number.NaN, true), false);
-    assert.equal(showsEmptyGlass(-1, true), false);
-    assert.equal(showsEmptyGlass(150, true), false);
+    assert.equal(showsEmptyGlass("skip", true), true);
+    assert.equal(showsEmptyGlass("withheld", true), true);
+    assert.equal(showsEmptyGlass(null, true), true);
+    assert.equal(showsEmptyGlass(undefined, true), true);
+    assert.equal(showsEmptyGlass(Number.NaN, true), true);
+    assert.equal(showsEmptyGlass(-1, true), true);
+    assert.equal(showsEmptyGlass(150, true), true);
+    assert.equal(gradeFor("withheld"), "ungraded");
+    assert.notEqual(gradeFor("withheld"), "exit");
+    assert.equal(formatScorePercent("withheld"), "—");
   });
 });
 
@@ -143,10 +148,9 @@ describe("amplifierScaleScore", () => {
     assert.equal(gradeFor(authenticityFrom(skipped)), "ungraded");
     assert.equal(detectorSignal("amplifier", skipped), "amplifier signal withheld");
 
-    const gradedZero = amplifierScaleScore(2, 0, 2);
-    assert.equal(gradedZero, 0);
-    assert.equal(authenticityFrom(gradedZero), 100);
-    assert.equal(gradeFor(authenticityFrom(gradedZero)), "strong");
+    const underLabel = amplifierScaleScore(2, 0, 2);
+    assert.equal(underLabel, "withheld");
+    assert.equal(gradeFor(authenticityFrom(underLabel)), "ungraded");
 
     const gradedFull = amplifierScaleScore(2, 100, 2);
     assert.equal(authenticityFrom(gradedFull), 0);
@@ -194,5 +198,31 @@ describe("amplifierScaleScore", () => {
     assert.equal(amplifierScaleScore(1, 80, 2), "withheld");
     assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(1, 80, 2))), "ungraded");
     assert.equal(amplifierScaleScore(2, 69, 2), 69);
+  });
+
+  it("withholds 2 boosts on 2 days when the signal is under 45, and grades 45 or more", () => {
+    const under = amplifierScaleScore(2, 38, 2);
+    assert.equal(under, "withheld");
+    assert.equal(authenticityFrom(under), "withheld");
+    assert.equal(gradeFor(authenticityFrom(under)), "ungraded");
+    assert.notEqual(gradeFor(authenticityFrom(under)), "provisional");
+    assert.equal(detectorSignal("amplifier", under), "amplifier signal withheld");
+    assert.equal(showsEmptyGlass(under, true), true);
+    assert.equal(authenticityFrom(38), 62);
+    assert.equal(gradeFor(authenticityFrom(38)), "provisional");
+
+    assert.equal(amplifierScaleScore(2, 44, 2), "withheld");
+    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(2, 44, 2))), "ungraded");
+
+    const atGate = amplifierScaleScore(2, 45, 2);
+    assert.equal(atGate, 45);
+    assert.equal(authenticityFrom(atGate), 55);
+    assert.equal(gradeFor(authenticityFrom(atGate)), "provisional");
+    assert.equal(detectorSignal("amplifier", atGate), "amplifier signal 45%");
+    assert.equal(formatScorePercent(authenticityFrom(atGate)), "55%");
+
+    const above = amplifierScaleScore(2, 80, 2);
+    assert.equal(above, 80);
+    assert.equal(gradeFor(authenticityFrom(above)), "weak");
   });
 });
