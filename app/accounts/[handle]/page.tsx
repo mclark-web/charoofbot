@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
 import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
-import { organicReachWithheldDetail } from "@/lib/thresholds";
+import { organicReachMutedNote, organicReachWithheldDetail } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
 import { AGE_AS_OF } from "@/lib/thresholds";
@@ -66,7 +66,7 @@ export default async function AccountPage({ params }: PageProps) {
         <ScoreMeter
           label="Organic reach"
           score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
-          signal={detectorSignal("amplifier", amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays))}
+          signal={organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays)}
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. Passes the persistence gate. Higher means less of the activity is boosting someone else.`

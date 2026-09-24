@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
+import { ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
 import { formatStamp } from "@/lib/format";
-import { AGE_AS_OF, ORGANIC_REACH_RULE, THRESHOLDS } from "@/lib/thresholds";
+import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
 
 export const metadata: Metadata = {
   title: "Methodology",

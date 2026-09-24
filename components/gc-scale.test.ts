@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { getReport } from "../lib/corpus";
 import { runPaste } from "../lib/paste";
 import { samplePastes } from "../lib/samples";
-import { ORGANIC_REACH_RULE, organicReachWithheldDetail } from "../lib/thresholds";
+import { ORGANIC_REACH_RULE, organicReachMutedNote, organicReachWithheldDetail } from "./organic-reach-copy";
 import {
   amplifierScaleScore,
   authenticityFrom,
@@ -243,5 +243,25 @@ describe("amplifierScaleScore", () => {
     assert.match(short, /1 boost is under 2/);
     assert.match(short, /1 day is under 2 different days/);
     assert.equal(short.includes("amplifier signal 69 is under 45"), false);
+  });
+
+  it("does not print a signal or a signal failure for the zero-boost skip", () => {
+    const detail = organicReachWithheldDetail(0, 0, 0);
+    assert.match(detail, /amplifier signal not computed/);
+    assert.equal(detail.includes("0%"), false);
+    assert.equal(detail.includes("amplifier signal 0"), false);
+    const failed = detail.split("Failed: ")[1]?.split(". Organic")[0] ?? "";
+    assert.equal(failed, "0 boosts is under 2; 0 days is under 2 different days");
+    assert.equal(failed.includes("signal"), false);
+    assert.equal(organicReachMutedNote(0, 0, 0), "amplifier signal withheld");
+  });
+
+  it("uses organic reach withheld on the muted line when a computed signal fails the gate", () => {
+    assert.equal(organicReachMutedNote(2, 38, 2), "organic reach withheld");
+    assert.equal(organicReachMutedNote(1, 69, 1), "organic reach withheld");
+    assert.equal(organicReachMutedNote(2, 45, 2), "amplifier signal 45%");
+    const under = organicReachWithheldDetail(2, 2, 38);
+    assert.match(under, /amplifier signal 38%/);
+    assert.match(under, /amplifier signal 38 is under 45/);
   });
 });

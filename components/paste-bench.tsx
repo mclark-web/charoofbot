@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
 import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
-import { organicReachWithheldDetail } from "@/lib/thresholds";
+import { organicReachMutedNote, organicReachWithheldDetail } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { formatAgeDays, formatLatency, matchLabel } from "@/lib/format";
 import { runPaste, type PasteRun } from "@/lib/paste";
@@ -217,7 +217,7 @@ function AccountSlice({ account }: { account: AccountReport }) {
         <ScoreMeter
           label="Organic reach"
           score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
-          signal={detectorSignal("amplifier", amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays))}
+          signal={organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays)}
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts across ${account.boostDays} days. Higher means less of the activity is boosting someone else.`
