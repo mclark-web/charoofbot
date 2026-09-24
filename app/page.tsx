@@ -117,8 +117,78 @@ export default function DashboardPage() {
           end of each bar is the total.
         </p>
         <VolumeChart rows={chartRows} />
-        <div className="max-w-full min-w-0 overflow-x-auto border border-rule">
-          <table className="w-full min-w-[48rem] text-left text-sm">
+        <ul className="grid gap-3 md:hidden">
+          {report.narratives.map((narrative) => (
+            <li
+              key={narrative.id}
+              className={`grid gap-3 border border-rule p-4 ${
+                narrative.age.freshAccountsDominate
+                  ? "bg-fresh-soft"
+                  : narrative.age.newAccountsDominate
+                    ? "bg-yearling-soft"
+                    : "bg-paper-raised"
+              }`}
+            >
+              <div>
+                <h3 className="font-serif text-lg text-ink">{narrative.title}</h3>
+                <p className="text-xs text-ink-soft">{narrative.topic}</p>
+                {narrative.age.newAccountsDominate ? (
+                  <p className={`text-xs ${narrative.age.freshAccountsDominate ? "text-sewn" : "text-ink-soft"}`}>
+                    {narrative.age.freshAccountsDominate
+                      ? "Sewn by accounts under 30 days"
+                      : "Sewn by accounts under 1 year"}
+                  </p>
+                ) : null}
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-ink-soft">Volume</p>
+                <GcScale
+                  score={maxPosts > 0 ? (narrative.postCount / maxPosts) * 100 : 0}
+                  label={`${narrative.title} volume`}
+                  graded={false}
+                  showLabel={false}
+                  showPercent={false}
+                  meterMax={maxPosts}
+                  meterNow={narrative.postCount}
+                  meterLabel={`${narrative.title} volume, ${narrative.postCount} posts`}
+                />
+              </div>
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-ink-soft">Posts</dt>
+                  <dd className="font-mono">{narrative.postCount}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-ink-soft">Accounts</dt>
+                  <dd className="font-mono">{narrative.accountCount}</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-ink-soft">Under 30d</dt>
+                  <dd className="font-mono">{narrative.age.freshVolumePct}%</dd>
+                </div>
+                <div>
+                  <dt className="text-xs uppercase tracking-wide text-ink-soft">Under 1y</dt>
+                  <dd className="font-mono">{narrative.age.underYearVolumePct}%</dd>
+                </div>
+              </dl>
+              <p className="text-sm">
+                <span className="text-xs uppercase tracking-wide text-ink-soft">First seen </span>
+                {narrative.originAccount ? (
+                  <Link href={`/accounts/${narrative.originAccount}`} className="tap underline decoration-rule">
+                    @{narrative.originAccount}
+                  </Link>
+                ) : (
+                  "—"
+                )}
+                {narrative.firstSeen ? (
+                  <span className="mt-0.5 block text-xs text-ink-soft">{formatStamp(narrative.firstSeen)}</span>
+                ) : null}
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden max-w-full min-w-0 border border-rule md:block">
+          <table className="w-full text-left text-sm">
             <caption className="sr-only">Narrative volume, sorted by post count</caption>
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>
@@ -147,14 +217,14 @@ export default function DashboardPage() {
                     <p className="font-serif text-base text-ink">{narrative.title}</p>
                     <p className="text-xs text-ink-soft">{narrative.topic}</p>
                     {narrative.age.newAccountsDominate ? (
-                      <p className={`text-xs ${narrative.age.freshAccountsDominate ? "text-fresh" : "text-yearling"}`}>
+                      <p className={`text-xs ${narrative.age.freshAccountsDominate ? "text-sewn" : "text-ink-soft"}`}>
                         {narrative.age.freshAccountsDominate
                           ? "Sewn by accounts under 30 days"
                           : "Sewn by accounts under 1 year"}
                       </p>
                     ) : null}
                   </td>
-                  <td className="min-w-40 px-3 py-2">
+                  <td className="min-w-0 px-3 py-2">
                     <GcScale
                       score={maxPosts > 0 ? (narrative.postCount / maxPosts) * 100 : 0}
                       label={`${narrative.title} volume`}
@@ -230,7 +300,7 @@ export default function DashboardPage() {
             <span className="inline-block h-3 w-3 rounded-full border-2 border-origin" /> Under 30 days dominate
           </li>
           <li className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full border-2 border-yearling" /> Under 1 year dominates
+            <span className="inline-block h-3 w-3 rounded-full border-2 border-ink-soft" /> Under 1 year dominates
           </li>
         </ul>
         <div className="overflow-hidden border border-rule bg-paper-raised p-3">
@@ -269,15 +339,7 @@ export default function DashboardPage() {
                     {cluster.cloneCount} copies · {cluster.exactCount} exact · {cluster.nearCount} near ·{" "}
                     {cluster.templateCount} template
                   </p>
-                  <p
-                    className={`mt-1 font-mono text-xs ${
-                      cluster.age.freshAccountsDominate
-                        ? "text-fresh"
-                        : cluster.age.newAccountsDominate
-                          ? "text-yearling"
-                          : "text-ink-soft"
-                    }`}
-                  >
+                  <p className={`mt-1 font-mono text-xs ${cluster.age.freshAccountsDominate ? "text-sewn" : "text-ink-soft"}`}>
                     {cluster.age.newAccountsDominate ? "New accounts dominate · " : ""}
                     {cluster.age.freshVolumePct}% under 30 days · {cluster.age.underYearVolumePct}% under 1 year
                   </p>

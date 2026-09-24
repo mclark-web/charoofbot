@@ -18,11 +18,10 @@
   --origin-soft: rgba(238, 154, 68, 0.14);
   --clay: #c9c9cf;
   --clay-soft: rgba(154, 154, 163, 0.12);
-  --other: #3a3e48;
   --fresh: #eb6505;
   --fresh-soft: rgba(235, 101, 5, 0.14);
-  --yearling: #9a9aa3;
   --yearling-soft: rgba(154, 154, 163, 0.08);
+  --sewn: #96969e;
   --ok: #4cc38a;
   --bad: #f26d7d;
 }
@@ -43,11 +42,10 @@
   --color-origin-soft: var(--origin-soft);
   --color-clay: var(--clay);
   --color-clay-soft: var(--clay-soft);
-  --color-other: var(--other);
   --color-fresh: var(--fresh);
   --color-fresh-soft: var(--fresh-soft);
-  --color-yearling: var(--yearling);
   --color-yearling-soft: var(--yearling-soft);
+  --color-sewn: var(--sewn);
   --font-sans: var(--font-source-sans), "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-serif: var(--font-source-serif), "Source Serif 4", Georgia, serif;
   --font-mono: var(--font-ibm-mono), "IBM Plex Mono", ui-monospace, monospace;
@@ -626,7 +624,7 @@ dt .tap::before {
   align-items: center;
   column-gap: 8px;
   row-gap: 8px;
-  background-color: #14171e;
+  background-color: #161820;
 }
 
 .gc-scale.is-horizontal .gc-meta {

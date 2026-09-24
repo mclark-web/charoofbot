@@ -53,7 +53,7 @@ export function SiteHeader() {
           })}
         </nav>
       </div>
-      <p className="fixture-label">GC Scale · Phase 0 · Fixture corpus</p>
+      <p className="fixture-label">Phase 0 · Fixture corpus</p>
     </header>
   );
 }

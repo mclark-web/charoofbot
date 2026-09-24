@@ -6,7 +6,7 @@ export function AgeCallout({ age, scope }: { age: AgeVolume; scope: string }) {
   const tone = hot
     ? "border-fresh bg-fresh-soft text-fresh"
     : warm
-      ? "border-yearling bg-yearling-soft text-yearling"
+      ? "border-ink-soft bg-yearling-soft text-ink-soft"
       : "border-rule bg-paper-raised text-ink-soft";
   return (
     <p className={`border px-4 py-3 text-sm leading-relaxed ${tone}`}>

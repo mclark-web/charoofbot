@@ -91,8 +91,37 @@ export default async function ClusterPage({ params }: PageProps) {
 
       <section>
         <h2 className="font-serif text-2xl text-ink">Timeline</h2>
-        <div className="mt-4 max-w-full min-w-0 overflow-x-auto border border-rule">
-          <table className="w-full min-w-[46rem] text-left text-sm">
+        <ul className="mt-4 grid gap-3 md:hidden">
+          {cluster.posts.map((post) => (
+            <li key={post.id} className="grid gap-2 border border-rule bg-paper-raised p-4 text-sm">
+              <p>
+                <span className="text-xs uppercase tracking-wide text-ink-soft">When </span>
+                {formatStamp(post.postedAt)}
+              </p>
+              <p>
+                <span className="text-xs uppercase tracking-wide text-ink-soft">Account </span>
+                <Link href={`/accounts/${post.account}`} className="tap underline decoration-rule">
+                  @{post.account}
+                </Link>
+              </p>
+              <p className="flex flex-wrap items-center gap-2">
+                <span className="text-xs uppercase tracking-wide text-ink-soft">Role</span>
+                <RoleBadge role={post.role} />
+              </p>
+              <p className="flex flex-wrap items-center gap-2">
+                <span className="text-xs uppercase tracking-wide text-ink-soft">Account age</span>
+                <AgeBadge band={post.ageBand} showEstablished showUnknown />
+                <span className="font-mono text-xs text-ink-soft">{formatAgeDays(post.ageDays)}</span>
+              </p>
+              <p>
+                <span className="text-xs uppercase tracking-wide text-ink-soft">Latency </span>
+                <span className="text-ink-soft">{post.latencyMs === null ? "First seen" : formatLatency(post.latencyMs)}</span>
+              </p>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-4 hidden max-w-full min-w-0 border border-rule md:block">
+          <table className="w-full text-left text-sm">
             <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
               <tr>
                 <th className="px-3 py-2 font-medium">When</th>
@@ -105,7 +134,7 @@ export default async function ClusterPage({ params }: PageProps) {
             <tbody>
               {cluster.posts.map((post) => (
                 <tr key={post.id} className="border-t border-rule">
-                  <td className="px-3 py-2 whitespace-nowrap">{formatStamp(post.postedAt)}</td>
+                  <td className="px-3 py-2">{formatStamp(post.postedAt)}</td>
                   <td className="px-3 py-2">
                     <Link href={`/accounts/${post.account}`} className="tap underline decoration-rule">
                       @{post.account}
