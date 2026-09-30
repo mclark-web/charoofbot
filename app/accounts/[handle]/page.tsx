@@ -19,6 +19,8 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
+  const account = getReport().accounts.find((item) => item.handle === handle);
+  if (!account) return { title: { absolute: "Page not found · GCBot" } };
   return { title: `@${handle}` };
 }
 

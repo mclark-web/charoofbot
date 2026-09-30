@@ -43,7 +43,8 @@ describe("logo link", () => {
     const notFound = readFileSync(new URL("../app/not-found.tsx", import.meta.url), "utf8");
     assert.match(notFound, /Page not found · GCBot/);
     assert.match(notFound, /href=\{HUB_HREF\}/);
-    assert.match(notFound, />\s*Hub\s*</);
+    assert.match(notFound, />\s*Back to the Hub\s*</);
+    assert.match(notFound, /mt-6 text-ink-soft/);
 
     const diff = readFileSync(new URL("./diff-view.tsx", import.meta.url), "utf8");
     assert.match(diff, /underline/);

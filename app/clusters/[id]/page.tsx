@@ -19,7 +19,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const cluster = getReport().clusters.find((item) => item.id === id);
-  if (!cluster) return { title: "Cluster" };
+  if (!cluster) return { title: { absolute: "Page not found · GCBot" } };
   return { title: excerpt(cluster.sampleText, 72) };
 }
 

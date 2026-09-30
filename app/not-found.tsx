@@ -17,9 +17,9 @@ export default function NotFound() {
         </Link>
         .
       </p>
-      <p className="mt-2 text-ink-soft">
+      <p className="mt-6 text-ink-soft">
         <a href={HUB_HREF} className="tap underline decoration-rule underline-offset-4">
-          Hub
+          Back to the Hub
         </a>
       </p>
     </div>
