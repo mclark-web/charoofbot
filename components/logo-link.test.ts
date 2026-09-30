@@ -22,5 +22,31 @@ describe("logo link", () => {
 
     const globalError = readFileSync(new URL("../app/global-error.tsx", import.meta.url), "utf8");
     assert.match(globalError, /<LogoLink\s+embedded\s*\/>/);
+    assert.match(globalError, /<title>This page failed to render · GCBot<\/title>/);
+    assert.match(globalError, /href="https:\/\/charoof\.vercel\.app"/);
+    assert.match(globalError, />\s*Hub\s*</);
+
+    assert.match(source, /\/gradedcalls-mark-44\.png/);
+    assert.match(source, /\/gradedcalls-mark-88\.png/);
+    assert.match(source, /width=\{44\}/);
+    assert.match(source, /#eb6505/);
+    assert.equal(source.includes("next/image"), false);
+    assert.equal(source.includes("#ee9a44"), false);
+
+    const css = readFileSync(new URL("./logo-link.module.css", import.meta.url), "utf8");
+    assert.match(css, /width:\s*44px/);
+    assert.match(css, /height:\s*44px/);
+    assert.match(css, /#eb6505/);
+    assert.equal(css.includes("#ee9a44"), false);
+    assert.equal(css.includes("32px"), false);
+
+    const notFound = readFileSync(new URL("../app/not-found.tsx", import.meta.url), "utf8");
+    assert.match(notFound, /Page not found · GCBot/);
+    assert.match(notFound, /href=\{HUB_HREF\}/);
+    assert.match(notFound, />\s*Hub\s*</);
+
+    const diff = readFileSync(new URL("./diff-view.tsx", import.meta.url), "utf8");
+    assert.match(diff, /underline/);
+    assert.match(diff, /text-vermilion/);
   });
 });

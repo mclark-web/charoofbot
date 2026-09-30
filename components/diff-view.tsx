@@ -3,7 +3,7 @@ import type { DiffOp } from "@/lib/diff";
 const STYLES = {
   eq: "text-ink",
   del: "text-ink-soft line-through decoration-ink-soft/70",
-  ins: "bg-vermilion-soft text-vermilion",
+  ins: "bg-vermilion-soft text-vermilion underline decoration-vermilion underline-offset-2",
 } as const;
 
 export function DiffView({ ops }: { ops: DiffOp[] }) {

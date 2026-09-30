@@ -16,6 +16,9 @@ export default function GlobalError({
 
   return (
     <html lang="en" style={{ backgroundColor: "#0b0c0e", colorScheme: "dark" }}>
+      <head>
+        <title>This page failed to render · GCBot</title>
+      </head>
       <body
         style={{
           margin: 0,
@@ -51,6 +54,25 @@ export default function GlobalError({
           </h1>
           <p style={{ marginTop: 16, color: "#9a9aa3", fontSize: 16, lineHeight: 1.5 }}>
             The notebook hit an error while loading this view.
+          </p>
+          <p style={{ marginTop: 8 }}>
+            <a
+              href="https://charoof.vercel.app"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                boxSizing: "border-box",
+                minWidth: 44,
+                minHeight: 44,
+                color: "#f2f1ee",
+                fontSize: 16,
+                lineHeight: 1.5,
+                textDecoration: "underline",
+                textUnderlineOffset: 4,
+              }}
+            >
+              Hub
+            </a>
           </p>
           <button
             type="button"

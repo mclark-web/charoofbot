@@ -1,31 +1,35 @@
-import Image from "next/image";
 import styles from "./logo-link.module.css";
 
 export const HUB_HREF = "https://charoof.vercel.app";
 
-const MARK_SRC = "/gradedcalls-mark.png";
+// Pre-sized transparent PNGs. The image optimizer at width 32 re-encodes a WebP
+// whose perimeter pixels pick up stray alpha (about 2/255) and a faint edge.
+const MARK_1X = "/gradedcalls-mark-44.png";
+const MARK_2X = "/gradedcalls-mark-88.png";
 
 export function LogoLink({ embedded = false }: { embedded?: boolean }) {
-  const mark = embedded ? (
-    // Global error may not load the CSS module. Size the full 1024 source here.
+  const mark = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={MARK_SRC}
+      src={MARK_1X}
+      srcSet={`${MARK_1X} 1x, ${MARK_2X} 2x`}
       alt="GradedCalls"
-      width={64}
-      height={64}
-      style={{ width: 32, height: 32, display: "block", objectFit: "contain" }}
-    />
-  ) : (
-    <Image
-      src={MARK_SRC}
-      alt="GradedCalls"
-      width={96}
-      height={96}
-      sizes="(min-width: 820px) 36px, 32px"
-      quality={90}
-      className={styles.mark}
-      priority
+      width={44}
+      height={44}
+      className={embedded ? undefined : styles.mark}
+      decoding="async"
+      style={
+        embedded
+          ? {
+              width: 44,
+              height: 44,
+              display: "block",
+              flex: "none",
+              objectFit: "contain",
+              backgroundColor: "transparent",
+            }
+          : undefined
+      }
     />
   );
 
@@ -58,7 +62,7 @@ export function LogoLink({ embedded = false }: { embedded?: boolean }) {
         className={embedded ? undefined : styles.name}
         style={embedded ? { whiteSpace: "nowrap" } : undefined}
       >
-        Graded<span style={embedded ? { color: "#ee9a44" } : undefined}>Calls</span>
+        Graded<span style={embedded ? { color: "#eb6505" } : undefined}>Calls</span>
       </span>
     </a>
   );

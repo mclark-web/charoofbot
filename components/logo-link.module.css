@@ -11,11 +11,12 @@
 }
 
 .mark {
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   flex: none;
   display: block;
   object-fit: contain;
+  background-color: transparent;
 }
 
 .name {
@@ -28,15 +29,10 @@
 }
 
 .name span {
-  color: #ee9a44;
+  color: #eb6505;
 }
 
 @media (min-width: 820px) {
-  .mark {
-    width: 36px;
-    height: 36px;
-  }
-
   .name {
     font-size: 17px;
   }
