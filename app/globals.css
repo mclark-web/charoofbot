@@ -193,35 +193,6 @@ thead {
   padding: 0 8px;
 }
 
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
-  min-width: 44px;
-  min-height: 44px;
-  color: #f2f1ee;
-  text-decoration: none;
-}
-
-.mark {
-  width: 22px;
-  height: 22px;
-  flex: none;
-}
-
-.brand-name {
-  font-size: 15px;
-  font-weight: 650;
-  letter-spacing: -0.02em;
-  white-space: nowrap;
-  line-height: 1;
-}
-
-.brand-name span {
-  color: #ee9a44;
-}
-
 .site-nav {
   display: flex;
   flex-wrap: nowrap;
@@ -722,15 +693,6 @@ dt .tap::before {
 
   .fixture-label {
     padding: 0 20px 10px;
-  }
-
-  .brand-name {
-    font-size: 17px;
-  }
-
-  .mark {
-    width: 24px;
-    height: 24px;
   }
 
   .nav-link {

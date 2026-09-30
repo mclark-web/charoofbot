@@ -1,0 +1,44 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  box-sizing: border-box;
+  min-width: 44px;
+  min-height: 44px;
+  color: #f2f1ee;
+  text-decoration: none;
+}
+
+.mark {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  display: block;
+  object-fit: contain;
+  background-color: #272a31;
+}
+
+.name {
+  color: #f2f1ee;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.name span {
+  color: #ee9a44;
+}
+
+@media (min-width: 820px) {
+  .mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .name {
+    font-size: 17px;
+  }
+}
