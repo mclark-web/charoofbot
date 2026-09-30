@@ -17,8 +17,10 @@ describe("logo link", () => {
 
     const errorPage = readFileSync(new URL("../app/error.tsx", import.meta.url), "utf8");
     assert.match(errorPage, /<LogoLink\s*\/>/);
+    assert.match(errorPage, /reset\(\)/);
+    assert.equal(errorPage.includes("retry"), false);
 
     const globalError = readFileSync(new URL("../app/global-error.tsx", import.meta.url), "utf8");
-    assert.match(globalError, /<LogoLink\s*\/>/);
+    assert.match(globalError, /<LogoLink\s+embedded\s*\/>/);
   });
 });

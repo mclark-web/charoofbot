@@ -5,10 +5,10 @@ import { LogoLink } from "@/components/logo-link";
 
 export default function GlobalError({
   error,
-  retry,
+  reset,
 }: {
   error: Error & { digest?: string };
-  retry: () => void;
+  reset: () => void;
 }) {
   useEffect(() => {
     console.error(error);
@@ -42,7 +42,7 @@ export default function GlobalError({
               padding: "0 8px",
             }}
           >
-            <LogoLink />
+            <LogoLink embedded />
           </div>
         </header>
         <main style={{ maxWidth: "72rem", margin: "0 auto", padding: "32px 20px" }}>
@@ -54,7 +54,7 @@ export default function GlobalError({
           </p>
           <button
             type="button"
-            onClick={() => retry()}
+            onClick={() => reset()}
             style={{
               display: "inline-flex",
               alignItems: "center",
