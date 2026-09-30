@@ -19,7 +19,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const cluster = getReport().clusters.find((item) => item.id === id);
-  if (!cluster) return { title: "Cluster" };
+  if (!cluster) return { title: { absolute: "Page not found · GCBot" } };
   return { title: excerpt(cluster.sampleText, 72) };
 }
 
@@ -166,7 +166,7 @@ export default async function ClusterPage({ params }: PageProps) {
           <h2 className="font-serif text-2xl text-ink">Text diffs</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
             Diffs compare normalized text: lowercase, with URLs, @handles, cashtags, emoji, and extra whitespace
-            removed. Struck words were in the originator post. Orange words appear only in the copy.
+            removed. Struck words were in the originator post. Orange underlined words appear only in the copy.
           </p>
         </div>
         {copies.map((copy) => (
