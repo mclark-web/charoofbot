@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
 import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
-import { organicReachMutedNote, organicReachWithheldDetail } from "@/components/organic-reach-copy";
+import { ORGANIC_REACH_NOT_GRADED, organicReachMutedNote } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
 import { excerpt, formatAgeDays, formatStamp } from "@/lib/format";
@@ -71,7 +71,7 @@ export default async function AccountPage({ params }: PageProps) {
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. Passes the persistence gate. Higher means less of the activity is boosting someone else.`
-              : organicReachWithheldDetail(account.boostPostCount, account.boostDays, account.ampScore)
+              : ORGANIC_REACH_NOT_GRADED
           }
         />
       </div>

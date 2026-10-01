@@ -3,12 +3,7 @@ import { describe, it } from "node:test";
 import { getReport } from "../lib/corpus";
 import { runPaste } from "../lib/paste";
 import { samplePastes } from "../lib/samples";
-import {
-  ORGANIC_REACH_NOT_GRADED,
-  ORGANIC_REACH_RULE,
-  organicReachMutedNote,
-  organicReachWithheldDetail,
-} from "./organic-reach-copy";
+import { ORGANIC_REACH_NOT_GRADED, ORGANIC_REACH_RULE, organicReachMutedNote } from "./organic-reach-copy";
 import {
   amplifierScaleScore,
   authenticityFrom,
@@ -235,10 +230,11 @@ describe("amplifierScaleScore", () => {
   });
 
   it("uses the short not-graded note and keeps the full organic-reach rule", () => {
-    assert.equal(ORGANIC_REACH_NOT_GRADED, "Not graded yet — needs 2+ boosts on 2 days.");
-    assert.equal(organicReachWithheldDetail(2, 2, 38), ORGANIC_REACH_NOT_GRADED);
-    assert.equal(organicReachWithheldDetail(1, 1, 69), ORGANIC_REACH_NOT_GRADED);
-    assert.equal(organicReachWithheldDetail(0, 0, 0), ORGANIC_REACH_NOT_GRADED);
+    assert.equal(
+      ORGANIC_REACH_NOT_GRADED,
+      "Not graded yet — needs 2+ boosts on 2 days and a signal of 45+.",
+    );
+    assert.equal(amplifierScaleScore(2, 38, 2), "withheld");
     assert.equal(ORGANIC_REACH_NOT_GRADED.includes("0%"), false);
     assert.equal(ORGANIC_REACH_NOT_GRADED.includes("EXIT LIQUIDITY"), false);
     assert.equal(

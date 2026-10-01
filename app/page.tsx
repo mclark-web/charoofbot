@@ -74,7 +74,7 @@ export default function DashboardPage() {
           Which narratives are being sewn, and who is copying the language.
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          Original voice and organic reach are graded separately on the GC Scale; STRONG means more authentic.
+          Original voice and organic reach are graded separately on the GC Scale; STRONG means more authentic. The two grades are never combined into one number.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           This page is a {report.totals.postCount}-post synthetic corpus across {report.totals.narrativeCount}{" "}
