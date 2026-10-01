@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
-import { ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
+import { ORGANIC_REACH_NOT_GRADED, ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
 import { formatStamp } from "@/lib/format";
 import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
 
@@ -60,20 +60,17 @@ export default function MethodologyPage() {
       <section className="grid gap-3">
         <h2 className="font-serif text-2xl">How the GC Scale is shown</h2>
         <p className="leading-relaxed">
-          Display only: authenticity = 100 − detector signal. A graded, finite signal is flipped. Withheld values
-          read Not graded yet. {ORGANIC_REACH_RULE} They are never flipped into 100 STRONG. A reading above 100 is not graded.
+          Display only: authenticity = 100 − detector signal. A graded, finite signal is flipped. Withheld
+          organic reach reads {ORGANIC_REACH_NOT_GRADED} Withheld values are never flipped into 100 STRONG. A reading
+          above 100 is not graded.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           <li>70 and above is STRONG. That is the trustworthy band.</li>
           <li>40–69 is PROVISIONAL.</li>
           <li>Above 0 and under 40 is WEAK.</li>
-          <li>A graded authenticity that displays as 0% is EXIT LIQUIDITY, shown as an empty glass.</li>
+          <li>A graded 0% is EXIT LIQUIDITY.</li>
         </ul>
-        <p className="leading-relaxed text-ink-soft">
-          A clean account whose detector clone signal is 0 shows 100% STRONG original voice. A copy at a detector
-          signal of 100 shows 0% EXIT LIQUIDITY. A detector signal of 90 shows 10% WEAK. The small muted line under
-          a meter is the raw detector signal, so the flip stays visible.
-        </p>
+        <p className="leading-relaxed text-ink-soft">A detector signal of 90 shows 10% WEAK.</p>
       </section>
 
       <section className="grid gap-3">

@@ -6,7 +6,6 @@ import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
 import { organicReachMutedNote, organicReachWithheldDetail } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
-import { AGE_AS_OF } from "@/lib/thresholds";
 import { excerpt, formatAgeDays, formatStamp } from "@/lib/format";
 
 type PageProps = {
@@ -76,11 +75,6 @@ export default async function AccountPage({ params }: PageProps) {
           }
         />
       </div>
-      <p className="text-sm text-ink-soft">
-        These two GC Scale grades are authenticity. They are computed separately and are not combined. Higher means more authentic, and STRONG means trustworthy. Account age is a third flag, measured at{" "}
-        {formatStamp(AGE_AS_OF)} from the fixture created date. It is not added to either grade.
-        {account.ageDays === null ? " This handle has no created date, so the age is unknown." : ""}
-      </p>
 
       <dl className="grid grid-cols-2 gap-px border border-rule bg-rule sm:grid-cols-4">
         <Meta label="Posts" value={String(account.postCount)} />

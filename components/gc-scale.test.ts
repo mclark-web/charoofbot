@@ -3,7 +3,12 @@ import { describe, it } from "node:test";
 import { getReport } from "../lib/corpus";
 import { runPaste } from "../lib/paste";
 import { samplePastes } from "../lib/samples";
-import { ORGANIC_REACH_RULE, organicReachMutedNote, organicReachWithheldDetail } from "./organic-reach-copy";
+import {
+  ORGANIC_REACH_NOT_GRADED,
+  ORGANIC_REACH_RULE,
+  organicReachMutedNote,
+  organicReachWithheldDetail,
+} from "./organic-reach-copy";
 import {
   amplifierScaleScore,
   authenticityFrom,
@@ -229,39 +234,24 @@ describe("amplifierScaleScore", () => {
     assert.equal(gradeFor(authenticityFrom(above)), "weak");
   });
 
-  it("names the failed gate, including a signal under 45 when the boost counts pass", () => {
-    const detail = organicReachWithheldDetail(2, 2, 38);
-    assert.match(detail, /2 boosts across 2 days, amplifier signal 38%/);
-    assert.match(detail, /Failed: amplifier signal 38 is under 45/);
-    assert.equal(detail.endsWith(ORGANIC_REACH_RULE), true);
+  it("uses the short not-graded note and keeps the full organic-reach rule", () => {
+    assert.equal(ORGANIC_REACH_NOT_GRADED, "Not graded yet — needs 2+ boosts on 2 days.");
+    assert.equal(organicReachWithheldDetail(2, 2, 38), ORGANIC_REACH_NOT_GRADED);
+    assert.equal(organicReachWithheldDetail(1, 1, 69), ORGANIC_REACH_NOT_GRADED);
+    assert.equal(organicReachWithheldDetail(0, 0, 0), ORGANIC_REACH_NOT_GRADED);
+    assert.equal(ORGANIC_REACH_NOT_GRADED.includes("0%"), false);
+    assert.equal(ORGANIC_REACH_NOT_GRADED.includes("EXIT LIQUIDITY"), false);
     assert.equal(
       ORGANIC_REACH_RULE,
       "Organic reach is graded only when the amplifier signal is 45 or higher with at least 2 boosts on 2 different days; otherwise it reads Not graded yet.",
     );
-    const short = organicReachWithheldDetail(1, 1, 69);
-    assert.match(short, /1 boost across 1 day, amplifier signal 69%/);
-    assert.match(short, /1 boost is under 2/);
-    assert.match(short, /1 day is under 2 different days/);
-    assert.equal(short.includes("amplifier signal 69 is under 45"), false);
-  });
-
-  it("does not print a signal or a signal failure for the zero-boost skip", () => {
-    const detail = organicReachWithheldDetail(0, 0, 0);
-    assert.match(detail, /amplifier signal not computed/);
-    assert.equal(detail.includes("0%"), false);
-    assert.equal(detail.includes("amplifier signal 0"), false);
-    const failed = detail.split("Failed: ")[1]?.split(". Organic")[0] ?? "";
-    assert.equal(failed, "0 boosts is under 2; 0 days is under 2 different days");
-    assert.equal(failed.includes("signal"), false);
-    assert.equal(organicReachMutedNote(0, 0, 0), "amplifier signal withheld");
+    assert.notEqual(ORGANIC_REACH_NOT_GRADED, ORGANIC_REACH_RULE);
   });
 
   it("uses organic reach withheld on the muted line when a computed signal fails the gate", () => {
+    assert.equal(organicReachMutedNote(0, 0, 0), "amplifier signal withheld");
     assert.equal(organicReachMutedNote(2, 38, 2), "organic reach withheld");
     assert.equal(organicReachMutedNote(1, 69, 1), "organic reach withheld");
     assert.equal(organicReachMutedNote(2, 45, 2), "amplifier signal 45%");
-    const under = organicReachWithheldDetail(2, 2, 38);
-    assert.match(under, /amplifier signal 38%/);
-    assert.match(under, /amplifier signal 38 is under 45/);
   });
 });
