@@ -3,10 +3,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
 import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
-import { organicReachMutedNote, organicReachWithheldDetail } from "@/components/organic-reach-copy";
+import { ORGANIC_REACH_NOT_GRADED, organicReachMutedNote } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
-import { AGE_AS_OF } from "@/lib/thresholds";
 import { excerpt, formatAgeDays, formatStamp } from "@/lib/format";
 
 type PageProps = {
@@ -72,15 +71,10 @@ export default async function AccountPage({ params }: PageProps) {
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. Passes the persistence gate. Higher means less of the activity is boosting someone else.`
-              : organicReachWithheldDetail(account.boostPostCount, account.boostDays, account.ampScore)
+              : ORGANIC_REACH_NOT_GRADED
           }
         />
       </div>
-      <p className="text-sm text-ink-soft">
-        These two GC Scale grades are authenticity. They are computed separately and are not combined. Higher means more authentic, and STRONG means trustworthy. Account age is a third flag, measured at{" "}
-        {formatStamp(AGE_AS_OF)} from the fixture created date. It is not added to either grade.
-        {account.ageDays === null ? " This handle has no created date, so the age is unknown." : ""}
-      </p>
 
       <dl className="grid grid-cols-2 gap-px border border-rule bg-rule sm:grid-cols-4">
         <Meta label="Posts" value={String(account.postCount)} />

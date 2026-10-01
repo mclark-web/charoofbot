@@ -6,7 +6,6 @@ import { NewAccountChart, type NewAccountRow } from "@/components/new-account-ch
 import { VolumeChart, type VolumeRow } from "@/components/volume-chart";
 import { getCorpus, getReport } from "@/lib/corpus";
 import { excerpt, formatAgeDays, formatStamp } from "@/lib/format";
-import { AGE_AS_OF } from "@/lib/thresholds";
 
 export default function DashboardPage() {
   const report = getReport();
@@ -75,12 +74,7 @@ export default function DashboardPage() {
           Which narratives are being sewn, and who is copying the language.
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          Two authenticity readings, kept apart. <strong className="font-medium text-ink">Original voice</strong> is
-          how little of the wording is copied and posted as original. <strong className="font-medium text-ink">Organic reach</strong>{" "}
-          is how little of the activity is boosting someone else’s narrative. Higher on the GC Scale means more authentic,
-          and STRONG means trustworthy. The two readings are never added into one number. A third flag, also kept off both
-          grades, marks volume from accounts under 30 days and under 1 year. Those ages are fixture dates measured at{" "}
-          {formatStamp(AGE_AS_OF)}, not a live lookup.
+          Original voice and organic reach are graded separately on the GC Scale; STRONG means more authentic. The two grades are never combined into one number.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           This page is a {report.totals.postCount}-post synthetic corpus across {report.totals.narrativeCount}{" "}
