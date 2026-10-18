@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "corpus": "node scripts/build-corpus.mjs",
     "test": "tsx --test lib/age.test.ts lib/detect.test.ts components/gc-scale.test.ts components/logo-link.test.ts"
   },
   "dependencies": {

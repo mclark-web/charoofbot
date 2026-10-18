@@ -1,0 +1,7 @@
+narrative_id,title,short_label,topic,summary,frame_phrases
+market-news,Market news wire,News wire,FinTwit,"Headline posts from the tracked FinTwit news account, and the accounts that repost the same wording.",
+options-flow,Options flow alerts,Options flow,FinTwit,"Unusual-options and flow posts from tracked FinTwit accounts, with copies and quote posts of them.",
+market-stats,Market stats and breadth,Market stats,FinTwit,"Statistics and breadth posts from tracked FinTwit accounts, with copies and quote posts of them.",
+trader-calls,Trader calls and levels,Trader calls,FinTwit,"Trade ideas and levels from tracked FinTwit traders, with copies and quote posts of them.",
+football-betting,Football betting,Football,Sports,"NFL and college football posts from tracked Covers and Action Network cappers, with copies and quote posts of them.",
+hoops-hockey-betting,Hoops and hockey betting,Hoops/hockey,Sports,"NBA and NHL posts from tracked Covers cappers, with copies and quote posts of them.",

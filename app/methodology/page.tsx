@@ -27,19 +27,21 @@ export default function MethodologyPage() {
       <section className="grid gap-3">
         <h2 className="font-serif text-2xl">What $0 means here</h2>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed text-ink">
-          <li>No X API key, and no paid firehose. The demo does not ask for one.</li>
+          <li>No X API key, and no paid firehose. The site does not ask for one. Posts were read once with free public X reads and saved to the repo.</li>
           <li>No paid database. The corpus is a JSON file in the repo, scored in memory.</li>
           <li>No paid language model. Matching is normalization, SHA-256, and token overlap.</li>
           <li>
-            No X user lookup. Account ages in the demo are <span className="font-mono">accountCreatedAt</span> values
-            in the fixture file, measured at {formatStamp(AGE_AS_OF)}. That clock does not move with the wall date.
+            No live X user lookup. Account ages are each account&apos;s public X created date, stored as{" "}
+            <span className="font-mono">accountCreatedAt</span> and measured at {formatStamp(AGE_AS_OF)}. That clock
+            does not move with the wall date.
           </li>
           <li>Hosting can be a Vercel Hobby project. Nothing in the app reads environment variables.</li>
         </ul>
         <p className="leading-relaxed text-ink-soft">
-          Two inputs are enough. The bundled fixture corpus is a synthetic FinTwit-style notebook with known
-          originators, exact copies, near-duplicates, ticker-swapped skeletons, and accounts that only boost. The
-          paste bench runs the same functions in the browser on text you supply.
+          Two inputs are enough. The corpus is real public X posts as of 18 Oct 2026: recent posts from the
+          accounts tracked on GradedCalls Sports and FinTwit, plus copies and quote posts of them found by phrase
+          search. The paste bench runs the same functions in the browser on text you supply, against a separate
+          synthetic practice set with known originators, exact copies, near-duplicates, and accounts that only boost.
         </p>
       </section>
 
@@ -143,13 +145,14 @@ export default function MethodologyPage() {
           numerator, so a missing date cannot invent a new account.
         </p>
         <p className="leading-relaxed">
-          Fixture ages come from <span className="font-mono">accountCreatedAt</span> on each account in{" "}
-          <span className="font-mono">data/corpus.json</span>. They are measured at {formatStamp(AGE_AS_OF)}, the same
-          stamp the paste bench uses. The demo does not call the X API, and it does not infer age from follower count
+          Ages come from <span className="font-mono">accountCreatedAt</span> on each account in{" "}
+          <span className="font-mono">data/corpus.json</span>, the public X created date. They are measured at{" "}
+          {formatStamp(AGE_AS_OF)}, the same stamp the paste bench uses. The site does not call the X API at
+          runtime, and it does not infer age from follower count
           or bio. Paste a post with <span className="font-mono">accountCreatedAt</span>,{" "}
           <span className="font-mono">createdAt</span>, <span className="font-mono">joined</span>, or{" "}
           <span className="font-mono">ageDays</span> when you know it. Omit the field and the finding is marked age
-          unknown. A handle already in the fixture directory keeps the fixture date.
+          unknown. A handle already in the practice directory keeps its practice date.
         </p>
         <p className="leading-relaxed">
           The new-account mark is a badge and a volume series. It is not added to original voice and it is not
@@ -167,7 +170,7 @@ export default function MethodologyPage() {
             Follower count and a default-looking bio are shown as context. They are not scored. Account age is flagged
             at the two thresholds above and is not added to either grade.
           </li>
-          <li>The corpus is synthetic. It is not a live sample of any real timeline.</li>
+          <li>The corpus is a snapshot of real public posts as of 18 Oct 2026. It is not a complete or live sample of any timeline.</li>
           <li>Nothing here is investment advice, a harassment list, or a grade for sale.</li>
         </ul>
       </section>

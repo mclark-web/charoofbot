@@ -39,7 +39,8 @@ export const THRESHOLDS = {
   newAccountDominateShare: 0.5,
 } as const;
 
-export const DEMO_PASTE_STAMP = "2026-09-22T15:00:00.000Z";
+/** As-of stamp for the real corpus in data/corpus.json (18 Oct 2026, 5:00 PM ET). */
+export const DEMO_PASTE_STAMP = "2026-10-18T21:00:00.000Z";
 
 /** Same predicate detect.ts uses for the amplifier label. Display must not invent a second gate. */
 export function passesAmplifierGate(ampScore: number, boostPostCount: number, boostDays: number): boolean {
@@ -50,5 +51,5 @@ export function passesAmplifierGate(ampScore: number, boostPostCount: number, bo
   );
 }
 
-/** Fixture and paste ages are measured against this stamp, not the wall clock and not the X API. */
+/** Corpus and paste ages are measured against this stamp, not the wall clock. */
 export const AGE_AS_OF = DEMO_PASTE_STAMP;

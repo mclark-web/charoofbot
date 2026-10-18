@@ -69,7 +69,7 @@ export default function DashboardPage() {
   return (
     <div className="grid min-w-0 gap-12">
       <section className="max-w-3xl">
-        <p className="kicker">GCBot · Phase 0 · Fixture corpus</p>
+        <p className="kicker">GCBot · Real public X posts · as of 18 Oct 2026</p>
         <h1 className="mt-2 font-serif text-3xl tracking-tight text-ink md:text-4xl">
           Which narratives are being sewn, and who is copying the language.
         </h1>
@@ -77,8 +77,10 @@ export default function DashboardPage() {
           Original voice and organic reach are graded separately on the GC Scale; STRONG means more authentic. The two grades are never combined into one number.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
-          This page is a {report.totals.postCount}-post synthetic corpus across {report.totals.narrativeCount}{" "}
-          narratives. It does not call X. Paste a duplicate on the{" "}
+          This page scores {report.totals.postCount} real public X posts across {report.totals.narrativeCount}{" "}
+          narratives, as of 18 Oct 2026: recent posts from the accounts tracked on GradedCalls Sports and FinTwit,
+          plus copies and quote posts of them. The posts are a file in the repo; the page does not call X. Paste a
+          duplicate of a practice post on the{" "}
           <Link href="/paste" className="tap underline decoration-rule underline-offset-4 hover:decoration-ink">
             paste bench
           </Link>{" "}

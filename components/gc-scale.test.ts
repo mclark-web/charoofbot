@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { getReport } from "../lib/corpus";
+import fixtureJson from "../data/fixture-corpus.json";
+import { analyzeCorpus } from "../lib/detect";
 import { runPaste } from "../lib/paste";
 import { samplePastes } from "../lib/samples";
+import type { Corpus } from "../lib/types";
 import { ORGANIC_REACH_NOT_GRADED, ORGANIC_REACH_RULE, organicReachMutedNote } from "./organic-reach-copy";
 import {
   amplifierScaleScore,
@@ -181,7 +183,7 @@ describe("amplifierScaleScore", () => {
   });
 
   it("withholds a failed gate on the account page path and still grades a passing gate", () => {
-    const report = getReport();
+    const report = analyzeCorpus(fixtureJson as Corpus);
     const withheld = report.accounts.find((account) => account.handle === "assay_paul");
     assert.ok(withheld);
     assert.equal(withheld.passesAmpGate, false);

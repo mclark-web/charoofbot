@@ -14,7 +14,7 @@ describe("account age bands", () => {
   });
 
   it("reads a created date or ageDays against the fixture clock", () => {
-    const fromDate = resolveAge({ accountCreatedAt: "2026-09-05" }, AGE_AS_OF);
+    const fromDate = resolveAge({ accountCreatedAt: "2026-10-01" }, AGE_AS_OF);
     assert.equal(fromDate.ageDays, 17);
     assert.equal(fromDate.ageBand, "fresh");
 

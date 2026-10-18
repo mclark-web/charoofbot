@@ -1,4 +1,4 @@
-import corpusJson from "@/data/corpus.json";
+import corpusJson from "@/data/fixture-corpus.json";
 import { parseCreatedAt } from "./age";
 import { analyzeCorpus } from "./detect";
 import { DEMO_PASTE_STAMP } from "./thresholds";

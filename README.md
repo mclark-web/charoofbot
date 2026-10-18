@@ -48,11 +48,27 @@ You can also paste your own text, several posts split by a line that is only `--
 5. Two or more shared 4-grams, with Jaccard ≥ 0.5 and below 0.85, is a template skeleton.
 6. Copies only join a cluster within 14 days of first seen. A leading `RT @handle:` is excluded.
 
-Thresholds, the amplifier formula, and the new-account rules are printed on `/methodology` from the same constants the code uses. Fixture ages are `accountCreatedAt` on each account, measured at 22 Sep 2026 15:00 UTC. That is a file in the repo, not an X profile lookup. Paste can send `accountCreatedAt` or `ageDays`. Omit both and the age is unknown.
+Thresholds, the amplifier formula, and the new-account rules are printed on `/methodology` from the same constants the code uses. Ages are `accountCreatedAt` on each account (the public X created date), measured at 18 Oct 2026 21:00 UTC. That is a file in the repo, not a live X profile lookup. Paste can send `accountCreatedAt` or `ageDays`. Omit both and the age is unknown.
 
 A cluster or narrative is highlighted when accounts under 1 year wrote at least half of its posts. The under-30-day share is reported separately and uses the same half-volume line.
 
-The corpus is synthetic (`data/corpus.json`): 12 narratives and a few dozen posts, with deliberate copies and boosters. Follower counts are bait. They are displayed and not scored, so a large copied account does not rise on organic reach unless it also boosts. The flagged-amplifier list still leads with the lowest authenticity.
+The corpus (`data/corpus.json`) is real public X posts as of 18 Oct 2026: recent posts from the accounts tracked on GradedCalls Sports and FinTwit, plus copies and quote posts of them. It is generated from the CSVs in `data/gcbot/` (see below). The paste bench and the detector tests use a separate synthetic practice set, `data/fixture-corpus.json`, with deliberate copies and boosters. Follower counts are bait. They are displayed and not scored, so a large copied account does not rise on organic reach unless it also boosts. The flagged-amplifier list still leads with the lowest authenticity.
+
+## Corpus data (CSV source of truth)
+
+`data/gcbot/*.csv` is the source of truth. `data/corpus.json` is generated from it; do not edit the JSON by hand.
+
+- `accounts.csv`: one row per X account, keyed by `handle`. `tracked_board` is `sports` or `fintwit` for accounts tracked on the other GradedCalls boards and empty for accounts found copying or quoting them. `narrative_id` is the tracked account's lane.
+- `posts.csv`: one row per public post, keyed by `post_id`, with `handle`, `created_at` (UTC), `action` (`post`, `quote`, `reply`), `text`, `url`, `narrative_id`, `ref_post_id` (the tracked post it copies or quotes), `source` (`timeline`, `phrase-search`, `quotes`) and `fetched_at`.
+- `narratives.csv`: one row per narrative. `frame_phrases` is optional, `|`-separated.
+
+The files are append-only. To add an account or a weekly refresh, append rows (new handles to `accounts.csv`, new post ids to `posts.csv`) and run:
+
+```bash
+npm run corpus
+```
+
+The script has no dependencies. It fails on a duplicate id, a post whose handle is not in `accounts.csv`, a bad date or action, or an unknown narrative. Rows already present are never re-fetched or rewritten.
 
 ## Deploy on Vercel Hobby ($0)
 

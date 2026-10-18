@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     template: "%s · GCBot",
   },
   description:
-    "GCBot, a GradedCalls product. The GC Scale reads authenticity: higher means more trustworthy. Fixture corpus and a paste bench. No API keys.",
+    "GCBot, a GradedCalls product. The GC Scale reads authenticity: higher means more trustworthy. Real public X posts as of 18 Oct 2026 and a paste bench. No API keys.",
   robots: "noindex",
   icons: {
     icon: [
