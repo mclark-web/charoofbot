@@ -1,7 +1,7 @@
 import { formatScorePercent, GcScale } from "@/components/gc-scale";
 import type { AccountReport } from "@/lib/types";
 
-/** One authenticity reading: 100 − max(copy score, amplifier score). The tube flips the detector max. */
+/** One authenticity reading: 100 − the copy score. The tube flips that detector signal. */
 export function HeadlineScale({
   account,
   orientation = "horizontal",
@@ -13,7 +13,9 @@ export function HeadlineScale({
     return (
       <div className="min-w-0">
         <h3 className="font-serif text-lg text-ink">GC score</h3>
-        <p className="gc-ungraded mt-2">thin sample / not graded yet</p>
+        <p className="gc-ungraded mt-2">
+          {account.postCount === 0 ? "Not graded yet" : "thin sample / not graded yet"}
+        </p>
       </div>
     );
   }
@@ -22,10 +24,10 @@ export function HeadlineScale({
     <div className="min-w-0">
       <h3 className="font-serif text-lg text-ink">GC score</h3>
       <GcScale
-        score={Math.max(account.cloneScore, account.ampScore)}
+        score={account.cloneScore}
         label="GC Scale"
         orientation={orientation}
-        signal={`copy ${formatScorePercent(account.cloneScore)} · amplifier ${formatScorePercent(account.ampScore)}`}
+        signal={`copy ${formatScorePercent(account.cloneScore)}`}
       />
     </div>
   );

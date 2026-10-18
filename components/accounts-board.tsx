@@ -20,21 +20,35 @@ const SORTS: { id: SortKey; label: string }[] = [
   { id: "handle", label: "Name" },
 ];
 
+const SORT_LABEL: Record<SortKey, string> = {
+  "gc-desc": "Sorted by GC score, highest first",
+  "gc-asc": "Sorted by GC score, lowest first",
+  posts: "Sorted by posts",
+  handle: "Sorted by name",
+};
+
+function gradedFirst(a: AccountRow, b: AccountRow): number {
+  if (a.graded === b.graded) return 0;
+  return a.graded ? -1 : 1;
+}
+
 export function AccountsBoard({ rows }: { rows: AccountRow[] }) {
   const [sort, setSort] = useState<SortKey>("gc-desc");
   const ordered = useMemo(() => {
     const next = [...rows];
     next.sort((a, b) => {
-      if (sort === "gc-asc") return a.gcScore - b.gcScore || compareText(a.handle, b.handle);
-      if (sort === "posts") return b.postCount - a.postCount || b.gcScore - a.gcScore || compareText(a.handle, b.handle);
+      const graded = gradedFirst(a, b);
+      if (sort === "gc-asc") return graded || a.gcScore - b.gcScore || compareText(a.handle, b.handle);
+      if (sort === "posts") return b.postCount - a.postCount || graded || b.gcScore - a.gcScore || compareText(a.handle, b.handle);
       if (sort === "handle") return compareText(a.handle, b.handle);
-      return b.gcScore - a.gcScore || compareText(a.handle, b.handle);
+      return graded || b.gcScore - a.gcScore || compareText(a.handle, b.handle);
     });
     return next;
   }, [rows, sort]);
 
   return (
     <div className="grid gap-4">
+      <p className="text-sm text-ink-soft">{SORT_LABEL[sort]}</p>
       <div className="tap-row" role="group" aria-label="Sort accounts">
         {SORTS.map((item) => (
           <button

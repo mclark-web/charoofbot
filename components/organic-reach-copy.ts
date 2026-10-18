@@ -5,6 +5,9 @@ import { THRESHOLDS } from "@/lib/thresholds";
  * Short note on account meters, the paste bench, and the methodology display section.
  * Names every part of passesAmplifierGate: boosts, days, and signal.
  */
+/** Real-corpus amplifier meter. Booster timelines were not collected, so the meter is not a score. */
+export const AMPLIFIER_NOT_AVAILABLE = "Not available yet: needs booster timelines";
+
 export const ORGANIC_REACH_NOT_GRADED = `Not graded yet — needs ${THRESHOLDS.ampMinBoostPosts}+ boosts on ${THRESHOLDS.ampMinBoostDays} days, ${THRESHOLDS.ampTimelineBaseline}+ timeline posts, and a signal of ${THRESHOLDS.ampLabel}+.`;
 
 /** Full gate, stated once on /methodology. Numbers come from the same thresholds the detector uses. */

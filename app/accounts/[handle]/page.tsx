@@ -3,8 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
 import { HeadlineScale } from "@/components/headline-scale";
-import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
-import { ORGANIC_REACH_NOT_GRADED, organicReachMutedNote } from "@/components/organic-reach-copy";
+import { detectorSignal } from "@/components/gc-scale";
+import { AMPLIFIER_NOT_AVAILABLE } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
 import { accountSourceUrl, excerpt, formatAgeDays, formatStamp } from "@/lib/format";
@@ -76,21 +76,9 @@ export default async function AccountPage({ params }: PageProps) {
         />
         <ScoreMeter
           label="Organic reach"
-          score={
-            account.graded
-              ? amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays, account.timelinePostCount)
-              : "withheld"
-          }
-          signal={
-            account.graded
-              ? organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays, account.timelinePostCount)
-              : "amplifier signal withheld"
-          }
-          detail={
-            account.passesAmpGate
-              ? `${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. Passes the persistence gate. Higher means less of the activity is boosting someone else.`
-              : ORGANIC_REACH_NOT_GRADED
-          }
+          score="withheld"
+          signal={AMPLIFIER_NOT_AVAILABLE}
+          detail={AMPLIFIER_NOT_AVAILABLE}
         />
       </div>
 

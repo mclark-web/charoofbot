@@ -7,7 +7,7 @@ Handle:
 Post text:
 Match shown (exact / near / template / attributed / syndicated / amplifier):
 Why this should be reviewed:
-Check: normalization, 14-day window, self-repeat (same account), earliest poster in the cluster, a via / h/t / per credit or quote, and whether both accounts are on the wire list.`;
+Check: normalization, 14-day window, self-repeat (same account), earliest poster in the cluster, a via / Source / per / h/t credit that names the originator or a recognized outlet (a bare h/t does not), and whether both accounts are on the wire list.`;
 
 export function AppealDraft() {
   const [copied, setCopied] = useState(false);

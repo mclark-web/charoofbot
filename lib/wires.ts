@@ -19,3 +19,36 @@ const WIRE_HANDLES = new Set(WIRE_OUTLETS.map((outlet) => outlet.handle));
 export function isWireOutlet(handle: string): boolean {
   return WIRE_HANDLES.has(handle);
 }
+
+/**
+ * Outlets a credit may name. Aliases are matched after lowercasing and
+ * stripping a leading "the". Goldman is not on this list.
+ */
+export const RECOGNIZED_OUTLETS: readonly string[] = [
+  "reuters",
+  "bloomberg",
+  "cnbc",
+  "cnbc markets",
+  "cnbc top news",
+  "cnbc pro",
+  "wsj",
+  "wall street journal",
+  "ap",
+  "associated press",
+  "ft",
+  "financial times",
+  "coindesk",
+  "conference board",
+];
+
+const RECOGNIZED = new Set(RECOGNIZED_OUTLETS);
+
+export function isRecognizedOutlet(name: string): boolean {
+  const key = name
+    .toLowerCase()
+    .replace(/^the\s+/, "")
+    .replace(/[.'’]+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return RECOGNIZED.has(key);
+}

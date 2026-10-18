@@ -9,13 +9,14 @@ export type SourceCredit = {
 };
 
 const HANDLE = "([A-Za-z0-9_]+)";
-const OUTLET = "([A-Z][A-Za-z0-9&.'’.-]*(?:\\s+[A-Z][A-Za-z0-9&.'’.-]*){0,3})";
+const OUTLET = "([A-Z][A-Za-z0-9&'’.-]*(?:\\s+[A-Z][A-Za-z0-9&'’.-]*){0,3})";
 
 /**
- * Credits that mean the words are not presented as original.
- * via @handle and Source: @handle are explicit. per / via / Source: / 출처: plus an
- * outlet name is attributed syndication. h/t is a tip with no named outlet.
- * "via the market" and "per share" do not match. A quote action is not a credit.
+ * Credits that can zero clone weight on this post alone.
+ * via @handle and Source: @handle name an account. per / via / Source: / 출처: plus an
+ * outlet name is syndication. h/t counts only when a handle or outlet follows it.
+ * A bare h/t gives no credit. "via the market" and "per share" do not match.
+ * A quote action is not a credit. The outlet token stops at a sentence period.
  */
 export function extractCredits(text: string): SourceCredit[] {
   const credits: SourceCredit[] = [];
@@ -38,7 +39,8 @@ export function extractCredits(text: string): SourceCredit[] {
   for (const match of text.matchAll(new RegExp(`\\bper\\s+@?#?${OUTLET}`, "g"))) add("outlet", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bSource:\\s+${OUTLET}`, "g"))) add("outlet", match[1]);
   for (const match of text.matchAll(/출처\s*[:：]\s*@?([^\n\r]+)/g)) add("outlet", match[1]);
-  if (/\bh\s*\/\s*t\b/i.test(text)) add("tip", "");
+  for (const match of text.matchAll(new RegExp(`\\bh\\s*\\/\\s*t\\s+@${HANDLE}`, "gi"))) add("tip", match[1]);
+  for (const match of text.matchAll(new RegExp(`\\bh\\s*\\/\\s*t\\s+${OUTLET}`, "g"))) add("tip", match[1]);
   return credits;
 }
 

@@ -22,7 +22,8 @@ export function BestWorst({
       </div>
       <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">
         As of {formatStamp(AGE_AS_OF)}. Lanes include accounts with at least {THRESHOLDS.leaderboardMinPosts} posts
-        in the scored window. The GC score is 100 minus the higher of the copy score and the amplifier score.{" "}
+        in the scored window. The GC score is 100 minus the copy score. Most original also needs at least one post
+        that is not a copy and not a credited repost.{" "}
         <Link href="/accounts" className="tap underline decoration-rule underline-offset-4 hover:decoration-ink">
           All accounts
         </Link>
@@ -41,7 +42,7 @@ export function BestWorst({
           note="Lowest GC score under STRONG."
           accounts={worst}
           posts={posts}
-          empty="No account under STRONG has enough posts yet."
+          empty="No account has enough posts to grade yet."
         />
       </div>
     </section>

@@ -148,7 +148,7 @@ export type AccountReport = {
   inDirectory: boolean;
   cloneScore: number;
   ampScore: number;
-  /** Authenticity: 100 − max(copy score, amplifier score). Higher means more authentic. */
+  /** Authenticity: 100 − the copy score. Amplifier detection is not in this number. */
   gcScore: number;
   /** False when the account has a thin sample in the fixed window. The grade line is withheld. */
   graded: boolean;

@@ -12,7 +12,7 @@ import {
 } from "./normalize";
 import { compareText } from "./order";
 import { passesAmplifierGate, SCORE_WINDOW, THRESHOLDS } from "./thresholds";
-import { isWireOutlet } from "./wires";
+import { isRecognizedOutlet, isWireOutlet } from "./wires";
 import type {
   AccountLabel,
   AccountReport,
@@ -217,8 +217,6 @@ export function analyzeCorpus(corpus: Corpus): Report {
     handleByKey.set(account.name.trim().toLowerCase(), account.handle);
     handleByKey.set(account.handle.replaceAll("_", " ").toLowerCase(), account.handle);
   }
-  const outsideClusters = new Set<string>();
-
   for (const [clusterId, group] of members) {
     if (group.length < 2) {
       for (const feature of group) {
@@ -232,44 +230,13 @@ export function analyzeCorpus(corpus: Corpus): Report {
       continue;
     }
 
-    const clusterHandles = new Set(group.map((feature) => feature.post.account));
-    const resolved = new Set<string>();
-    let unresolved = false;
-    for (const feature of group) {
-      for (const credit of extractCredits(feature.post.text)) {
-        if (!credit.name) continue;
-        const named = resolveCredit(credit, handleByKey);
-        if (named) resolved.add(named);
-        else unresolved = true;
-      }
-    }
-
-    const earliest = group[0].post.account;
-    const namedInCluster = [...resolved].filter((handle) => clusterHandles.has(handle));
-    let sourceOutside = false;
-    let originHandle = earliest;
-    if (unresolved) {
-      // The text names Goldman, AP, or another source that is not in the corpus.
-      sourceOutside = true;
-    } else if (resolved.size > 0 && !resolved.has(earliest)) {
-      if (namedInCluster.length > 0) {
-        const namedPost = group.find((feature) => namedInCluster.includes(feature.post.account));
-        originHandle = namedPost?.post.account ?? earliest;
-      } else {
-        // The named source is a corpus account whose post is not in this cluster.
-        sourceOutside = true;
-      }
-    }
-    if (sourceOutside) outsideClusters.add(clusterId);
-
+    // The earliest in-corpus poster stays the originator. One later credit does not
+    // move the origin or clear the other copiers.
+    const originHandle = group[0].post.account;
     const wireAccounts = new Set(group.map((feature) => feature.post.account).filter((handle) => isWireOutlet(handle)));
-    const syndicatedWire = !sourceOutside && wireAccounts.size >= 2;
+    const syndicatedWire = wireAccounts.size >= 2;
 
     for (const feature of group) {
-      if (sourceOutside) {
-        roleOf.set(feature.post.id, "outside");
-        continue;
-      }
       if (feature.post.account === originHandle) {
         roleOf.set(feature.post.id, "originator");
         matchedId.set(feature.post.id, null);
@@ -281,7 +248,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
         roleOf.set(feature.post.id, "syndicated");
         continue;
       }
-      const creditRole = creditRoleFor(feature.post.text);
+      const creditRole = creditRoleFor(feature.post.text, originHandle, handleByKey);
       if (creditRole) roleOf.set(feature.post.id, creditRole);
     }
   }
@@ -385,7 +352,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
   const postById = new Map(posts.map((post) => [post.id, post]));
 
   const clusters: CloneCluster[] = [...members.entries()]
-    .map(([id, group]) => buildCluster(id, group, postById, accountDirectory, outsideClusters.has(id)))
+    .map(([id, group]) => buildCluster(id, group, postById, accountDirectory, false))
     .sort((a, b) => b.cloneCount - a.cloneCount || compareText(a.originAt, b.originAt));
 
   const accounts = gradeAccounts(posts, corpus.accounts);
@@ -443,8 +410,19 @@ function resolveCredit(credit: SourceCredit, handleByKey: Map<string, string>): 
   return handleByKey.get(key) ?? null;
 }
 
-function creditRoleFor(text: string): "attributed" | "syndicated" | null {
-  const credits = extractCredits(text);
+function creditQualifies(credit: SourceCredit, originHandle: string, handleByKey: Map<string, string>): boolean {
+  if (!credit.name) return false;
+  if (isRecognizedOutlet(credit.name)) return true;
+  return resolveCredit(credit, handleByKey) === originHandle;
+}
+
+/** Weight 0 only for this post, and only when the named source is the originator or a recognized outlet. */
+function creditRoleFor(
+  text: string,
+  originHandle: string,
+  handleByKey: Map<string, string>,
+): "attributed" | "syndicated" | null {
+  const credits = extractCredits(text).filter((credit) => creditQualifies(credit, originHandle, handleByKey));
   if (credits.length === 0) return null;
   if (credits.some((credit) => credit.kind === "handle" || credit.kind === "tip")) return "attributed";
   return "syndicated";
@@ -529,8 +507,8 @@ function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): Acc
   const reports: AccountReport[] = [];
   for (const handle of handles) {
     const owned = byHandle.get(handle) ?? [];
-    if (owned.length === 0) continue;
     const meta = known.get(handle) ?? blankAccount(handle);
+    if (owned.length === 0 && !meta.trackedBoard) continue;
     const age = known.has(handle)
       ? resolveAge({ accountCreatedAt: meta.accountCreatedAt, joined: meta.joined })
       : ageFromPosts(owned);
@@ -556,10 +534,10 @@ function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): Acc
     const inNarrative = owned.filter(
       (post) => post.narrativeId !== null || post.frameNarrativeIds.length > 0,
     ).length;
-    const load = inNarrative / owned.length;
-    const boostRatio = boostPosts.length / owned.length;
+    const load = owned.length === 0 ? 0 : inNarrative / owned.length;
+    const boostRatio = owned.length === 0 ? 0 : boostPosts.length / owned.length;
     const persistence = Math.min(1, boostDays / THRESHOLDS.persistenceDaysForFull);
-    const originality = originPosts.length / owned.length;
+    const originality = owned.length === 0 ? 0 : originPosts.length / owned.length;
     const volume = Math.min(1, boostPosts.length / THRESHOLDS.ampVolumePostsForFull);
     const ampScore =
       boostPosts.length === 0

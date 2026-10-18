@@ -14,8 +14,8 @@ export const THRESHOLDS = {
   cloneNearWeight: 55,
   cloneTemplateWeight: 45,
   /**
-   * Explicit credit (via @handle, Source: @handle, h/t) and attributed syndication
-   * (per / via / Source: / 출처: plus an outlet name) add nothing to the copy score.
+   * Explicit credit (via @handle, Source: @handle, or h/t plus a source) and attributed syndication
+   * (per / via / Source: / 출처: plus an outlet name) add nothing to the copy score. A bare h/t does not.
    * The post stays visible as attributed or syndicated.
    */
   cloneAttributedWeight: 0,

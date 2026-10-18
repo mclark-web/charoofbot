@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
-import { ORGANIC_REACH_NOT_GRADED, ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
+import { AMPLIFIER_NOT_AVAILABLE, ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
 import { formatStamp } from "@/lib/format";
 import { AGE_AS_OF, SCORE_WINDOW, THRESHOLDS } from "@/lib/thresholds";
 import { WIRE_OUTLETS } from "@/lib/wires";
@@ -19,9 +19,10 @@ export default function MethodologyPage() {
         <p className="kicker">Audit note</p>
         <h1 className="mt-2 font-serif text-4xl tracking-tight text-ink">Methodology</h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          GCBot phase 0 shows one headline GC score, with original voice and organic reach underneath, without an API bill.
+          GCBot phase 0 shows one headline GC score, with original voice underneath, without an API bill.
           Higher on the GC Scale means more authentic, and STRONG means trustworthy. The numbers below are the
-          detector constants. Each meter is 100 minus its detector signal. The headline is 100 minus the higher signal.
+          detector constants. The headline GC score is 100 minus the copy score. Amplifier detection is not in that
+          number: {AMPLIFIER_NOT_AVAILABLE}
         </p>
       </header>
 
@@ -49,9 +50,9 @@ export default function MethodologyPage() {
       <section className="grid gap-3">
         <h2 className="font-serif text-2xl">One headline, two readings under it</h2>
         <p className="leading-relaxed">
-          The headline GC score is 100 minus the higher of the copy score and the amplifier score. It is not an
-          average. STRONG is 70 and above. A flagged account shows that headline first, then original voice and
-          organic reach as detail, so a clean meter cannot stand in for the grade.
+          The headline GC score is 100 minus the copy score. It does not subtract an amplifier score. STRONG is 70
+          and above. A flagged account shows that headline first, then original voice. The organic-reach meter reads
+          Not graded yet, so a clean meter cannot stand in for the grade.
         </p>
         <p className="leading-relaxed">
           Original voice asks how little of the wording is copied and posted as original. Organic reach asks how
@@ -59,17 +60,18 @@ export default function MethodologyPage() {
           (<span className="font-mono">RT @handle:</span>) is neither. It is excluded. Higher on each meter means more authentic.
         </p>
         <p className="leading-relaxed">
-          The detector still flags Originator, Clone, Amplifier, Clone+Amp, or Clean. Clone+Amp means both detector
-          gates passed. Those badges mark the flag. They are not grade pills. The GC Scale is authenticity.
+          The detector still flags Originator, Clone, or Clean on this corpus. Amplifier and Clone+Amp stay in the
+          practice paste bench, where a supplied timeline can clear the boost gate. Those badges mark the flag. They
+          are not grade pills. The GC Scale is authenticity. On the real posts, {AMPLIFIER_NOT_AVAILABLE}
         </p>
       </section>
 
       <section className="grid gap-3">
         <h2 className="font-serif text-2xl">How the GC Scale is shown</h2>
         <p className="leading-relaxed">
-          Display only: authenticity = 100 − detector signal. A graded, finite signal is flipped. Withheld
-          organic reach reads {ORGANIC_REACH_NOT_GRADED} Withheld values are never flipped into 100 STRONG. A reading
-          above 100 is not graded.
+          Display only: the headline authenticity is 100 − the copy score. A graded, finite copy signal is flipped.
+          The organic-reach meter on these accounts is not a number. It reads Not graded yet, because{" "}
+          {AMPLIFIER_NOT_AVAILABLE} Withheld values are never flipped into 100 STRONG. A reading above 100 is not graded.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           <li>70 and above is STRONG. That is the trustworthy band.</li>
@@ -133,8 +135,8 @@ export default function MethodologyPage() {
           {THRESHOLDS.cloneLabel}, but it does not label the account Clone unless there are at least{" "}
           {THRESHOLDS.cloneMinTemplateMatches} template matches or copied posts are at least{" "}
           {THRESHOLDS.cloneShareThreshold * 100}% of that account&apos;s posts in the window. Explicit credit and
-          attributed syndication add {THRESHOLDS.cloneAttributedWeight}. The headline GC score is 100 minus the higher
-          of that copy score and the amplifier score. Original voice is 100 minus the copy score alone.
+          attributed syndication add {THRESHOLDS.cloneAttributedWeight}. The headline GC score is 100 minus that copy
+          score. Original voice is the same reading. Amplifier detection is not subtracted.
         </p>
         <p className="leading-relaxed text-ink-soft">
           The detector amplifier signal, when there is at least one boost, is 100 times ({THRESHOLDS.ampBoostWeight} × boost share
@@ -144,10 +146,11 @@ export default function MethodologyPage() {
           ratio is capped at 1. A boost is a short quote with no commentary of its own, a reply, or a non-copied slogan
           on someone else’s narrative. A quote that carries the author’s own commentary is not a boost. Verbatim copies
           do not count as boosts. A tracked lane account is a source and is never scored as a booster of another lane
-          account. A pure clone has no boosts, so the detector records amplifier 0 as a skip and organic reach reads Not
-          graded yet. {ORGANIC_REACH_RULE} It is not shown as 100 STRONG, as WEAK, or as 0%. When the signal is graded,
-          organic reach is 100 minus that signal. Phrase-search and quote-search rows are not a timeline, so they cannot
-          supply the {THRESHOLDS.ampTimelineBaseline}-post baseline.
+          account. This corpus does not include booster timelines, only the tracked sources, so the amplifier gate
+          cannot fire here. {AMPLIFIER_NOT_AVAILABLE} The meter reads Not graded yet. It is not shown as 100 STRONG, as
+          WEAK, or as 0. {ORGANIC_REACH_RULE} That gate is what the paste bench uses when the pasted text includes a
+          timeline. Phrase-search and quote-search rows are not a timeline, so they cannot supply the{" "}
+          {THRESHOLDS.ampTimelineBaseline}-post baseline.
         </p>
       </section>
 
@@ -197,25 +200,29 @@ export default function MethodologyPage() {
         </p>
         <h3 className="font-serif text-xl">Attributed reposts</h3>
         <p className="leading-relaxed">
-          Text that credits a source is not a clone, and the credit removes the clone weight. Explicit credit is{" "}
-          <span className="font-mono">via @handle</span>, <span className="font-mono">Source: @handle</span>, or{" "}
-          <span className="font-mono">h/t</span>. Attributed syndication is <span className="font-mono">per</span>,{" "}
-          <span className="font-mono">via</span>, <span className="font-mono">Source:</span>, or{" "}
-          <span className="font-mono">출처:</span> plus an outlet name, including <span className="font-mono">per Reuters</span>{" "}
-          and <span className="font-mono">via Unusual Whales</span>. Those posts stay visible as Attributed or Syndicated
-          and weigh {THRESHOLDS.cloneAttributedWeight}. A quote post is not credit by itself. Ordinary phrases such as
-          “via the market” or “per share” are not credits. A repost stored as <span className="font-mono">RT @</span>{" "}
-          uses action <span className="font-mono">repost</span> and is left out of copy matching.
+          Credit zeroes clone weight only on the post that names the source, and only when that source is the
+          cluster’s originator or a recognized outlet (Reuters, Bloomberg, CNBC, WSJ, AP, FT, CoinDesk, the Conference
+          Board, and aliases such as CNBC Markets and CNBC Top News). Explicit credit is{" "}
+          <span className="font-mono">via @handle</span> or <span className="font-mono">Source: @handle</span>.{" "}
+          <span className="font-mono">h/t</span> counts only when a handle or outlet follows it. A bare h/t gives no
+          credit. Attributed syndication is <span className="font-mono">per</span>, <span className="font-mono">via</span>,{" "}
+          <span className="font-mono">Source:</span>, or <span className="font-mono">출처:</span> plus that outlet name.
+          The crediting post stays visible as Attributed or Syndicated and weighs {THRESHOLDS.cloneAttributedWeight}.
+          One credit does not clear the other posts in the cluster. Uncredited exact and near copies keep their clone
+          weight. The earliest in-corpus account stays the Originator unless an earlier in-corpus post exists. A quote
+          post is not credit by itself. Ordinary phrases such as “via the market” or “per share” are not credits. A
+          repost stored as <span className="font-mono">RT @</span> uses action <span className="font-mono">repost</span>{" "}
+          and is left out of copy matching.
         </p>
         <h3 className="font-serif text-xl">Syndicated wires</h3>
         <p className="leading-relaxed">
           When two or more verified major outlets share a headline, that text is one cluster. The earliest poster is
           the originator. The other outlets in the set are Syndicated, with copy weight 0. They are not clones of each
           other. An account outside the set that pastes the same headline without a credit is still a copy. A single
-          outlet copying a non-outlet, with no second outlet in the cluster, is still a copy. When the text names a
-          source that is not in the corpus, or names a corpus account that did not post in the cluster, the cluster is
-          marked source outside corpus. The first in-corpus poster is not crowned Originator, and those posts are not
-          scored as clones of each other.
+          outlet copying a non-outlet, with no second outlet in the cluster, is still a copy. Naming Goldman, or any
+          name that is not the originator and not a recognized outlet, does not zero anyone’s score. A credit on one
+          post never marks the whole cluster source outside corpus and never drops the clone weight on an uncredited
+          copy.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           {WIRE_OUTLETS.map((outlet) => (
@@ -229,10 +236,12 @@ export default function MethodologyPage() {
         <p className="leading-relaxed">
           Every account is scored on one window, {SCORE_WINDOW.start} through {SCORE_WINDOW.end}, measured at{" "}
           {formatStamp(AGE_AS_OF)}. Posts outside that window do not count. Most original and Biggest copycats include
-          accounts with at least {THRESHOLDS.leaderboardMinPosts} posts in the window. Fewer posts is a thin sample:
-          the grade line reads “thin sample / not graded yet” and no GC percent is shown. The lanes omit that account.
-          The copy and amplifier signals can still be read underneath. A withheld organic-reach meter is a separate
-          “Not graded yet,” for a boost pattern that did not clear its own gate.
+          accounts with at least {THRESHOLDS.leaderboardMinPosts} posts in the window, and Most original also needs at
+          least one post that is not a copy and not a credited repost. Fewer posts is a thin sample: the grade line
+          reads “thin sample / not graded yet” and no GC percent is shown. An account with no posts in the window reads
+          “Not graded yet.” The lanes omit that account. When no account has enough posts to sit in Biggest copycats,
+          the lane reads “No account has enough posts to grade yet.” A thin sample is not a 0 and not a STRONG meter.
+          The organic-reach meter is a separate “Not graded yet,” because {AMPLIFIER_NOT_AVAILABLE}
         </p>
       </section>
 

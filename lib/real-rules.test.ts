@@ -6,7 +6,7 @@ import { splitBoard } from "./board";
 import { analyzeCorpus, isCopyRole } from "./detect";
 import { gcScoreFrom } from "./grade";
 import { THRESHOLDS } from "./thresholds";
-import type { Corpus, FixtureAccount, FixturePost } from "./types";
+import type { AnnotatedPost, Corpus, FixtureAccount, FixturePost } from "./types";
 import { isWireOutlet } from "./wires";
 
 const TEXT =
@@ -182,28 +182,64 @@ describe("false-positive classes", () => {
     }
   });
 
-  it("marks a named source that is not in the corpus instead of crowning the first poster", () => {
+  it("does not let one outside name clear the cluster or the uncredited copy", () => {
     const report = analyzeCorpus(
       corpus(
         [
           post({ id: "cnbc", account: "CNBC", postedAt: "2026-10-06T08:00:00.000Z", text: TEXT }),
+          post({ id: "copy", account: "copier", postedAt: "2026-10-06T09:00:00.000Z", text: TEXT }),
           post({
             id: "later",
             account: "relay",
-            postedAt: "2026-10-18T20:00:00.000Z",
+            postedAt: "2026-10-06T10:00:00.000Z",
             text: `${TEXT}, per Goldman Sachs`,
           }),
         ],
-        [account("CNBC"), account("relay")],
+        [account("CNBC"), account("relay"), account("copier")],
       ),
     );
     const cluster = report.clusters[0];
-    assert.equal(cluster?.sourceOutside, true);
-    assert.equal(cluster?.originAccount, null);
-    assert.equal(cluster?.cloneCount, 0);
-    for (const item of cluster?.posts ?? []) assert.equal(item.role, "outside");
-    assert.notEqual(report.accounts.find((item) => item.handle === "CNBC")?.label, "Originator");
-    assert.notEqual(report.accounts.find((item) => item.handle === "relay")?.label, "Clone");
+    assert.equal(cluster?.sourceOutside, false);
+    assert.equal(cluster?.originAccount, "CNBC");
+    assert.equal(report.posts.find((item) => item.id === "cnbc")?.role, "originator");
+    assert.equal(report.posts.find((item) => item.id === "copy")?.role, "exact");
+    assert.equal(report.posts.find((item) => item.id === "later")?.role, "near");
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.label, "Originator");
+    assert.equal(report.accounts.find((item) => item.handle === "copier")?.cloneScore, THRESHOLDS.cloneExactWeight);
+    assert.equal(report.accounts.find((item) => item.handle === "relay")?.cloneScore, THRESHOLDS.cloneNearWeight);
+    assert.equal(report.accounts.find((item) => item.handle === "copier")?.label, "Clone");
+    assert.equal(report.accounts.find((item) => item.handle === "relay")?.label, "Clone");
+  });
+
+  it("zeroes only the crediting post, and only for the originator or a recognized outlet", () => {
+    const report = analyzeCorpus(
+      corpus(
+        [
+          post({ id: "o", account: "desk", postedAt: "2026-10-06T08:00:00.000Z" }),
+          post({ id: "credit", account: "relay", postedAt: "2026-10-06T09:00:00.000Z", text: `${TEXT}, per Bloomberg` }),
+          post({ id: "alias", account: "wire", postedAt: "2026-10-06T09:30:00.000Z", text: `${TEXT} 출처: CNBC Top News` }),
+          post({ id: "copy", account: "copier", postedAt: "2026-10-06T10:00:00.000Z" }),
+          post({ id: "bare", account: "tipster", postedAt: "2026-10-06T11:00:00.000Z", text: `${TEXT} h/t` }),
+          post({ id: "other", account: "named", postedAt: "2026-10-06T12:00:00.000Z", text: `${TEXT} via @stranger` }),
+        ],
+        [account("desk"), account("stranger")],
+      ),
+    );
+    assert.equal(report.clusters[0]?.sourceOutside, false);
+    assert.equal(report.clusters[0]?.originAccount, "desk");
+    assert.equal(report.posts.find((item) => item.id === "o")?.role, "originator");
+    assert.equal(report.posts.find((item) => item.id === "credit")?.role, "syndicated");
+    assert.equal(report.posts.find((item) => item.id === "alias")?.role, "syndicated");
+    assert.equal(report.posts.find((item) => item.id === "copy")?.role, "exact");
+    assert.equal(report.posts.find((item) => item.id === "bare")?.role, "near");
+    assert.equal(report.posts.find((item) => item.id === "other")?.role, "near");
+    assert.equal(textCreditsSource(`${TEXT} h/t`), false);
+    assert.equal(report.accounts.find((item) => item.handle === "relay")?.cloneScore, 0);
+    assert.equal(report.accounts.find((item) => item.handle === "wire")?.cloneScore, 0);
+    assert.equal(report.accounts.find((item) => item.handle === "copier")?.cloneScore, THRESHOLDS.cloneExactWeight);
+    assert.equal(report.accounts.find((item) => item.handle === "tipster")?.cloneScore, THRESHOLDS.cloneNearWeight);
+    assert.equal(report.accounts.find((item) => item.handle === "named")?.cloneScore, THRESHOLDS.cloneNearWeight);
+    assert.equal(report.accounts.find((item) => item.handle === "desk")?.label, "Originator");
   });
 
   it("does not count a quote with commentary as a boost and requires a timeline baseline", () => {
@@ -351,11 +387,12 @@ describe("false-positive classes", () => {
 });
 
 describe("headline GC score", () => {
-  it("is 100 minus the worse detector signal", () => {
+  it("is 100 minus the copy score", () => {
     assert.equal(gcScoreFrom(0, 0), 100);
     assert.equal(gcScoreFrom(100, 0), 0);
-    assert.equal(gcScoreFrom(10, 35), 65);
+    assert.equal(gcScoreFrom(10, 35), 90);
     assert.equal(gcScoreFrom(60, 20), 40);
+    assert.equal(gcScoreFrom(10, 90), 90);
   });
 });
 
@@ -377,6 +414,32 @@ describe("best and worst lanes", () => {
     );
     const overlap = lanes.best.filter((item) => lanes.worst.some((other) => other.handle === item.handle));
     assert.deepEqual(overlap, []);
+  });
+
+  it("keeps a fully credited reposter out of most original", () => {
+    const accounts = [
+      {
+        handle: "credited",
+        gcScore: 100,
+        postCount: 8,
+        clonePostCount: 0,
+        attributedPostCount: 8,
+        syndicatedPostCount: 0,
+      },
+      {
+        handle: "writer",
+        gcScore: 90,
+        postCount: 8,
+        clonePostCount: 0,
+        attributedPostCount: 0,
+        syndicatedPostCount: 0,
+      },
+    ] as never;
+    const lanes = splitBoard(accounts, 5, 8);
+    assert.deepEqual(
+      lanes.best.map((item) => item.handle),
+      ["writer"],
+    );
   });
 
   it("does not list a STRONG score as a copycat when lower scores exist", () => {
@@ -443,10 +506,13 @@ describe("real corpus after the rules", () => {
     assert.equal(reuters.gcScore, 100);
     assert.equal(reuters.graded, false);
 
-    assert.equal(whales.label, "Originator");
-    assert.equal(whales.cloneScore, 0);
-    assert.equal(whales.gcScore, 100);
     assert.equal(whales.graded, true);
+    assert.equal(report.posts.find((item) => item.id === "2111548049214603437")?.role, "originator");
+    assert.equal(report.posts.find((item) => item.id === "2111532949590196711")?.role, "originator");
+    assert.equal(report.posts.find((item) => item.id === "2111910437012787363")?.role, "near");
+    assert.equal(whales.label, "Clone");
+    assert.equal(whales.cloneScore, THRESHOLDS.cloneNearWeight);
+    assert.equal(whales.gcScore, 100 - THRESHOLDS.cloneNearWeight);
 
     assert.equal(cheddar.label, "Originator");
     assert.equal(cheddar.cloneScore, 0);
@@ -468,6 +534,70 @@ describe("real corpus after the rules", () => {
       assert.equal(account.passesAmpGate, false);
     }
     assert.equal(report.posts.find((item) => item.id === "2110230998008893535")?.role, "attributed");
+  });
+
+  it("scores uncredited diesel and Fink copies even when one post names an outlet", () => {
+    const copy = (id: string, handle: string) => {
+      const found = report.posts.find((item) => item.id === id);
+      const account = report.accounts.find((item) => item.handle === handle);
+      assert.equal(found?.account, handle, id);
+      assert.equal(isCopyRole(found?.role ?? "solo"), true, `${id} ${found?.role}`);
+      assert.ok((account?.cloneScore ?? 0) > 0, handle);
+    };
+    copy("2107409217632215084", "DavidNStocks1");
+    copy("2107414972074729955", "ArcherDion");
+    const diesel = report.clusters.find((cluster) => cluster.posts.some((item) => item.id === "2107393195059335458"));
+    assert.equal(diesel?.originAccount, "CNBC");
+    assert.equal(diesel?.sourceOutside, false);
+    for (const handle of ["dbs62", "TheSlowDollar", "Naagesh_tweets"]) {
+      const account = report.accounts.find((item) => item.handle === handle);
+      const match: AnnotatedPost | undefined = diesel?.posts.find((item) => item.account === handle);
+      assert.ok(match, handle);
+      assert.equal(isCopyRole(match.role), true, `${handle} ${match.role}`);
+      assert.ok((account?.cloneScore ?? 0) > 0, handle);
+    }
+    const press = report.posts.find((item) => item.id === "2107478547849716017");
+    assert.equal(press?.account, "ManhattanPress");
+    assert.equal(press?.role, "solo");
+    assert.equal(report.accounts.find((item) => item.handle === "ManhattanPress")?.cloneScore, 0);
+
+    copy("2110813360828649550", "RomansProp");
+    copy("2110901937444897131", "AyataAnalytics");
+    copy("2110702460256104749", "Knight172");
+    const fink = report.clusters.find((cluster) => cluster.posts.some((item) => item.id === "2110813360828649550"));
+    assert.equal(fink?.originAccount, "kreia");
+    assert.equal(fink?.sourceOutside, false);
+    const kreia = fink?.posts.find((item) => item.account === "kreia");
+    assert.equal(kreia?.role, "originator");
+    assert.equal(report.accounts.find((item) => item.handle === "kreia")?.cloneScore, 0);
+
+    const whalesPost = report.posts.find((item) => item.id === "2111910437012787363");
+    assert.equal(whalesPost?.role, "near");
+    assert.equal(report.posts.find((item) => item.id === "2111548049214603437")?.role, "originator");
+    assert.equal(report.posts.find((item) => item.id === "2111532949590196711")?.role, "originator");
+  });
+
+  it("lists a tracked account with no posts as not graded", () => {
+    const quinn = report.accounts.find((item) => item.handle === "quinnallen23");
+    assert.ok(quinn);
+    assert.equal(quinn.postCount, 0);
+    assert.equal(quinn.graded, false);
+  });
+
+  it("keeps truncated notes on exact hash only", () => {
+    const flagged = [
+      "2110431151793848340",
+      "2110923292747940044",
+      "2110622475071463463",
+      "2110533595467059605",
+    ];
+    for (const id of flagged) {
+      const post = report.posts.find((item) => item.id === id);
+      assert.equal(post?.textTruncated, true, id);
+      if (post && post.role !== "solo" && post.role !== "originator") {
+        assert.equal(post.role, "exact", id);
+      }
+    }
   });
 
   it("keeps the reply-bot paraphrases, the uncredited CheddarFlow copy, and the new-account reposts", () => {

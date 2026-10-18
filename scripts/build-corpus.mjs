@@ -50,8 +50,24 @@ const narrativeIds = unique(narrativeRows, "narrative_id", "narratives.csv");
 const handles = unique(accountRows, "handle", "accounts.csv");
 unique(postRows, "post_id", "posts.csv");
 
+function compareText(a, b) {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
 const actions = new Set(["post", "quote", "reply", "repost"]);
 const postById = new Map(postRows.map((row) => [row.post_id, row]));
+const sameText = new Map();
+for (const row of postRows) {
+  const key = row.text.trim();
+  const list = sameText.get(key);
+  if (list) list.push(row);
+  else sameText.set(key, [row]);
+}
+for (const list of sameText.values()) {
+  list.sort((a, b) => compareText(a.created_at, b.created_at) || compareText(a.post_id, b.post_id));
+}
 for (const row of postRows) {
   if (!handles.has(row.handle)) throw new Error(`posts.csv: @${row.handle} (post ${row.post_id}) is not in accounts.csv`);
   if (!actions.has(row.action)) throw new Error(`posts.csv: post ${row.post_id} has action "${row.action}"`);
@@ -66,18 +82,18 @@ for (const row of postRows) {
   if (row.narrative_id && !narrativeIds.has(row.narrative_id)) throw new Error(`posts.csv: post ${row.post_id} names unknown narrative ${row.narrative_id}`);
   if (row.ref_post_id && postById.has(row.ref_post_id)) {
     const target = postById.get(row.ref_post_id);
-    if (target.created_at > row.created_at) {
+    if (target.created_at > row.created_at || (target.created_at === row.created_at && target.post_id > row.post_id)) {
       throw new Error(
         `posts.csv: post ${row.post_id} ref_post_id ${row.ref_post_id} points at a later post (${target.created_at} is after ${row.created_at})`,
       );
     }
+    const earliest = sameText.get(target.text.trim())[0];
+    if (earliest.post_id !== target.post_id) {
+      throw new Error(
+        `posts.csv: post ${row.post_id} ref_post_id ${row.ref_post_id} is not the earliest match (earliest is ${earliest.post_id})`,
+      );
+    }
   }
-}
-
-function compareText(a, b) {
-  if (a < b) return -1;
-  if (a > b) return 1;
-  return 0;
 }
 
 const corpus = {
@@ -116,26 +132,81 @@ const corpus = {
     })),
 };
 
-writeFileSync(out, `${JSON.stringify(corpus, null, 2)}\n`);
-console.log(`corpus.json: ${corpus.narratives.length} narratives, ${corpus.accounts.length} accounts, ${corpus.posts.length} posts`);
-
-// X's short `text` is capped at 280 characters and, when cut, ends in "…".
-// A bare trailing t.co in that same band is the other truncated-preview shape.
-// Longer notes often end in a real source link, so they stay out of this warning.
-const SHORT_TEXT_MIN = 280;
-const SHORT_TEXT_MAX = 330;
+// X's short `text` is capped near 280 characters. A cut note ends in "…", in a bare
+// t.co around that cap, mid-word with no punctuation and no link, or as a short
+// body whose parallel post put a t.co where the rest of the note should be.
+// Texts are not rewritten here. Data Review cleared 24 of the old warnings; those
+// ids stay unmarked and are not failures.
+const CLEARED_TRUNCATION = new Set([
+  "2107096957743436264",
+  "2107506142754812150",
+  "2107562768387686860",
+  "2109254276010607001",
+  "2110354802710311125",
+  "2110536341851418802",
+  "2110910568869646811",
+  "2111161249824440477",
+  "2111193148114587675",
+  "2111201312607981974",
+  "2111240848205885863",
+  "2111455269960208607",
+  "2111619890100457474",
+  "2111659778309312543",
+  "2111728711569469743",
+  "2111737799393300493",
+  "2111793164516282481",
+  "2111809567017296278",
+  "2111823540039127364",
+  "2111826464978903313",
+  "2111849653998338478",
+  "2111901966339072251",
+  "2111915606396051736",
+  "2111917886793204104",
+]);
 const BARE_TCO = /https:\/\/t\.co\/[A-Za-z0-9]+$/;
-const warnings = [];
-for (const row of postRows) {
-  if (row.action === "repost" || row.text.trimStart().startsWith("RT @")) continue;
+const DANGLING = /^(by|the|a|an|of|to|and|or|in|for|with|at|as|on|from|into|than|that|will)$/i;
+
+function truncationReason(row) {
+  if (row.action === "repost" || row.text.trimStart().startsWith("RT @")) return null;
   const trimmed = row.text.trimEnd();
   const chars = [...trimmed].length;
-  let reason = null;
-  if (trimmed.endsWith("…")) reason = "ends with …";
-  else if (BARE_TCO.test(trimmed) && chars >= SHORT_TEXT_MIN && chars <= SHORT_TEXT_MAX) {
-    reason = "bare t.co link at the 280-character length limit";
+  if (trimmed.endsWith("…")) return `ends with … (${chars} chars)`;
+  if (BARE_TCO.test(trimmed) && chars >= 280 && chars <= 330) {
+    return `bare t.co link at the 280-character length limit (${chars} chars)`;
   }
-  if (reason) warnings.push(`posts.csv: ${row.post_id} @${row.handle} ${reason} (${chars} chars)`);
+  const endsSentence = /[.!?…]["”’']?$/.test(trimmed);
+  const hasUrl = /https?:\/\//.test(trimmed);
+  if (chars >= 270 && chars <= 285 && !endsSentence && !hasUrl) {
+    const last = trimmed.match(/[A-Za-z’']+$/);
+    if (last && DANGLING.test(last[0])) return `ends mid-sentence near 280 characters with no link (${chars} chars)`;
+  }
+  // A sibling kept the same opening and then a t.co. This row kept writing and
+  // still stopped short of 280 with no link, so the link replaced the rest.
+  if (chars >= 220 && chars < 280 && !hasUrl) {
+    const head = trimmed.slice(0, 80);
+    const sibling = postRows.find((other) => {
+      if (other.post_id === row.post_id) return false;
+      if (other.action === "repost" || other.text.trimStart().startsWith("RT @")) return false;
+      if (!other.text.startsWith(head)) return false;
+      return /https:\/\/t\.co\//.test(other.text.slice(80, 160)) && [...other.text].length < chars;
+    });
+    if (sibling) return `t.co link replaced trailing content (${chars} chars)`;
+  }
+  return null;
 }
-for (const line of warnings) console.warn(`warning: ${line}`);
-if (warnings.length) console.warn(`warning: ${warnings.length} stored text(s) look truncated. Texts were not changed.`);
+
+const truncationFailures = [];
+for (const row of postRows) {
+  if (CLEARED_TRUNCATION.has(row.post_id)) continue;
+  const reason = truncationReason(row);
+  if (!reason || row.text_truncated === "true") continue;
+  truncationFailures.push(`posts.csv: ${row.post_id} @${row.handle} ${reason}`);
+}
+if (truncationFailures.length) {
+  throw new Error(
+    `${truncationFailures.length} stored text(s) look truncated and are not marked text_truncated=true. Texts were not changed.\n${truncationFailures.join("\n")}`,
+  );
+}
+
+writeFileSync(out, `${JSON.stringify(corpus, null, 2)}\n`);
+console.log(`corpus.json: ${corpus.narratives.length} narratives, ${corpus.accounts.length} accounts, ${corpus.posts.length} posts`);
