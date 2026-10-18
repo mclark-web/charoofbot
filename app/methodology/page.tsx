@@ -146,8 +146,8 @@ export default function MethodologyPage() {
           are not first-seen + {THRESHOLDS.ampVolumeWeight} × boost count / {THRESHOLDS.ampVolumePostsForFull}). Each
           ratio is capped at 1. A boost is a short quote with no commentary of its own, a reply, or a non-copied slogan
           on someone else’s narrative. A quote that carries the author’s own commentary is not a boost. Verbatim copies
-          do not count as boosts. A tracked lane account is a source and is never scored as a booster of another lane
-          account. This corpus does not include booster timelines, only the tracked sources, so the amplifier gate
+          do not count as boosts. A tracked lane account is never scored as a booster. This corpus does not include
+          booster timelines, only the tracked sources, so the amplifier gate
           cannot fire here. {AMPLIFIER_NOT_AVAILABLE_SENTENCE} The meter reads Not graded yet. It is not shown as 100 STRONG, as
           WEAK, or as 0. {ORGANIC_REACH_RULE} That gate is what the paste bench uses when the pasted text includes a
           timeline. Phrase-search and quote-search rows are not a timeline, so they cannot supply the{" "}

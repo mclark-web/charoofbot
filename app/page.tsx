@@ -353,9 +353,11 @@ export default function DashboardPage() {
 
         <section>
           <p className="kicker">Organic reach</p>
-          <h2 className="mt-1 font-serif text-2xl text-ink">Flagged amplifiers</h2>
           {amplifiers.length > 0 ? (
-            <FlaggedAmplifiers accounts={amplifiers} />
+            <>
+              <h2 className="mt-1 font-serif text-2xl text-ink">Flagged amplifiers</h2>
+              <FlaggedAmplifiers accounts={amplifiers} />
+            </>
           ) : (
             <p className="mt-2 text-sm text-ink-soft">
               Amplifier detection not available yet: needs booster timelines.

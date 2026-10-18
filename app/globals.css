@@ -171,7 +171,7 @@ thead {
   backdrop-filter: blur(16px);
 }
 
-.fixture-label {
+.corpus-stamp {
   margin: 0;
   padding: 0 8px 8px;
   background-color: #0b0c0e;
@@ -729,7 +729,7 @@ dt .tap::before {
     margin-left: auto;
   }
 
-  .fixture-label {
+  .corpus-stamp {
     padding: 0 20px 10px;
   }
 

@@ -12,6 +12,7 @@ export const WIRE_OUTLETS: readonly { handle: string; name: string }[] = [
   { handle: "qz", name: "Quartz" },
   { handle: "AlArabiya_Eng", name: "Al Arabiya English" },
   { handle: "ARYNEWSOFFICIAL", name: "ARY News" },
+  { handle: "KING5Seattle", name: "KING 5 Seattle" },
 ];
 
 const WIRE_HANDLES = new Set(WIRE_OUTLETS.map((outlet) => outlet.handle));
@@ -43,12 +44,38 @@ export const RECOGNIZED_OUTLETS: readonly string[] = [
 
 const RECOGNIZED = new Set(RECOGNIZED_OUTLETS);
 
-export function isRecognizedOutlet(name: string): boolean {
-  const key = name
+/** Handles that publish the recognized outlet, when this corpus has one. */
+const OUTLET_ACCOUNTS: Readonly<Record<string, readonly string[]>> = {
+  reuters: ["Reuters"],
+  bloomberg: ["business"],
+  cnbc: ["CNBC"],
+  "cnbc markets": ["CNBC"],
+  "cnbc top news": ["CNBC"],
+  "cnbc pro": ["CNBCPro"],
+  wsj: ["WSJ"],
+  "wall street journal": ["WSJ"],
+  ap: ["AP"],
+  "associated press": ["AP"],
+  ft: ["FT"],
+  "financial times": ["FT"],
+  coindesk: ["CoinDesk"],
+  "conference board": ["ConferenceBoard"],
+};
+
+export function outletKey(name: string): string {
+  return name
     .toLowerCase()
     .replace(/^the\s+/, "")
     .replace(/[.'’]+/g, "")
     .replace(/\s+/g, " ")
     .trim();
-  return RECOGNIZED.has(key);
+}
+
+export function isRecognizedOutlet(name: string): boolean {
+  return RECOGNIZED.has(outletKey(name));
+}
+
+/** X handles for a recognized outlet name. Empty when the name is not on the list. */
+export function outletAccounts(name: string): readonly string[] {
+  return OUTLET_ACCOUNTS[outletKey(name)] ?? [];
 }

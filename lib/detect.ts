@@ -12,7 +12,7 @@ import {
 } from "./normalize";
 import { compareText } from "./order";
 import { passesAmplifierGate, SCORE_WINDOW, THRESHOLDS } from "./thresholds";
-import { isRecognizedOutlet, isWireOutlet } from "./wires";
+import { isRecognizedOutlet, isWireOutlet, outletAccounts } from "./wires";
 import type {
   AccountLabel,
   AccountReport,
@@ -39,6 +39,7 @@ type Features = {
   isRetweet: boolean;
   frameNarrativeIds: string[];
   framePhrases: string[];
+  credits: SourceCredit[];
 };
 
 const WINDOW_MS = THRESHOLDS.clusterWindowHours * 60 * 60 * 1000;
@@ -87,6 +88,7 @@ function featurize(post: FixturePost, narratives: Corpus["narratives"]): Feature
     isRetweet: peeled.isRetweet || post.action === "repost",
     frameNarrativeIds: frames.ids,
     framePhrases: frames.phrases,
+    credits: extractCredits(post.text),
   };
 }
 
@@ -175,6 +177,14 @@ export function analyzeCorpus(corpus: Corpus): Report {
           kind = "template";
         }
       }
+      if (kind && kind !== "exact" && !wordingCopied(current.tokens, prev.tokens)) {
+        // A wire outlet's paraphrase of a wire story is not a clone.
+        if (kind === "template" && isWireOutlet(current.post.account)) kind = null;
+        // A reworded headline that credits some other named source is not a clone
+        // of this post. Exact copies, and posts that still contain the other
+        // post's wording, stay matches.
+        if (kind && creditedReword(current, prev.post.account)) kind = null;
+      }
       if (!kind) continue;
 
       const better =
@@ -233,8 +243,10 @@ export function analyzeCorpus(corpus: Corpus): Report {
     // The earliest in-corpus poster stays the originator. One later credit does not
     // move the origin or clear the other copiers.
     const originHandle = group[0].post.account;
-    const wireAccounts = new Set(group.map((feature) => feature.post.account).filter((handle) => isWireOutlet(handle)));
+    const clusterHandles = new Set(group.map((feature) => feature.post.account));
+    const wireAccounts = new Set([...clusterHandles].filter((handle) => isWireOutlet(handle)));
     const syndicatedWire = wireAccounts.size >= 2;
+    const accountOf = new Map(group.map((feature) => [feature.post.id, feature.post.account]));
 
     for (const feature of group) {
       if (feature.post.account === originHandle) {
@@ -248,7 +260,17 @@ export function analyzeCorpus(corpus: Corpus): Report {
         roleOf.set(feature.post.id, "syndicated");
         continue;
       }
-      const creditRole = creditRoleFor(feature.post.text, originHandle, handleByKey);
+      const prior = roleOf.get(feature.post.id);
+      const matchKind = prior === "exact" || prior === "near" || prior === "template" ? prior : null;
+      const matchedAccount = accountOf.get(matchedId.get(feature.post.id) ?? "") ?? null;
+      const creditRole = creditRoleFor(
+        feature.credits,
+        originHandle,
+        clusterHandles,
+        handleByKey,
+        matchKind,
+        matchedAccount,
+      );
       if (creditRole) roleOf.set(feature.post.id, creditRole);
     }
   }
@@ -410,21 +432,67 @@ function resolveCredit(credit: SourceCredit, handleByKey: Map<string, string>): 
   return handleByKey.get(key) ?? null;
 }
 
-function creditQualifies(credit: SourceCredit, originHandle: string, handleByKey: Map<string, string>): boolean {
-  if (!credit.name) return false;
-  if (isRecognizedOutlet(credit.name)) return true;
-  return resolveCredit(credit, handleByKey) === originHandle;
+function wordingCopied(current: string[], previous: string[]): boolean {
+  if (current.length === 0 || previous.length === 0) return false;
+  const left = current.join(" ");
+  const right = previous.join(" ");
+  return left.includes(right) || right.includes(left);
 }
 
-/** Weight 0 only for this post, and only when the named source is the originator or a recognized outlet. */
-function creditRoleFor(
-  text: string,
+/**
+ * Outlet credit on a headline that does not actually contain the other post's
+ * wording. Copying that post's words (exact, or the full token string) still counts.
+ * A handle credit of the matched account is the copier naming who they copied.
+ */
+function creditedReword(current: Features, matchedAccount: string): boolean {
+  const outlets = current.credits.filter((credit) => credit.kind === "outlet" && credit.name);
+  if (outlets.length === 0) return false;
+  const namesMatched = current.credits.some((credit) => {
+    if (credit.kind !== "handle" && credit.kind !== "tip") return false;
+    return credit.name.toLowerCase() === matchedAccount.toLowerCase();
+  });
+  if (namesMatched) return false;
+  return !outlets.some((credit) => outletAccounts(credit.name).includes(matchedAccount));
+}
+
+function creditQualifies(
+  credit: SourceCredit,
   originHandle: string,
+  clusterHandles: Set<string>,
   handleByKey: Map<string, string>,
+  matchKind: MatchKind | null,
+  matchedAccount: string | null,
+): boolean {
+  if (!credit.name) return false;
+  if (credit.kind === "handle" || credit.kind === "tip") {
+    return resolveCredit(credit, handleByKey) === originHandle;
+  }
+  if (!isRecognizedOutlet(credit.name)) return false;
+  const outlets = outletAccounts(credit.name);
+  const postedHere = outlets.some((handle) => handle === originHandle || clusterHandles.has(handle));
+  if (!postedHere) return false;
+  // A verbatim or near copy of some other account stays a copy. The credit
+  // does not wash it, even when the outlet's own account is in the cluster.
+  if ((matchKind === "exact" || matchKind === "near") && matchedAccount && !outlets.includes(matchedAccount)) {
+    return false;
+  }
+  return true;
+}
+
+/** Weight 0 only for this post, and only when rule 1 says the credit counts. */
+function creditRoleFor(
+  credits: SourceCredit[],
+  originHandle: string,
+  clusterHandles: Set<string>,
+  handleByKey: Map<string, string>,
+  matchKind: MatchKind | null,
+  matchedAccount: string | null,
 ): "attributed" | "syndicated" | null {
-  const credits = extractCredits(text).filter((credit) => creditQualifies(credit, originHandle, handleByKey));
-  if (credits.length === 0) return null;
-  if (credits.some((credit) => credit.kind === "handle" || credit.kind === "tip")) return "attributed";
+  const qualifying = credits.filter((credit) =>
+    creditQualifies(credit, originHandle, clusterHandles, handleByKey, matchKind, matchedAccount),
+  );
+  if (qualifying.length === 0) return null;
+  if (qualifying.some((credit) => credit.kind === "handle" || credit.kind === "tip")) return "attributed";
   return "syndicated";
 }
 

@@ -1,4 +1,5 @@
 import type { PostAction } from "./types";
+import { isRecognizedOutlet } from "./wires";
 
 export type CreditKind = "handle" | "outlet" | "tip";
 
@@ -9,14 +10,18 @@ export type SourceCredit = {
 };
 
 const HANDLE = "([A-Za-z0-9_]+)";
-const OUTLET = "([A-Z][A-Za-z0-9&'’.-]*(?:\\s+[A-Z][A-Za-z0-9&'’.-]*){0,3})";
+// Stop at sentence punctuation. A period is not part of the name, so
+// "per Reuters. When asked" is Reuters and not "Reuters. When".
+const OUTLET = "([A-Z][A-Za-z0-9&'’]*(?:\\s+[A-Z][A-Za-z0-9&'’]*){0,3})";
 
 /**
  * Credits that can zero clone weight on this post alone.
  * via @handle and Source: @handle name an account. per / via / Source: / 출처: plus an
  * outlet name is syndication. h/t counts only when a handle or outlet follows it.
  * A bare h/t gives no credit. "via the market" and "per share" do not match.
- * A quote action is not a credit. The outlet token stops at a sentence period.
+ * A quote action is not a credit. The outlet token stops at '.', ',', ';', ':',
+ * a newline, or the end of the text. "출처:" matches anywhere in the text.
+ * Share buttons ("… - CNBC", "CNBC- …") count only for a recognized outlet.
  */
 export function extractCredits(text: string): SourceCredit[] {
   const credits: SourceCredit[] = [];
@@ -38,9 +43,18 @@ export function extractCredits(text: string): SourceCredit[] {
   for (const match of text.matchAll(new RegExp(`\\bvia\\s+${OUTLET}`, "g"))) add("outlet", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bper\\s+@?#?${OUTLET}`, "g"))) add("outlet", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bSource:\\s+${OUTLET}`, "g"))) add("outlet", match[1]);
-  for (const match of text.matchAll(/출처\s*[:：]\s*@?([^\n\r]+)/g)) add("outlet", match[1]);
+  for (const match of text.matchAll(new RegExp(`출처\\s*[:：]\\s*@?${OUTLET}`, "g"))) add("outlet", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bh\\s*\\/\\s*t\\s+@${HANDLE}`, "gi"))) add("tip", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bh\\s*\\/\\s*t\\s+${OUTLET}`, "g"))) add("tip", match[1]);
+  // "headline - CNBC" and "CNBC- headline" are the share-button credit.
+  for (const match of text.matchAll(
+    new RegExp(`(?:^|\\s)[-–—]\\s+${OUTLET}(?=\\s|$|[.,;:])`, "g"),
+  )) {
+    if (isRecognizedOutlet(match[1])) add("outlet", match[1]);
+  }
+  for (const match of text.matchAll(new RegExp(`^${OUTLET}[-–—]\\s+`, "g"))) {
+    if (isRecognizedOutlet(match[1])) add("outlet", match[1]);
+  }
   return credits;
 }
 
