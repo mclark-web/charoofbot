@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
-import { AMPLIFIER_NOT_AVAILABLE, ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
+import { AMPLIFIER_NOT_AVAILABLE_SENTENCE, ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
 import { formatStamp } from "@/lib/format";
 import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
 import { AGE_AS_OF, SCORE_WINDOW, THRESHOLDS } from "@/lib/thresholds";
@@ -22,8 +22,8 @@ export default function MethodologyPage() {
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
           GCBot phase 0 shows one headline GC score, with original voice underneath, without an API bill.
           Higher on the GC Scale means more authentic, and STRONG means trustworthy. The numbers below are the
-          detector constants. The headline GC score is 100 minus the copy score. Amplifier detection is not in that
-          number: {AMPLIFIER_NOT_AVAILABLE}
+          detector constants. The headline GC score is 100 minus the copy score, and amplifier detection is not in that
+          number. {AMPLIFIER_NOT_AVAILABLE_SENTENCE}
         </p>
       </header>
 
@@ -63,7 +63,7 @@ export default function MethodologyPage() {
         <p className="leading-relaxed">
           The detector still flags Originator, Clone, or Clean on this corpus. Amplifier and Clone+Amp stay in the
           practice paste bench, where a supplied timeline can clear the boost gate. Those badges mark the flag. They
-          are not grade pills. The GC Scale is authenticity. On the real posts, {AMPLIFIER_NOT_AVAILABLE}
+          are not grade pills. The GC Scale is authenticity. {AMPLIFIER_NOT_AVAILABLE_SENTENCE}
         </p>
       </section>
 
@@ -71,8 +71,8 @@ export default function MethodologyPage() {
         <h2 className="font-serif text-2xl">How the GC Scale is shown</h2>
         <p className="leading-relaxed">
           Display only: the headline authenticity is 100 − the copy score. A graded, finite copy signal is flipped.
-          The organic-reach meter on these accounts is not a number. It reads Not graded yet, because{" "}
-          {AMPLIFIER_NOT_AVAILABLE} Withheld values are never flipped into 100 STRONG. A reading above 100 is not graded.
+          The organic-reach meter on these accounts is not a number. It reads Not graded yet.{" "}
+          {AMPLIFIER_NOT_AVAILABLE_SENTENCE} Withheld values are never flipped into 100 STRONG. A reading above 100 is not graded.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           <li>70 and above is STRONG. That is the trustworthy band.</li>
@@ -148,7 +148,7 @@ export default function MethodologyPage() {
           on someone else’s narrative. A quote that carries the author’s own commentary is not a boost. Verbatim copies
           do not count as boosts. A tracked lane account is a source and is never scored as a booster of another lane
           account. This corpus does not include booster timelines, only the tracked sources, so the amplifier gate
-          cannot fire here. {AMPLIFIER_NOT_AVAILABLE} The meter reads Not graded yet. It is not shown as 100 STRONG, as
+          cannot fire here. {AMPLIFIER_NOT_AVAILABLE_SENTENCE} The meter reads Not graded yet. It is not shown as 100 STRONG, as
           WEAK, or as 0. {ORGANIC_REACH_RULE} That gate is what the paste bench uses when the pasted text includes a
           timeline. Phrase-search and quote-search rows are not a timeline, so they cannot supply the{" "}
           {THRESHOLDS.ampTimelineBaseline}-post baseline.
@@ -243,7 +243,7 @@ export default function MethodologyPage() {
           “{NO_POSTS_LINE}.” The lanes omit that account. The account page uses those same two lines for the headline
           and for original voice. When no account has enough posts to sit in Biggest copycats,
           the lane reads “No account has enough posts to grade yet.” A thin sample is not a 0 and not a STRONG meter.
-          The organic-reach meter is a separate “Not graded yet,” because {AMPLIFIER_NOT_AVAILABLE}
+          The organic-reach meter is a separate “Not graded yet.” {AMPLIFIER_NOT_AVAILABLE_SENTENCE}
         </p>
       </section>
 

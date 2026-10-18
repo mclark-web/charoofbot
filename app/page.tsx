@@ -5,7 +5,7 @@ import { HeadlineScale } from "@/components/headline-scale";
 import { LabelBadge } from "@/components/label-badge";
 import { NarrativeGraph } from "@/components/narrative-graph";
 import { NewAccountChart, type NewAccountRow } from "@/components/new-account-chart";
-import { AMPLIFIER_NOT_AVAILABLE } from "@/components/organic-reach-copy";
+import { AMPLIFIER_NOT_AVAILABLE, AMPLIFIER_NOT_AVAILABLE_SENTENCE } from "@/components/organic-reach-copy";
 import { VolumeChart, type VolumeRow } from "@/components/volume-chart";
 import { getCorpus, getReport } from "@/lib/corpus";
 import { countNoun, excerpt, formatStamp, joinPresent } from "@/lib/format";
@@ -358,7 +358,7 @@ export default function DashboardPage() {
             <FlaggedAmplifiers accounts={amplifiers} />
           ) : (
             <p className="mt-2 text-sm text-ink-soft">
-              Amplifier detection not available yet: needs booster timelines
+              Amplifier detection not available yet: needs booster timelines.
             </p>
           )}
         </section>
@@ -397,8 +397,8 @@ function FlaggedAmplifiers({ accounts }: { accounts: AccountReport[] }) {
   return (
     <>
       <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-soft">
-        Accounts the detector flagged for boosting, lowest GC score first. Organic reach stays withheld:{" "}
-        {AMPLIFIER_NOT_AVAILABLE}. The GC score is 100 minus the copy score.
+        Accounts the detector flagged for boosting, lowest GC score first. Organic reach stays withheld.{" "}
+        {AMPLIFIER_NOT_AVAILABLE_SENTENCE} The GC score is 100 minus the copy score.
       </p>
       <ul className="mt-4 grid gap-3 md:hidden">
         {accounts.map((account) => (
@@ -410,7 +410,7 @@ function FlaggedAmplifiers({ accounts }: { accounts: AccountReport[] }) {
               <LabelBadge label={account.label} />
             </div>
             <HeadlineScale account={account} />
-            <p className="text-sm text-ink-soft">Organic reach: {AMPLIFIER_NOT_AVAILABLE}</p>
+            <p className="text-sm text-ink-soft">Organic reach: {AMPLIFIER_NOT_AVAILABLE}.</p>
             <p className="font-mono text-xs text-ink-soft">{countNoun(account.postCount, "post")} in window</p>
           </li>
         ))}
@@ -440,7 +440,7 @@ function FlaggedAmplifiers({ accounts }: { accounts: AccountReport[] }) {
                 <td className="min-w-0 px-3 py-3">
                   <HeadlineScale account={account} />
                 </td>
-                <td className="px-3 py-3 text-sm text-ink-soft">{AMPLIFIER_NOT_AVAILABLE}</td>
+                <td className="px-3 py-3 text-sm text-ink-soft">{AMPLIFIER_NOT_AVAILABLE}.</td>
                 <td className="px-3 py-3 font-mono">{account.postCount}</td>
               </tr>
             ))}

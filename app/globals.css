@@ -202,7 +202,20 @@ thead {
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
+  padding-block: 6px;
+  margin-block: -6px;
+  padding-inline: 6px;
+  scroll-padding-inline: 6px;
   scrollbar-width: none;
+}
+
+.site-nav.can-scroll-right {
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+}
+
+.site-nav .nav-link:focus-visible {
+  outline-offset: -3px;
 }
 
 .site-nav::-webkit-scrollbar {
@@ -211,6 +224,7 @@ thead {
 
 .nav-link {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;

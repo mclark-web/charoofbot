@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
 import { HeadlineScale } from "@/components/headline-scale";
 import { detectorSignal } from "@/components/gc-scale";
-import { AMPLIFIER_NOT_AVAILABLE } from "@/components/organic-reach-copy";
+import { AMPLIFIER_NOT_AVAILABLE_SENTENCE } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { SourceLink } from "@/components/source-link";
 import { getReport } from "@/lib/corpus";
@@ -89,8 +89,7 @@ export default async function AccountPage({ params }: PageProps) {
         <ScoreMeter
           label="Organic reach"
           score="withheld"
-          signal={AMPLIFIER_NOT_AVAILABLE}
-          detail={AMPLIFIER_NOT_AVAILABLE}
+          detail={AMPLIFIER_NOT_AVAILABLE_SENTENCE}
         />
       </div>
 

@@ -8,6 +8,10 @@ import { THRESHOLDS } from "@/lib/thresholds";
 /** Real-corpus amplifier meter. Booster timelines were not collected, so the meter is not a score. */
 export const AMPLIFIER_NOT_AVAILABLE = "Not available yet: needs booster timelines";
 
+/** Full sentence for prose. The short fragment above is not a clause on its own. */
+export const AMPLIFIER_NOT_AVAILABLE_SENTENCE =
+  "Amplifier detection is not available yet because it needs booster timelines.";
+
 export const ORGANIC_REACH_NOT_GRADED = `Not graded yet — needs ${THRESHOLDS.ampMinBoostPosts}+ boosts on ${THRESHOLDS.ampMinBoostDays} days, ${THRESHOLDS.ampTimelineBaseline}+ timeline posts, and a signal of ${THRESHOLDS.ampLabel}+.`;
 
 /** Full gate, stated once on /methodology. Numbers come from the same thresholds the detector uses. */

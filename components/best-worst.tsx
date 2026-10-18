@@ -61,6 +61,16 @@ function sharedPlace(accounts: AccountReport[], index: number, higherIsBetter: b
   return better + 1;
 }
 
+function tieGroups(accounts: AccountReport[]): { score: number; count: number }[] {
+  const counts = new Map<number, number>();
+  for (const account of accounts) {
+    counts.set(account.gcScore, (counts.get(account.gcScore) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([score, count]) => ({ score, count }));
+}
+
 function Lane({
   title,
   note,
@@ -76,7 +86,7 @@ function Lane({
   empty: string;
   higherIsBetter: boolean;
 }) {
-  const tied = accounts.some((account) => accounts.filter((item) => item.gcScore === account.gcScore).length > 1);
+  const ties = tieGroups(accounts);
   return (
     <div className="min-w-0">
       <h3 className="font-serif text-xl text-ink">{title}</h3>
@@ -85,7 +95,16 @@ function Lane({
         <p className="mt-3 text-sm text-ink-soft">{empty}</p>
       ) : (
         <>
-          {tied ? <p className="mt-2 text-xs text-ink-soft">Tied scores share a place.</p> : null}
+          {ties.length > 0 ? (
+            <p className="mt-2 text-xs text-ink-soft">
+              {ties.map((group) => `${group.count} accounts tied at ${group.score}`).join("; ")}
+              ; see all on{" "}
+              <Link href="/accounts" className="tap underline decoration-rule underline-offset-4 hover:decoration-ink">
+                /accounts
+              </Link>
+              .
+            </p>
+          ) : null}
           <ul className="mt-3 grid gap-3">
             {accounts.map((account, index) => {
               const place = sharedPlace(accounts, index, higherIsBetter);
