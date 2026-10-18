@@ -1,4 +1,4 @@
-export type PostAction = "post" | "quote" | "reply";
+export type PostAction = "post" | "quote" | "reply" | "repost";
 
 export type FixturePost = {
   id: string;
@@ -7,6 +7,14 @@ export type FixturePost = {
   postedAt: string;
   narrativeId: string | null;
   action: PostAction;
+  /** Public post URL when the corpus row has one. Paste posts omit it. */
+  url?: string;
+  /** In-corpus post this row credits, when the CSV names one. Always an earlier post. */
+  refPostId?: string | null;
+  /** How the row was collected. Omitted rows count as timeline. phrase-search and quotes do not. */
+  source?: string | null;
+  /** The stored text is an incomplete preview. Near and template matches skip it. */
+  textTruncated?: boolean;
   /** Optional poster created date. Fixture posts inherit this from the account directory. */
   accountCreatedAt?: string;
   /** Optional age in days at the fixture clock, used when no created date is present. */
@@ -23,6 +31,8 @@ export type FixtureAccount = {
   followers: number;
   following: number;
   follows: string[];
+  /** GradedCalls lane (fintwit or sports) when this account is a tracked source. */
+  trackedBoard?: string | null;
 };
 
 export type AgeBand = "fresh" | "young" | "established" | "unknown";
@@ -58,7 +68,7 @@ export type Corpus = {
 
 export type MatchKind = "exact" | "near" | "template";
 
-export type PostRole = "originator" | MatchKind | "solo";
+export type PostRole = "originator" | MatchKind | "attributed" | "syndicated" | "outside" | "solo";
 
 export type AccountLabel =
   | "Originator"
@@ -74,6 +84,9 @@ export type AnnotatedPost = {
   postedAt: string;
   narrativeId: string | null;
   action: PostAction;
+  url?: string;
+  source?: string | null;
+  textTruncated?: boolean;
   normalized: string;
   hash: string;
   tokenCount: number;
@@ -103,8 +116,11 @@ export type CloneCluster = {
   id: string;
   narrativeId: string | null;
   originPostId: string;
-  originAccount: string;
+  /** Null when the named source is not an account in this cluster. */
+  originAccount: string | null;
   originAt: string;
+  /** The wording names a source that is not the earliest in-corpus poster. */
+  sourceOutside: boolean;
   sampleText: string;
   normalizedSample: string;
   posts: AnnotatedPost[];
@@ -112,6 +128,9 @@ export type CloneCluster = {
   exactCount: number;
   nearCount: number;
   templateCount: number;
+  attributedCount: number;
+  syndicatedCount: number;
+  outsideCount: number;
   accounts: string[];
   mutualFollows: FollowLink[];
   oneWayFollows: FollowLink[];
@@ -129,9 +148,17 @@ export type AccountReport = {
   inDirectory: boolean;
   cloneScore: number;
   ampScore: number;
+  /** Authenticity: 100 − max(copy score, amplifier score). Higher means more authentic. */
+  gcScore: number;
+  /** False when the account has a thin sample in the fixed window. The grade line is withheld. */
+  graded: boolean;
   label: AccountLabel;
   postCount: number;
+  /** Posts collected from a timeline. Phrase-search and quote-search rows do not count. */
+  timelinePostCount: number;
   clonePostCount: number;
+  attributedPostCount: number;
+  syndicatedPostCount: number;
   boostPostCount: number;
   originPostCount: number;
   boostDays: number;

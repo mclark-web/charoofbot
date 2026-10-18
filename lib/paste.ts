@@ -159,7 +159,8 @@ function parseJson(raw: string, stamp: string): PasteParse {
           ? record.handle
           : "pasted";
     const account = handleRaw.replace(/^@/, "").toLowerCase() || "pasted";
-    const action = record.action === "quote" || record.action === "reply" ? record.action : "post";
+    let action: PostAction = record.action === "quote" || record.action === "reply" || record.action === "repost" ? record.action : "post";
+    if (text.startsWith("RT @")) action = "repost";
     const postedAt =
       typeof record.postedAt === "string" && !Number.isNaN(Date.parse(record.postedAt))
         ? new Date(record.postedAt).toISOString()

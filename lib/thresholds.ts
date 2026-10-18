@@ -13,11 +13,29 @@ export const THRESHOLDS = {
   cloneExactWeight: 70,
   cloneNearWeight: 55,
   cloneTemplateWeight: 45,
+  /**
+   * Explicit credit (via @handle, Source: @handle, h/t) and attributed syndication
+   * (per / via / Source: / 출처: plus an outlet name) add nothing to the copy score.
+   * The post stays visible as attributed or syndicated.
+   */
+  cloneAttributedWeight: 0,
   cloneLabel: 40,
+  /**
+   * A lone template match is 45, which is over the clone line, but it does not
+   * label the account Clone. Two or more template matches do. So does one
+   * template match when copied posts are at least this share of the window.
+   */
+  cloneMinTemplateMatches: 2,
+  cloneShareThreshold: 0.5,
   ampLabel: 45,
   /** Amplifier label requires repeated boosts, not a single slogan. */
-  ampMinBoostPosts: 2,
-  ampMinBoostDays: 2,
+  ampMinBoostPosts: 3,
+  ampMinBoostDays: 3,
+  /**
+   * Posts from the account's own timeline required before a boost pattern can flag.
+   * Phrase-search and quote-search rows are not a timeline.
+   */
+  ampTimelineBaseline: 3,
   ampBoostWeight: 0.3,
   ampLoadWeight: 0.2,
   ampPersistenceWeight: 0.15,
@@ -37,17 +55,34 @@ export const THRESHOLDS = {
    * is marked as dominated by new accounts. The fresh band uses the same share.
    */
   newAccountDominateShare: 0.5,
+  /**
+   * Fixed window and the minimum sample. Fewer posts in the window are a thin
+   * sample: the grade line reads "thin sample / not graded yet".
+   */
+  leaderboardMinPosts: 5,
+} as const;
+
+/** Inclusive calendar dates. Every account is scored on this window, not its own span. */
+export const SCORE_WINDOW = {
+  start: "2026-10-04",
+  end: "2026-10-18",
 } as const;
 
 /** As-of stamp for the real corpus in data/corpus.json (18 Oct 2026, 5:00 PM ET). */
 export const DEMO_PASTE_STAMP = "2026-10-18T21:00:00.000Z";
 
 /** Same predicate detect.ts uses for the amplifier label. Display must not invent a second gate. */
-export function passesAmplifierGate(ampScore: number, boostPostCount: number, boostDays: number): boolean {
+export function passesAmplifierGate(
+  ampScore: number,
+  boostPostCount: number,
+  boostDays: number,
+  timelinePostCount: number = THRESHOLDS.ampTimelineBaseline,
+): boolean {
   return (
     ampScore >= THRESHOLDS.ampLabel &&
     boostPostCount >= THRESHOLDS.ampMinBoostPosts &&
-    boostDays >= THRESHOLDS.ampMinBoostDays
+    boostDays >= THRESHOLDS.ampMinBoostDays &&
+    timelinePostCount >= THRESHOLDS.ampTimelineBaseline
   );
 }
 

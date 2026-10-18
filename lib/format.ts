@@ -24,6 +24,23 @@ export function excerpt(text: string, max = 160): string {
   return `${flat.slice(0, max - 1).trimEnd()}…`;
 }
 
+/** Earliest public post URL for an account, or the X profile when the corpus has no URL. */
+export function accountSourceUrl(
+  handle: string,
+  posts: { account: string; postedAt: string; url?: string }[],
+): string {
+  let url: string | undefined;
+  let at = "";
+  for (const post of posts) {
+    if (post.account !== handle || !post.url) continue;
+    if (!url || post.postedAt < at) {
+      url = post.url;
+      at = post.postedAt;
+    }
+  }
+  return url ?? `https://x.com/${handle}`;
+}
+
 export function formatAgeDays(days: number | null): string {
   if (days === null) return "unknown";
   if (days < 365) return `${days}d`;

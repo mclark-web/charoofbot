@@ -5,7 +5,7 @@ const ORIGIN = "https://charoofbot.vercel.app";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const report = getReport();
-  const staticRoutes = ["/", "/paste", "/methodology"].map((path) => ({
+  const staticRoutes = ["/", "/accounts", "/paste", "/methodology"].map((path) => ({
     url: `${ORIGIN}${path}`,
     changeFrequency: "weekly" as const,
     priority: path === "/" ? 1 : 0.7,

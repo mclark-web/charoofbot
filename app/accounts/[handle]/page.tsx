@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
+import { HeadlineScale } from "@/components/headline-scale";
 import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
 import { ORGANIC_REACH_NOT_GRADED, organicReachMutedNote } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
 import { getReport } from "@/lib/corpus";
-import { excerpt, formatAgeDays, formatStamp } from "@/lib/format";
+import { accountSourceUrl, excerpt, formatAgeDays, formatStamp } from "@/lib/format";
+import { THRESHOLDS } from "@/lib/thresholds";
 
 type PageProps = {
   params: Promise<{ handle: string }>;
@@ -57,17 +59,33 @@ export default async function AccountPage({ params }: PageProps) {
         ) : null}
       </div>
 
+      <p className="text-sm text-ink-soft">
+        <a href={accountSourceUrl(account.handle, posts)} className="tap underline decoration-rule underline-offset-4">
+          Source
+        </a>
+      </p>
+
+      <HeadlineScale account={account} />
+
       <div className="grid gap-4 md:grid-cols-2">
         <ScoreMeter
           label="Original voice"
-          score={account.cloneScore}
-          signal={detectorSignal("clone", account.cloneScore)}
-          detail={`${account.clonePostCount} post${account.clonePostCount === 1 ? "" : "s"} matched earlier language. Exact matches weigh more than near-duplicates and templates. Higher means more of the voice is original.`}
+          score={account.graded ? account.cloneScore : "withheld"}
+          signal={account.graded ? detectorSignal("clone", account.cloneScore) : "clone signal withheld"}
+          detail={`${account.clonePostCount} copied post${account.clonePostCount === 1 ? "" : "s"} and ${account.attributedPostCount} attributed repost${account.attributedPostCount === 1 ? "" : "s"}. Attributed reposts weigh ${THRESHOLDS.cloneAttributedWeight}, under the full copy weights. Higher means more of the voice is original.`}
         />
         <ScoreMeter
           label="Organic reach"
-          score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
-          signal={organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays)}
+          score={
+            account.graded
+              ? amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays, account.timelinePostCount)
+              : "withheld"
+          }
+          signal={
+            account.graded
+              ? organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays, account.timelinePostCount)
+              : "amplifier signal withheld"
+          }
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. Passes the persistence gate. Higher means less of the activity is boosting someone else.`
@@ -89,7 +107,7 @@ export default async function AccountPage({ params }: PageProps) {
       <section>
         <h2 className="font-serif text-2xl">Narratives touched</h2>
         {narratives.length === 0 ? (
-          <p className="mt-2 text-sm text-ink-soft">No fixture narrative.</p>
+          <p className="mt-2 text-sm text-ink-soft">None in this window.</p>
         ) : (
           <ul className="mt-3 flex flex-wrap gap-2">
             {narratives.map((narrative) => (
@@ -115,8 +133,9 @@ export default async function AccountPage({ params }: PageProps) {
                   ) : null}
                   <span className="text-ink-soft">{formatStamp(post.postedAt)}</span>
                   <span className="text-ink-soft">{post.action}</span>
+                  {post.textTruncated ? <span className="meta-badge">Truncated text</span> : null}
                 </div>
-                <p className="mt-3 leading-relaxed">{post.text}</p>
+                <p className="mt-3 whitespace-pre-wrap break-words leading-relaxed">{post.text}</p>
                 <p className="mt-2 text-sm text-ink-soft">
                   {narrative ? narrative.title : "No narrative tag"}
                   {post.clusterId ? (

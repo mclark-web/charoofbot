@@ -5,9 +5,9 @@ import { useState } from "react";
 const DRAFT = `GCBot false-positive appeal (demo draft)
 Handle:
 Post text:
-Match shown (exact / near / template / amplifier):
+Match shown (exact / near / template / attributed / syndicated / amplifier):
 Why this should be reviewed:
-Check: normalization, 14-day window, and whether the first-seen post is actually earlier.`;
+Check: normalization, 14-day window, self-repeat (same account), earliest poster in the cluster, a via / h/t / per credit or quote, and whether both accounts are on the wire list.`;
 
 export function AppealDraft() {
   const [copied, setCopied] = useState(false);

@@ -254,7 +254,7 @@ describe("paste bench", () => {
 
   it("badges a fresh amplifier without turning the paste into clone speech", () => {
     const run = runPaste(samplePastes.fresh);
-    assert.equal(run.findings.length, 2);
+    assert.equal(run.findings.length, 3);
     for (const finding of run.findings) {
       assert.equal(finding.role, "solo");
       assert.equal(finding.isBoost, true);

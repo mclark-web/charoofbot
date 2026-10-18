@@ -1,11 +1,14 @@
 import Link from "next/link";
+import { BestWorst } from "@/components/best-worst";
 import { authenticityFrom, detectorSignal, GcScale } from "@/components/gc-scale";
+import { HeadlineScale } from "@/components/headline-scale";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
 import { NarrativeGraph } from "@/components/narrative-graph";
 import { NewAccountChart, type NewAccountRow } from "@/components/new-account-chart";
 import { VolumeChart, type VolumeRow } from "@/components/volume-chart";
 import { getCorpus, getReport } from "@/lib/corpus";
 import { excerpt, formatAgeDays, formatStamp } from "@/lib/format";
+import { compareText } from "@/lib/order";
 
 export default function DashboardPage() {
   const report = getReport();
@@ -35,7 +38,7 @@ export default function DashboardPage() {
       (a, b) =>
         b.age.underYearPostCount - a.age.underYearPostCount ||
         b.age.freshPostCount - a.age.freshPostCount ||
-        a.title.localeCompare(b.title),
+        compareText(a.title, b.title),
     )
     .map((narrative) => ({
       shortLabel: `${narrative.shortLabel} (${narrative.age.underYearPostCount})`,
@@ -61,9 +64,9 @@ export default function DashboardPage() {
     .filter((account) => account.label === "Amplifier" || account.label === "Clone+Amp")
     .sort(
       (a, b) =>
-        authenticity(a.ampScore) - authenticity(b.ampScore) ||
+        a.gcScore - b.gcScore ||
         b.boostPostCount - a.boostPostCount ||
-        a.handle.localeCompare(b.handle),
+        compareText(a.handle, b.handle),
     );
 
   return (
@@ -74,7 +77,7 @@ export default function DashboardPage() {
           Which narratives are being sewn, and who is copying the language.
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          Original voice and organic reach are graded separately on the GC Scale; STRONG means more authentic. The two grades are never combined into one number.
+          Each account has one GC score: 100 minus the higher of the copy score and the amplifier score. STRONG means more authentic. Original voice and organic reach stay underneath that headline.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           This page scores {report.totals.postCount} real public X posts across {report.totals.narrativeCount}{" "}
@@ -84,7 +87,11 @@ export default function DashboardPage() {
           <Link href="/paste" className="tap underline decoration-rule underline-offset-4 hover:decoration-ink">
             paste bench
           </Link>{" "}
-          to see the same rules fire.
+          to see the same rules fire. The{" "}
+          <Link href="/accounts" className="tap underline decoration-rule underline-offset-4 hover:decoration-ink">
+            account list
+          </Link>{" "}
+          sorts every score.
         </p>
       </section>
 
@@ -94,6 +101,8 @@ export default function DashboardPage() {
         <Stat label="Clone clusters" value={String(report.totals.clusterCount)} />
         <Stat label="Flagged amplifiers" value={String(report.totals.amplifierAccountCount)} />
       </dl>
+
+      <BestWorst accounts={report.accounts} posts={report.posts} />
 
       <section className="grid gap-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
@@ -329,11 +338,19 @@ export default function DashboardPage() {
                   <p className="font-serif text-lg leading-snug text-ink">{excerpt(cluster.sampleText, 140)}</p>
                   <p className="mt-2 text-sm text-ink-soft">
                     {cluster.narrativeId ? titles.get(cluster.narrativeId) : "Unassigned"} · first seen{" "}
-                    <span className="text-ink">@{cluster.originAccount}</span> · {formatStamp(cluster.originAt)}
+                    <span className="text-ink">
+                      {cluster.sourceOutside || !cluster.originAccount
+                        ? "Source outside corpus"
+                        : `@${cluster.originAccount}`}
+                    </span>{" "}
+                    · {formatStamp(cluster.originAt)}
                   </p>
                   <p className="mt-2 font-mono text-xs text-ink">
                     {cluster.cloneCount} copies · {cluster.exactCount} exact · {cluster.nearCount} near ·{" "}
                     {cluster.templateCount} template
+                    {cluster.attributedCount > 0 ? ` · ${cluster.attributedCount} attributed` : ""}
+                    {cluster.syndicatedCount > 0 ? ` · ${cluster.syndicatedCount} syndicated` : ""}
+                    {cluster.sourceOutside ? " · source outside corpus" : ""}
                   </p>
                   <p className="mt-1 font-mono text-xs text-ink-soft">
                     {cluster.age.newAccountsDominate ? "New accounts dominate · " : ""}
@@ -349,10 +366,11 @@ export default function DashboardPage() {
           <p className="kicker">Organic reach</p>
           <h2 className="mt-1 font-serif text-2xl text-ink">Flagged amplifiers</h2>
           <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-            Accounts the detector flagged for boosting. Sorted by lowest organic reach, so the most suspicious stay at the top.
-            Higher on each meter means more authentic. Follower count is shown and ignored. A new-account badge sits beside the
+            Accounts the detector flagged for boosting. Sorted by the headline GC score, lowest first.
+            The GC score sits above original voice and organic reach, so a flagged account never shows a STRONG meter as its grade.
+            Follower count is shown and ignored. A new-account badge sits beside the
             grade when the account is under 30 days or under 1 year. The badge does not change the grade.
-            High-follower copy accounts are not on this list unless they also boost without copying.
+            High-follower copy accounts are not on this list unless they also boost.
           </p>
           <ul className="mt-4 grid gap-3 md:hidden">
             {amplifiers.map((account) => (
@@ -365,6 +383,7 @@ export default function DashboardPage() {
                     <LabelBadge label={account.label} />
                   </span>
                 </div>
+                <HeadlineScale account={account} />
                 <div>
                   <h3 className="font-serif text-lg text-ink">Organic reach</h3>
                   <GcScale
@@ -393,20 +412,19 @@ export default function DashboardPage() {
           </ul>
           <div className="mt-4 hidden max-w-full min-w-0 border border-rule md:block">
             <table className="w-full text-left text-sm">
-              <caption className="sr-only">Flagged amplifiers, lowest organic reach first</caption>
+              <caption className="sr-only">Flagged amplifiers, lowest GC score first</caption>
               <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
                 <tr>
                   <th className="px-3 py-2 font-medium">Account</th>
-                  <th className="px-3 py-2 font-medium">Organic reach</th>
-                  <th className="px-3 py-2 font-medium">Original voice</th>
+                  <th className="px-3 py-2 font-medium">GC score</th>
                   <th className="px-3 py-2 font-medium">Age</th>
                   <th className="px-3 py-2 font-medium">Followers</th>
                 </tr>
               </thead>
               <tbody>
                 {amplifiers.map((account) => (
-                  <tr key={account.handle} className="border-t border-rule">
-                    <td className="px-3 py-2">
+                  <tr key={account.handle} className="border-t border-rule align-top">
+                    <td className="px-3 py-3">
                       <Link href={`/accounts/${account.handle}`} className="tap underline decoration-rule">
                         @{account.handle}
                       </Link>
@@ -414,27 +432,34 @@ export default function DashboardPage() {
                         <LabelBadge label={account.label} />
                       </span>
                     </td>
-                    <td className="min-w-0 px-3 py-2">
-                      <GcScale
-                        score={account.ampScore}
-                        label="GC Scale"
-                        signal={detectorSignal("amplifier", account.ampScore)}
-                        meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
-                      />
+                    <td className="min-w-0 px-3 py-3">
+                      <div className="grid gap-4">
+                        <HeadlineScale account={account} />
+                        <div>
+                          <h3 className="font-serif text-lg text-ink">Organic reach</h3>
+                          <GcScale
+                            score={account.ampScore}
+                            label="GC Scale"
+                            signal={detectorSignal("amplifier", account.ampScore)}
+                            meterLabel={`Organic reach ${authenticity(account.ampScore)}%, ${detectorSignal("amplifier", account.ampScore)}`}
+                          />
+                        </div>
+                        <div>
+                          <h3 className="font-serif text-lg text-ink">Original voice</h3>
+                          <GcScale
+                            score={account.cloneScore}
+                            label="GC Scale"
+                            signal={detectorSignal("clone", account.cloneScore)}
+                            meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
+                          />
+                        </div>
+                      </div>
                     </td>
-                    <td className="min-w-0 px-3 py-2">
-                      <GcScale
-                        score={account.cloneScore}
-                        label="GC Scale"
-                        signal={detectorSignal("clone", account.cloneScore)}
-                        meterLabel={`Original voice ${authenticity(account.cloneScore)}%, ${detectorSignal("clone", account.cloneScore)}`}
-                      />
-                    </td>
-                    <td className="px-3 py-2">
+                    <td className="px-3 py-3">
                       <AgeBadge band={account.ageBand} showEstablished />
                       <span className="mt-1 block font-mono text-xs text-ink-soft">{formatAgeDays(account.ageDays)}</span>
                     </td>
-                    <td className="px-3 py-2 font-mono text-ink-soft">{account.followers.toLocaleString("en-US")}</td>
+                    <td className="px-3 py-3 font-mono text-ink-soft">{account.followers.toLocaleString("en-US")}</td>
                   </tr>
                 ))}
               </tbody>

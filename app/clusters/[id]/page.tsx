@@ -48,7 +48,7 @@ export default async function ClusterPage({ params }: PageProps) {
           </Link>{" "}
           / copied language
         </p>
-        <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-ink">{cluster.sampleText}</h1>
+        <h1 className="mt-3 max-w-3xl font-serif text-3xl leading-tight text-ink">{excerpt(cluster.sampleText, 320)}</h1>
         <p className="mt-4 text-sm text-ink-soft">
           {narrative ? narrative.title : "No narrative tag"} · {cluster.cloneCount} copies ·{" "}
           {cluster.accounts.length} accounts
@@ -60,11 +60,15 @@ export default async function ClusterPage({ params }: PageProps) {
 
       <section className="grid gap-4 border border-rule bg-paper-raised p-4 md:grid-cols-3">
         <div>
-          <p className="kicker">Originator</p>
+          <p className="kicker">{cluster.sourceOutside ? "Source" : "Originator"}</p>
           <p className="mt-2 font-serif text-xl">
-            <Link href={`/accounts/${cluster.originAccount}`} className="tap underline decoration-rule">
-              @{cluster.originAccount}
-            </Link>
+            {cluster.sourceOutside || !cluster.originAccount ? (
+              <span>Source outside corpus</span>
+            ) : (
+              <Link href={`/accounts/${cluster.originAccount}`} className="tap underline decoration-rule">
+                @{cluster.originAccount}
+              </Link>
+            )}
           </p>
           <p className="mt-1 text-sm text-ink-soft">{formatStamp(cluster.originAt)}</p>
         </div>
@@ -72,6 +76,9 @@ export default async function ClusterPage({ params }: PageProps) {
           <p className="kicker">Match mix</p>
           <p className="mt-2 font-mono text-sm">
             {cluster.exactCount} exact · {cluster.nearCount} near · {cluster.templateCount} template
+            {cluster.attributedCount > 0 ? ` · ${cluster.attributedCount} attributed` : ""}
+            {cluster.syndicatedCount > 0 ? ` · ${cluster.syndicatedCount} syndicated` : ""}
+            {cluster.outsideCount > 0 ? ` · ${cluster.outsideCount} source outside corpus` : ""}
           </p>
         </div>
         <div>
@@ -181,7 +188,7 @@ export default async function ClusterPage({ params }: PageProps) {
                 Jaccard {copy.jaccard.toFixed(2)} · {copy.sharedFourGrams} shared 4-grams
               </span>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-ink">{copy.text}</p>
+            <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-ink">{copy.text}</p>
             <div className="mt-3 border-t border-rule pt-3">
               <DiffView ops={wordDiff(origin.normalized, copy.normalized)} />
             </div>
@@ -213,7 +220,7 @@ export default async function ClusterPage({ params }: PageProps) {
                     <span className="font-mono text-xs text-ink-soft"> {formatAgeDays(post.ageDays)}</span>
                   ) : null}
                 </p>
-                <p className="mt-1 text-ink">{post.text}</p>
+                <p className="mt-1 whitespace-pre-wrap break-words text-ink">{post.text}</p>
               </li>
             ))}
           </ul>
