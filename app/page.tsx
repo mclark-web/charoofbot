@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { BestWorst } from "@/components/best-worst";
 import { GcScale } from "@/components/gc-scale";
+import { HeadlineScale } from "@/components/headline-scale";
+import { LabelBadge } from "@/components/label-badge";
 import { NarrativeGraph } from "@/components/narrative-graph";
 import { NewAccountChart, type NewAccountRow } from "@/components/new-account-chart";
+import { AMPLIFIER_NOT_AVAILABLE } from "@/components/organic-reach-copy";
 import { VolumeChart, type VolumeRow } from "@/components/volume-chart";
 import { getCorpus, getReport } from "@/lib/corpus";
-import { excerpt, formatStamp } from "@/lib/format";
+import { countNoun, excerpt, formatStamp, joinPresent } from "@/lib/format";
 import { compareText } from "@/lib/order";
+import type { AccountReport } from "@/lib/types";
 
 export default function DashboardPage() {
   const report = getReport();
@@ -54,6 +58,11 @@ export default function DashboardPage() {
       newAccountsDominate: narrative.age.newAccountsDominate,
     }));
   const maxPosts = Math.max(...report.narratives.map((narrative) => narrative.postCount));
+  const amplifiers = report.accounts
+    .filter((account) => account.label === "Amplifier" || account.label === "Clone+Amp")
+    .sort(
+      (a, b) => a.gcScore - b.gcScore || b.boostPostCount - a.boostPostCount || compareText(a.handle, b.handle),
+    );
   return (
     <div className="grid min-w-0 gap-12">
       <section className="max-w-3xl">
@@ -140,7 +149,7 @@ export default function DashboardPage() {
                   showPercent={false}
                   meterMax={maxPosts}
                   meterNow={narrative.postCount}
-                  meterLabel={`${narrative.title} volume, ${narrative.postCount} posts`}
+                  meterLabel={`${narrative.title} volume, ${countNoun(narrative.postCount, "post")}`}
                 />
               </div>
               <dl className="grid grid-cols-2 gap-2 text-sm">
@@ -223,7 +232,7 @@ export default function DashboardPage() {
                       showPercent={false}
                       meterMax={maxPosts}
                       meterNow={narrative.postCount}
-                      meterLabel={`${narrative.title} volume, ${narrative.postCount} posts`}
+                      meterLabel={`${narrative.title} volume, ${countNoun(narrative.postCount, "post")}`}
                     />
                   </td>
                   <td className="px-3 py-2 font-mono">{narrative.postCount}</td>
@@ -267,8 +276,9 @@ export default function DashboardPage() {
         <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">
           Bar length is posts from accounts younger than one year, which includes the under-30-day band.{" "}
           {report.totals.newAccountNarrativeCount} narratives are highlighted because new accounts supply at least half
-          their posts. {report.totals.freshPostCount} posts in the corpus come from accounts under 30 days, and{" "}
-          {report.totals.underYearPostCount} from accounts under 1 year. Age is a flag beside the grades, not a term
+          their posts. {countNoun(report.totals.freshPostCount, "post")} in the corpus{" "}
+          {report.totals.freshPostCount === 1 ? "comes" : "come"} from accounts under 30 days, and{" "}
+          {countNoun(report.totals.underYearPostCount, "post")} from accounts under 1 year. Age is a flag beside the grades, not a term
           inside them.
         </p>
         <NewAccountChart rows={newAccountRows} />
@@ -330,13 +340,7 @@ export default function DashboardPage() {
                     </span>{" "}
                     · {formatStamp(cluster.originAt)}
                   </p>
-                  <p className="mt-2 font-mono text-xs text-ink">
-                    {cluster.cloneCount} copies · {cluster.exactCount} exact · {cluster.nearCount} near ·{" "}
-                    {cluster.templateCount} template
-                    {cluster.attributedCount > 0 ? ` · ${cluster.attributedCount} attributed` : ""}
-                    {cluster.syndicatedCount > 0 ? ` · ${cluster.syndicatedCount} syndicated` : ""}
-                    {cluster.sourceOutside ? " · source outside corpus" : ""}
-                  </p>
+                  <CopyMix cluster={cluster} />
                   <p className="mt-1 font-mono text-xs text-ink-soft">
                     {cluster.age.newAccountsDominate ? "New accounts dominate · " : ""}
                     {cluster.age.freshVolumePct}% under 30 days · {cluster.age.underYearVolumePct}% under 1 year
@@ -349,15 +353,101 @@ export default function DashboardPage() {
 
         <section>
           <p className="kicker">Organic reach</p>
-          <h2 className="mt-1 font-serif text-2xl text-ink">Amplifier detection</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-soft">
-            Not available yet: needs booster timelines. The accounts in this file are tracked sources, not the
-            timelines of people who only boost them, so an amplifier count of zero would not be a finding. The
-            organic-reach meter reads Not graded yet. The GC score is 100 minus the copy score.
-          </p>
+          <h2 className="mt-1 font-serif text-2xl text-ink">Flagged amplifiers</h2>
+          {amplifiers.length > 0 ? (
+            <FlaggedAmplifiers accounts={amplifiers} />
+          ) : (
+            <p className="mt-2 text-sm text-ink-soft">
+              Amplifier detection not available yet: needs booster timelines
+            </p>
+          )}
         </section>
       </div>
     </div>
+  );
+}
+
+function CopyMix({
+  cluster,
+}: {
+  cluster: {
+    cloneCount: number;
+    exactCount: number;
+    nearCount: number;
+    templateCount: number;
+    attributedCount: number;
+    syndicatedCount: number;
+    sourceOutside: boolean;
+  };
+}) {
+  const line = joinPresent([
+    cluster.cloneCount > 0 && countNoun(cluster.cloneCount, "copy", "copies"),
+    cluster.exactCount > 0 && `${cluster.exactCount} exact`,
+    cluster.nearCount > 0 && `${cluster.nearCount} near`,
+    cluster.templateCount > 0 && `${cluster.templateCount} template`,
+    cluster.attributedCount > 0 && `${cluster.attributedCount} attributed`,
+    cluster.syndicatedCount > 0 && `${cluster.syndicatedCount} syndicated`,
+    cluster.sourceOutside && "source outside corpus",
+  ]);
+  if (!line) return null;
+  return <p className="mt-2 font-mono text-xs text-ink">{line}</p>;
+}
+
+function FlaggedAmplifiers({ accounts }: { accounts: AccountReport[] }) {
+  return (
+    <>
+      <p className="mt-2 max-w-3xl text-sm leading-relaxed text-ink-soft">
+        Accounts the detector flagged for boosting, lowest GC score first. Organic reach stays withheld:{" "}
+        {AMPLIFIER_NOT_AVAILABLE}. The GC score is 100 minus the copy score.
+      </p>
+      <ul className="mt-4 grid gap-3 md:hidden">
+        {accounts.map((account) => (
+          <li key={account.handle} className="grid gap-3 border border-rule bg-paper-raised p-4">
+            <div className="tap-row">
+              <Link href={`/accounts/${account.handle}`} className="tap font-serif text-lg underline decoration-rule">
+                @{account.handle}
+              </Link>
+              <LabelBadge label={account.label} />
+            </div>
+            <HeadlineScale account={account} />
+            <p className="text-sm text-ink-soft">Organic reach: {AMPLIFIER_NOT_AVAILABLE}</p>
+            <p className="font-mono text-xs text-ink-soft">{countNoun(account.postCount, "post")} in window</p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-4 hidden max-w-full min-w-0 border border-rule md:block">
+        <table className="w-full text-left text-sm">
+          <caption className="sr-only">Flagged amplifiers, lowest GC score first</caption>
+          <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
+            <tr>
+              <th className="px-3 py-2 font-medium">Account</th>
+              <th className="px-3 py-2 font-medium">GC score</th>
+              <th className="px-3 py-2 font-medium">Organic reach</th>
+              <th className="px-3 py-2 font-medium">Posts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {accounts.map((account) => (
+              <tr key={account.handle} className="border-t border-rule align-top">
+                <td className="px-3 py-3">
+                  <Link href={`/accounts/${account.handle}`} className="tap underline decoration-rule">
+                    @{account.handle}
+                  </Link>
+                  <span className="mt-1 block">
+                    <LabelBadge label={account.label} />
+                  </span>
+                </td>
+                <td className="min-w-0 px-3 py-3">
+                  <HeadlineScale account={account} />
+                </td>
+                <td className="px-3 py-3 text-sm text-ink-soft">{AMPLIFIER_NOT_AVAILABLE}</td>
+                <td className="px-3 py-3 font-mono">{account.postCount}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 

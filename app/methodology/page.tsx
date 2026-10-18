@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
 import { AMPLIFIER_NOT_AVAILABLE, ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
 import { formatStamp } from "@/lib/format";
+import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
 import { AGE_AS_OF, SCORE_WINDOW, THRESHOLDS } from "@/lib/thresholds";
 import { WIRE_OUTLETS } from "@/lib/wires";
 
@@ -238,8 +239,9 @@ export default function MethodologyPage() {
           {formatStamp(AGE_AS_OF)}. Posts outside that window do not count. Most original and Biggest copycats include
           accounts with at least {THRESHOLDS.leaderboardMinPosts} posts in the window, and Most original also needs at
           least one post that is not a copy and not a credited repost. Fewer posts is a thin sample: the grade line
-          reads “thin sample / not graded yet” and no GC percent is shown. An account with no posts in the window reads
-          “Not graded yet.” The lanes omit that account. When no account has enough posts to sit in Biggest copycats,
+          reads “{THIN_SAMPLE_LINE}” and no GC percent is shown. An account with no posts in the window reads
+          “{NO_POSTS_LINE}.” The lanes omit that account. The account page uses those same two lines for the headline
+          and for original voice. When no account has enough posts to sit in Biggest copycats,
           the lane reads “No account has enough posts to grade yet.” A thin sample is not a 0 and not a STRONG meter.
           The organic-reach meter is a separate “Not graded yet,” because {AMPLIFIER_NOT_AVAILABLE}
         </p>

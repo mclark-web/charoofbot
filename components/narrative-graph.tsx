@@ -1,3 +1,4 @@
+import { countNoun } from "@/lib/format";
 import type { NarrativeEdge, NarrativeVolume } from "@/lib/types";
 
 const WIDTH = 680;
@@ -236,7 +237,7 @@ export function NarrativeGraph({
           <li key={node.id} className="border border-rule bg-inset px-3 py-3 text-sm text-ink">
             <p className="font-serif text-base">{node.shortLabel}</p>
             <p className="mt-1 text-ink-soft">
-              {node.postCount} posts
+              {countNoun(node.postCount, "post")}
               {node.age.freshAccountsDominate
                 ? " · orange ring, under 30 days dominate"
                 : node.age.newAccountsDominate

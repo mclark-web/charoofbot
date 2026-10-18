@@ -1,4 +1,5 @@
 import { GcScale } from "@/components/gc-scale";
+import { countNoun } from "@/lib/format";
 
 export type NewAccountRow = {
   shortLabel: string;
@@ -34,7 +35,7 @@ export function NewAccountChart({ rows }: { rows: NewAccountRow[] }) {
             showPercent={false}
             meterMax={max}
             meterNow={row.underYearPosts}
-            meterLabel={`${row.title}, ${row.underYearPosts} of ${row.postCount} posts from accounts under 1 year. ${row.freshPosts} under 30 days, ${row.youngPosts} from 30 days to 1 year.`}
+            meterLabel={`${row.title}, ${countNoun(row.underYearPosts, "post")} of ${countNoun(row.postCount, "post")} from accounts under 1 year. ${countNoun(row.freshPosts, "post")} under 30 days, ${countNoun(row.youngPosts, "post")} from 30 days to 1 year.`}
             segments={[
               { name: "Under 30 days", value: row.freshPosts, color: "#eb6505" },
               { name: "30 days to 1 year", value: row.youngPosts, color: "#d15202" },

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { HeadlineScale } from "@/components/headline-scale";
 import { LabelBadge } from "@/components/label-badge";
+import { SourceLink } from "@/components/source-link";
 import { splitBoard } from "@/lib/board";
-import { accountSourceUrl, formatStamp } from "@/lib/format";
+import { accountSourceUrl, countNoun, formatStamp } from "@/lib/format";
 import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
 import type { AccountReport, AnnotatedPost } from "@/lib/types";
 
@@ -36,6 +37,7 @@ export function BestWorst({
           accounts={best}
           posts={posts}
           empty="No account has enough posts yet."
+          higherIsBetter
         />
         <Lane
           title="Biggest copycats"
@@ -43,10 +45,20 @@ export function BestWorst({
           accounts={worst}
           posts={posts}
           empty="No account has enough posts to grade yet."
+          higherIsBetter={false}
         />
       </div>
     </section>
   );
+}
+
+function sharedPlace(accounts: AccountReport[], index: number, higherIsBetter: boolean): number {
+  const score = accounts[index].gcScore;
+  let better = 0;
+  for (const account of accounts) {
+    if (higherIsBetter ? account.gcScore > score : account.gcScore < score) better += 1;
+  }
+  return better + 1;
 }
 
 function Lane({
@@ -55,13 +67,16 @@ function Lane({
   accounts,
   posts,
   empty,
+  higherIsBetter,
 }: {
   title: string;
   note: string;
   accounts: AccountReport[];
   posts: AnnotatedPost[];
   empty: string;
+  higherIsBetter: boolean;
 }) {
+  const tied = accounts.some((account) => accounts.filter((item) => item.gcScore === account.gcScore).length > 1);
   return (
     <div className="min-w-0">
       <h3 className="font-serif text-xl text-ink">{title}</h3>
@@ -69,28 +84,29 @@ function Lane({
       {accounts.length === 0 ? (
         <p className="mt-3 text-sm text-ink-soft">{empty}</p>
       ) : (
-        <ol className="mt-3 grid gap-3">
-          {accounts.map((account) => (
-            <li key={account.handle} className="grid gap-3 border border-rule bg-paper-raised p-4">
-              <div className="tap-row">
-                <Link href={`/accounts/${account.handle}`} className="tap font-serif text-lg underline decoration-rule">
-                  @{account.handle}
-                </Link>
-                <LabelBadge label={account.label} />
-                <a
-                  href={accountSourceUrl(account.handle, posts)}
-                  className="tap underline decoration-rule underline-offset-4"
-                >
-                  Source
-                </a>
-              </div>
-              <p className="font-mono text-xs text-ink-soft">
-                {account.postCount} posts in window
-              </p>
-              <HeadlineScale account={account} />
-            </li>
-          ))}
-        </ol>
+        <>
+          {tied ? <p className="mt-2 text-xs text-ink-soft">Tied scores share a place.</p> : null}
+          <ul className="mt-3 grid gap-3">
+            {accounts.map((account, index) => {
+              const place = sharedPlace(accounts, index, higherIsBetter);
+              const shares = accounts.filter((item) => item.gcScore === account.gcScore).length > 1;
+              return (
+                <li key={account.handle} className="grid gap-3 border border-rule bg-paper-raised p-4">
+                  <p className="font-mono text-xs text-ink-soft">{shares ? `Place ${place}, tied` : `Place ${place}`}</p>
+                  <div className="tap-row">
+                    <Link href={`/accounts/${account.handle}`} className="tap font-serif text-lg underline decoration-rule">
+                      @{account.handle}
+                    </Link>
+                    <LabelBadge label={account.label} />
+                    <SourceLink href={accountSourceUrl(account.handle, posts)} handle={account.handle} />
+                  </div>
+                  <p className="font-mono text-xs text-ink-soft">{countNoun(account.postCount, "post")} in window</p>
+                  <HeadlineScale account={account} />
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
     </div>
   );

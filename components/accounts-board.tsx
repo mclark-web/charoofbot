@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { HeadlineScale } from "@/components/headline-scale";
 import { AgeBadge, LabelBadge } from "@/components/label-badge";
-import { formatAgeDays } from "@/lib/format";
+import { SourceLink } from "@/components/source-link";
+import { countNoun, formatAgeDays } from "@/lib/format";
 import { compareText } from "@/lib/order";
 import { THRESHOLDS } from "@/lib/thresholds";
 import type { AccountReport } from "@/lib/types";
@@ -20,35 +21,41 @@ const SORTS: { id: SortKey; label: string }[] = [
   { id: "handle", label: "Name" },
 ];
 
-const SORT_LABEL: Record<SortKey, string> = {
-  "gc-desc": "Sorted by GC score, highest first",
-  "gc-asc": "Sorted by GC score, lowest first",
-  posts: "Sorted by posts",
-  handle: "Sorted by name",
-};
-
-function gradedFirst(a: AccountRow, b: AccountRow): number {
-  if (a.graded === b.graded) return 0;
-  return a.graded ? -1 : 1;
+function columnSort(column: "handle" | "gc" | "posts", sort: SortKey): "ascending" | "descending" | "none" {
+  if (column === "gc" && sort === "gc-desc") return "descending";
+  if (column === "gc" && sort === "gc-asc") return "ascending";
+  if (column === "posts" && sort === "posts") return "descending";
+  if (column === "handle" && sort === "handle") return "ascending";
+  return "none";
 }
 
 export function AccountsBoard({ rows }: { rows: AccountRow[] }) {
   const [sort, setSort] = useState<SortKey>("gc-desc");
+  const label = SORTS.find((item) => item.id === sort)?.label ?? "GC score high";
   const ordered = useMemo(() => {
     const next = [...rows];
     next.sort((a, b) => {
-      const graded = gradedFirst(a, b);
-      if (sort === "gc-asc") return graded || a.gcScore - b.gcScore || compareText(a.handle, b.handle);
-      if (sort === "posts") return b.postCount - a.postCount || graded || b.gcScore - a.gcScore || compareText(a.handle, b.handle);
+      if (sort === "gc-asc") {
+        const g = Number(b.graded) - Number(a.graded);
+        if (g) return g;
+        return a.gcScore - b.gcScore || compareText(a.handle, b.handle);
+      }
+      if (sort === "posts") {
+        const g = Number(b.graded) - Number(a.graded);
+        if (g) return g;
+        return b.postCount - a.postCount || b.gcScore - a.gcScore || compareText(a.handle, b.handle);
+      }
       if (sort === "handle") return compareText(a.handle, b.handle);
-      return graded || b.gcScore - a.gcScore || compareText(a.handle, b.handle);
+      const g = Number(b.graded) - Number(a.graded);
+      if (g) return g;
+      return b.gcScore - a.gcScore || compareText(a.handle, b.handle);
     });
     return next;
   }, [rows, sort]);
 
   return (
     <div className="grid gap-4">
-      <p className="text-sm text-ink-soft">{SORT_LABEL[sort]}</p>
+      <p className="text-sm text-ink-soft">Accounts sorted by {label}</p>
       <div className="tap-row" role="group" aria-label="Sort accounts">
         {SORTS.map((item) => (
           <button
@@ -71,13 +78,13 @@ export function AccountsBoard({ rows }: { rows: AccountRow[] }) {
       </ul>
       <div className="hidden max-w-full min-w-0 border border-rule md:block">
         <table className="w-full text-left text-sm">
-          <caption className="sr-only">Accounts sorted by GC score</caption>
+          <caption className="sr-only">Accounts sorted by {label}</caption>
           <thead className="bg-paper-raised text-xs uppercase tracking-wide text-ink-soft">
             <tr>
-              <th className="px-3 py-2 font-medium">Account</th>
-              <th className="px-3 py-2 font-medium">GC score</th>
-              <th className="px-3 py-2 font-medium">Posts</th>
-              <th className="px-3 py-2 font-medium">Source</th>
+              <th className="px-3 py-2 font-medium" aria-sort={columnSort("handle", sort)}>Account</th>
+              <th className="px-3 py-2 font-medium" aria-sort={columnSort("gc", sort)}>GC score</th>
+              <th className="px-3 py-2 font-medium" aria-sort={columnSort("posts", sort)}>Posts</th>
+              <th className="px-3 py-2 font-medium" aria-sort="none">Source</th>
             </tr>
           </thead>
           <tbody>
@@ -91,9 +98,7 @@ export function AccountsBoard({ rows }: { rows: AccountRow[] }) {
                 </td>
                 <td className="px-3 py-3 font-mono">{account.postCount}</td>
                 <td className="px-3 py-3">
-                  <a href={account.sourceUrl} className="tap underline decoration-rule underline-offset-4">
-                    Source
-                  </a>
+                  <SourceLink href={account.sourceUrl} handle={account.handle} />
                 </td>
               </tr>
             ))}
@@ -109,10 +114,8 @@ function AccountCard({ account }: { account: AccountRow }) {
     <article className="grid gap-3 border border-rule bg-paper-raised p-4">
       <AccountIdentity account={account} />
       <HeadlineScale account={account} />
-      <p className="font-mono text-xs text-ink-soft">{account.postCount} posts in window</p>
-      <a href={account.sourceUrl} className="tap underline decoration-rule underline-offset-4">
-        Source
-      </a>
+      <p className="font-mono text-xs text-ink-soft">{countNoun(account.postCount, "post")} in window</p>
+      <SourceLink href={account.sourceUrl} handle={account.handle} />
     </article>
   );
 }

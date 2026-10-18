@@ -24,6 +24,27 @@ export function excerpt(text: string, max = 160): string {
   return `${flat.slice(0, max - 1).trimEnd()}…`;
 }
 
+/** "1 post" / "2 posts". Pass an explicit plural when it is not singular + s. */
+export function countNoun(count: number, singular: string, plural = `${singular}s`): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+/** Drop empty segments so a zero exact/near/template count is not printed. */
+export function joinPresent(parts: Array<string | false | null | undefined>): string {
+  return parts.filter((part): part is string => Boolean(part)).join(" · ");
+}
+
+/**
+ * Display-only ellipsis for stored text that was cut off.
+ * The corpus text is left unchanged. Text that already ends in an ellipsis is left as stored.
+ */
+export function displayPostText(text: string, truncated?: boolean): string {
+  if (!truncated) return text;
+  const trimmed = text.trimEnd();
+  if (trimmed.endsWith("…") || trimmed.endsWith("...")) return text;
+  return `${trimmed}…`;
+}
+
 /** Earliest public post URL for an account, or the X profile when the corpus has no URL. */
 export function accountSourceUrl(
   handle: string,

@@ -6,8 +6,10 @@ import { HeadlineScale } from "@/components/headline-scale";
 import { detectorSignal } from "@/components/gc-scale";
 import { AMPLIFIER_NOT_AVAILABLE } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
+import { SourceLink } from "@/components/source-link";
 import { getReport } from "@/lib/corpus";
-import { accountSourceUrl, excerpt, formatAgeDays, formatStamp } from "@/lib/format";
+import { accountSourceUrl, countNoun, displayPostText, excerpt, formatAgeDays, formatStamp } from "@/lib/format";
+import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
 import { THRESHOLDS } from "@/lib/thresholds";
 
 type PageProps = {
@@ -60,9 +62,7 @@ export default async function AccountPage({ params }: PageProps) {
       </div>
 
       <p className="text-sm text-ink-soft">
-        <a href={accountSourceUrl(account.handle, posts)} className="tap underline decoration-rule underline-offset-4">
-          Source
-        </a>
+        <SourceLink href={accountSourceUrl(account.handle, posts)} handle={account.handle} />
       </p>
 
       <HeadlineScale account={account} />
@@ -71,8 +71,20 @@ export default async function AccountPage({ params }: PageProps) {
         <ScoreMeter
           label="Original voice"
           score={account.graded ? account.cloneScore : "withheld"}
-          signal={account.graded ? detectorSignal("clone", account.cloneScore) : "clone signal withheld"}
-          detail={`${account.clonePostCount} copied post${account.clonePostCount === 1 ? "" : "s"} and ${account.attributedPostCount} attributed repost${account.attributedPostCount === 1 ? "" : "s"}. Attributed reposts weigh ${THRESHOLDS.cloneAttributedWeight}, under the full copy weights. Higher means more of the voice is original.`}
+          signal={
+            account.graded
+              ? detectorSignal("clone", account.cloneScore)
+              : account.postCount === 0
+                ? null
+                : THIN_SAMPLE_LINE
+          }
+          detail={
+            account.graded
+              ? `${countNoun(account.clonePostCount, "copied post")} and ${countNoun(account.attributedPostCount, "attributed repost")}. Attributed reposts weigh ${THRESHOLDS.cloneAttributedWeight}, under the full copy weights. Higher means more of the voice is original.`
+              : account.postCount === 0
+                ? `${NO_POSTS_LINE}. This account has no posts in the window, so original voice is withheld.`
+                : `${THIN_SAMPLE_LINE}. ${countNoun(account.clonePostCount, "copied post")} and ${countNoun(account.attributedPostCount, "attributed repost")}. Fewer than ${THRESHOLDS.leaderboardMinPosts} posts, so no GC percent is shown.`
+          }
         />
         <ScoreMeter
           label="Organic reach"
@@ -123,7 +135,9 @@ export default async function AccountPage({ params }: PageProps) {
                   <span className="text-ink-soft">{post.action}</span>
                   {post.textTruncated ? <span className="meta-badge">Truncated text</span> : null}
                 </div>
-                <p className="mt-3 whitespace-pre-wrap break-words leading-relaxed">{post.text}</p>
+                <p className="mt-3 whitespace-pre-wrap break-words leading-relaxed">
+                  {displayPostText(post.text, post.textTruncated)}
+                </p>
                 <p className="mt-2 text-sm text-ink-soft">
                   {narrative ? narrative.title : "No narrative tag"}
                   {post.clusterId ? (
