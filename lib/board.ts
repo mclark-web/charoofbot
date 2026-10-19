@@ -19,19 +19,21 @@ export function splitBoard(
   accounts: AccountReport[],
   minPosts = THRESHOLDS.leaderboardMinPosts,
   limit = 8,
-): { best: AccountReport[]; worst: AccountReport[] } {
+): { best: AccountReport[]; worst: AccountReport[]; bestTied: number } {
   const eligible = [...accounts]
     .filter((account) => account.postCount >= minPosts)
     .sort((a, b) => b.gcScore - a.gcScore || compareText(a.handle, b.handle));
-  if (eligible.length === 0) return { best: [], worst: [] };
-  if (eligible.length === 1) return { best: eligible, worst: [] };
+  if (eligible.length === 0) return { best: [], worst: [], bestTied: 0 };
+  if (eligible.length === 1) return { best: eligible, worst: [], bestTied: 1 };
 
   const strong = eligible.filter((account) => account.gcScore >= 70 && hasOriginalPost(account));
+  const bestTied = strong.filter((account) => account.gcScore === strong[0]?.gcScore).length;
   if (strong.length === 0) {
     const slots = Math.min(limit, Math.floor(eligible.length / 2));
     return {
       best: eligible.slice(0, slots),
       worst: eligible.slice(-slots).reverse(),
+      bestTied,
     };
   }
 
@@ -42,5 +44,6 @@ export function splitBoard(
   return {
     best: strong.slice(0, limit),
     worst,
+    bestTied,
   };
 }

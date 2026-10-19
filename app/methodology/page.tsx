@@ -217,7 +217,7 @@ export default function MethodologyPage() {
         </p>
         <h3 className="font-serif text-xl">Syndicated wires</h3>
         <p className="leading-relaxed">
-          When two or more verified major outlets share a headline, that text is one cluster. The earliest poster is
+          When two or more recognized news outlets share a headline, that text is one cluster. The earliest poster is
           the originator. The other outlets in the set are Syndicated, with copy weight 0. They are not clones of each
           other. An account outside the set that pastes the same headline without a credit is still a copy. A single
           outlet copying a non-outlet, with no second outlet in the cluster, is still a copy. Naming Goldman, or any
@@ -241,8 +241,8 @@ export default function MethodologyPage() {
           least one post that is not a copy and not a credited repost. Fewer posts is a thin sample: the grade line
           reads “{THIN_SAMPLE_LINE}” and no GC percent is shown. An account with no posts in the window reads
           “{NO_POSTS_LINE}.” The lanes omit that account. The account page uses those same two lines for the headline
-          and for original voice. When no account has enough posts to sit in Biggest copycats,
-          the lane reads “No account has enough posts to grade yet.” A thin sample is not a 0 and not a STRONG meter.
+          and for original voice. When no graded account is under STRONG, the lane reads “No graded account is under
+          STRONG yet.” A thin sample is not a 0 and not a STRONG meter.
           The organic-reach meter is a separate “Not graded yet.” {AMPLIFIER_NOT_AVAILABLE_SENTENCE}
         </p>
       </section>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState, type FocusEvent } from "react";
+import { useCallback, useLayoutEffect, useRef, useState, type FocusEvent } from "react";
 
 const LINKS = [
   { href: "/", label: "Dashboard" },
@@ -31,7 +31,7 @@ export function SiteNav() {
     setCanScrollRight(canScrollFurtherRight(nav));
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const nav = navRef.current;
     if (!nav) return;
     syncScrollCue();

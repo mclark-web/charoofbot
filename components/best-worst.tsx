@@ -14,7 +14,10 @@ export function BestWorst({
   accounts: AccountReport[];
   posts: AnnotatedPost[];
 }) {
-  const { best, worst } = splitBoard(accounts);
+  const { best, worst, bestTied } = splitBoard(accounts);
+  const topScore = best[0]?.gcScore;
+  const shown =
+    topScore === undefined ? 0 : best.filter((account) => account.gcScore === topScore).length;
   return (
     <section className="grid gap-4">
       <div>
@@ -38,13 +41,16 @@ export function BestWorst({
           posts={posts}
           empty="No account has enough posts yet."
           higherIsBetter
+          tie={
+            bestTied > 1 && topScore !== undefined ? { shown, total: bestTied, score: topScore } : undefined
+          }
         />
         <Lane
           title="Biggest copycats"
           note="Lowest GC score under STRONG."
           accounts={worst}
           posts={posts}
-          empty="No account has enough posts to grade yet."
+          empty="No graded account is under STRONG yet."
           higherIsBetter={false}
         />
       </div>
@@ -61,16 +67,6 @@ function sharedPlace(accounts: AccountReport[], index: number, higherIsBetter: b
   return better + 1;
 }
 
-function tieGroups(accounts: AccountReport[]): { score: number; count: number }[] {
-  const counts = new Map<number, number>();
-  for (const account of accounts) {
-    counts.set(account.gcScore, (counts.get(account.gcScore) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .filter(([, count]) => count > 1)
-    .map(([score, count]) => ({ score, count }));
-}
-
 function Lane({
   title,
   note,
@@ -78,6 +74,7 @@ function Lane({
   posts,
   empty,
   higherIsBetter,
+  tie,
 }: {
   title: string;
   note: string;
@@ -85,8 +82,9 @@ function Lane({
   posts: AnnotatedPost[];
   empty: string;
   higherIsBetter: boolean;
+  tie?: { shown: number; total: number; score: number };
 }) {
-  const ties = tieGroups(accounts);
+  const tieNoun = tie && tie.total === 1 ? "account" : "accounts";
   return (
     <div className="min-w-0">
       <h3 className="font-serif text-xl text-ink">{title}</h3>
@@ -95,10 +93,9 @@ function Lane({
         <p className="mt-3 text-sm text-ink-soft">{empty}</p>
       ) : (
         <>
-          {ties.length > 0 ? (
+          {tie ? (
             <p className="mt-2 text-xs text-ink-soft">
-              {ties.map((group) => `${group.count} accounts tied at ${group.score}`).join("; ")}
-              ; see all on{" "}
+              Showing {tie.shown} of {tie.total} {tieNoun} tied at {tie.score}; see all on{" "}
               <Link href="/accounts" className="tap underline decoration-rule underline-offset-4 hover:decoration-ink">
                 /accounts
               </Link>
