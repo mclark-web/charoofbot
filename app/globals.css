@@ -301,6 +301,12 @@ dt .tap {
   vertical-align: baseline;
 }
 
+p .tap {
+  display: inline-block;
+  max-width: 100%;
+  min-height: 44px;
+}
+
 p .tap::before,
 li .tap::before,
 dd .tap::before,

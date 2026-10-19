@@ -81,7 +81,7 @@ describe("real-data copy rules", () => {
     assert.equal(copier?.label, "Clone");
   });
 
-  it("keeps a verbatim credit as a copy and clears only a template credit", () => {
+  it("removes clone weight for explicit credit and does not treat a quote as credit", () => {
     const credited = [
       `${TEXT} — via @wire`,
       `${TEXT}\nSource:\n@wire`,
@@ -99,9 +99,9 @@ describe("real-data copy rules", () => {
       );
       const relay = report.posts.find((item) => item.id === "b");
       const scored = report.accounts.find((item) => item.handle === "relay");
-      assert.equal(isCopyRole(relay?.role ?? "solo"), true, text);
-      assert.notEqual(relay?.role, "attributed", text);
-      assert.ok((scored?.cloneScore ?? 0) > 0, text);
+      assert.equal(relay?.role, "attributed", text);
+      assert.equal(scored?.cloneScore, 0);
+      assert.notEqual(scored?.label, "Clone");
     }
     const edited = TEXT.replace("several", "multiple").replace("legal experts", "court watchers");
     const softened = analyzeCorpus(
@@ -200,7 +200,7 @@ describe("real-data copy rules", () => {
 });
 
 describe("false-positive classes", () => {
-  it("keeps a near copy that names an outlet as a copy", () => {
+  it("treats per, via, Source, and 출처 plus the copied outlet as syndication", () => {
     const texts = [
       `${TEXT}, per Reuters`,
       `${TEXT} via Reuters`,
@@ -218,10 +218,9 @@ describe("false-positive classes", () => {
         ),
       );
       const relay = report.posts.find((item) => item.id === "b");
-      assert.equal(isCopyRole(relay?.role ?? "solo"), true, text);
-      assert.notEqual(relay?.role, "syndicated", text);
-      assert.ok((report.accounts.find((item) => item.handle === "relay")?.cloneScore ?? 0) > 0, text);
-      assert.equal(report.accounts.find((item) => item.handle === "relay")?.label, "Clone", text);
+      assert.equal(relay?.role, "syndicated", text);
+      assert.equal(report.accounts.find((item) => item.handle === "relay")?.cloneScore, 0, text);
+      assert.notEqual(report.accounts.find((item) => item.handle === "relay")?.label, "Clone", text);
       assert.equal(report.clusters[0]?.sourceOutside, false);
     }
   });
@@ -394,7 +393,7 @@ describe("false-positive classes", () => {
       );
       return report.posts.find((item) => item.id === "c")?.role;
     });
-    assert.deepEqual(present, ["near", "near", "near"]);
+    assert.deepEqual(present, ["syndicated", "syndicated", "syndicated"]);
     const edited = TEXT.replace("several", "multiple").replace("legal experts", "court watchers");
     const templateForms = [`${edited}, per Reuters`, `${edited} - Reuters`, `${edited} via Reuters`];
     const softened = templateForms.map((text) => {
@@ -720,12 +719,12 @@ describe("real corpus after the rules", () => {
     assert.equal(cheddar.gcScore, 100);
 
     const joshuaCopy = report.posts.find((item) => item.id === "2111544732405121126");
-    assert.equal(joshuaCopy?.role, "near");
+    assert.equal(joshuaCopy?.role, "attributed");
     assert.equal(joshuaCopy?.matchedPostId, "2111532949590196711");
     assert.equal(joshuaCopy?.matchedAccount, "unusual_whales");
-    assert.equal(joshua.label, "Clone");
-    assert.equal(joshua.cloneScore, THRESHOLDS.cloneNearWeight);
-    assert.equal(joshua.gcScore, 100 - THRESHOLDS.cloneNearWeight);
+    assert.equal(joshua.label, "Clean");
+    assert.equal(joshua.cloneScore, 0);
+    assert.equal(joshua.gcScore, 100);
     assert.equal(report.posts.find((item) => item.id === "2107220780006408594")?.role, "attributed");
 
     assert.equal(joe.label, "Clean");
@@ -739,8 +738,12 @@ describe("real corpus after the rules", () => {
     }
     const rattner = report.posts.find((item) => item.id === "2110230998008893535");
     assert.equal(rattner?.account, "RobertCFried");
-    assert.equal(rattner?.role, "near");
+    assert.equal(rattner?.role, "attributed");
     assert.equal(rattner?.matchedAccount, "SteveRattner");
+    const robert = expectScore("RobertCFried");
+    assert.equal(robert.label, "Clean");
+    assert.equal(robert.cloneScore, 0);
+    assert.equal(robert.gcScore, 100);
   });
 
   it("scores uncredited diesel and Fink copies even when one post names an outlet", () => {
@@ -767,12 +770,14 @@ describe("real corpus after the rules", () => {
       assert.equal(isCopyRole(match.role), true, `${handle} ${match.role}`);
       assert.ok((account?.cloneScore ?? 0) > 0, handle);
     }
-    // "… - CNBC" is a share-button credit and CNBC posted the origin, but the line
-    // is a near copy of CNBC. Credit does not soften a near match.
-    const naagesh = diesel?.posts.find((item) => item.account === "Naagesh_tweets");
-    assert.equal(naagesh?.role, "near");
+    // "- CNBC" names the account that was copied, so the near copy is syndicated.
+    const naagesh = report.posts.find((item) => item.id === "2107523373387710945");
+    assert.equal(naagesh?.account, "Naagesh_tweets");
+    assert.equal(naagesh?.role, "syndicated");
     assert.equal(naagesh?.matchedAccount, "CNBC");
-    assert.ok((report.accounts.find((item) => item.handle === "Naagesh_tweets")?.cloneScore ?? 0) > 0);
+    assert.equal(report.accounts.find((item) => item.handle === "Naagesh_tweets")?.label, "Clean");
+    assert.equal(report.accounts.find((item) => item.handle === "Naagesh_tweets")?.cloneScore, 0);
+    assert.equal(report.accounts.find((item) => item.handle === "Naagesh_tweets")?.gcScore, 100);
     const press = report.posts.find((item) => item.id === "2107478547849716017");
     assert.equal(press?.account, "ManhattanPress");
     assert.equal(press?.role, "solo");
@@ -890,6 +895,22 @@ describe("real corpus after the rules", () => {
     assert.ok((report.accounts.find((item) => item.handle === "MofaYasir")?.cloneScore ?? 0) > 0);
     assert.notEqual(report.accounts.find((item) => item.handle === "KING5Seattle")?.label, "Clone");
     assert.notEqual(report.accounts.find((item) => item.handle === "AlArabiya_Eng")?.label, "Clone");
+  });
+
+  it("clears RobertCFried and Naagesh when the credit names the copied account", () => {
+    const robertPost = report.posts.find((item) => item.id === "2110230998008893535");
+    const robert = report.accounts.find((item) => item.handle === "RobertCFried");
+    assert.equal(robertPost?.role, "attributed");
+    assert.equal(robertPost?.matchedAccount, "SteveRattner");
+    assert.equal(robert?.label, "Clean");
+    assert.equal(robert?.gcScore, 100);
+
+    const naageshPost = report.posts.find((item) => item.id === "2107523373387710945");
+    const naagesh = report.accounts.find((item) => item.handle === "Naagesh_tweets");
+    assert.equal(naageshPost?.role, "syndicated");
+    assert.equal(naageshPost?.matchedAccount, "CNBC");
+    assert.equal(naagesh?.label, "Clean");
+    assert.equal(naagesh?.gcScore, 100);
   });
 
   it("lists a tracked account with no posts as not graded", () => {

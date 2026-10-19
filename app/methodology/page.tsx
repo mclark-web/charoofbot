@@ -22,8 +22,7 @@ export default function MethodologyPage() {
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
           GCBot phase 0 shows one headline GC score, with original voice underneath, without an API bill.
           Higher on the GC Scale means more authentic, and STRONG means trustworthy. The numbers below are the
-          detector constants. The headline GC score is 100 minus the copy score. Amplifier detection is not in that
-          number, as the Thresholds section explains.
+          detector constants. The headline GC score is 100 minus the copy score.
         </p>
       </header>
 
@@ -145,7 +144,7 @@ export default function MethodologyPage() {
           the account Clone unless there are at least {THRESHOLDS.cloneMinTemplateMatches} template matches or copied
           posts are at least {THRESHOLDS.cloneShareThreshold * 100}% of that account&apos;s posts in the window.
           Explicit credit and attributed syndication add {THRESHOLDS.cloneAttributedWeight}. Original voice is the same
-          reading. Amplifier detection is not subtracted.
+          reading.
         </p>
         <p className="leading-relaxed text-ink-soft">
           The detector amplifier signal, when there is at least one boost, is 100 times ({THRESHOLDS.ampBoostWeight} × boost share
@@ -208,24 +207,24 @@ export default function MethodologyPage() {
         </p>
         <h3 className="font-serif text-xl">Attributed reposts</h3>
         <p className="leading-relaxed">
-          Credit zeroes clone weight only on the post that names the source, and only when that post is a template
-          match. It never clears the other posts in the cluster. A verbatim or near match of a different account stays
-          a copy of that post, whatever credit it carries. The credit text itself never drops a match.{" "}
+          A credit clears a copy only when it names the account that was copied, or that post&apos;s outlet. Otherwise
+          a verbatim or near copy stays a copy. It never clears the other posts in the cluster.{" "}
           <span className="font-mono">per Reuters</span>, <span className="font-mono">- Reuters</span>, and{" "}
           <span className="font-mono">via Reuters</span> are the same credit.
         </p>
         <p className="leading-relaxed">
           A handle credit (<span className="font-mono">via @handle</span> or{" "}
           <span className="font-mono">Source: @handle</span>) or <span className="font-mono">h/t</span> plus a handle
-          counts only on a template match, and only when that handle is the cluster’s originator. A bare h/t gives no
-          credit. A quote is not credit.
+          counts when that handle is the cluster&apos;s originator. A bare h/t gives no credit. A quote is not credit.
           A repost stored as <span className="font-mono">RT @</span> uses action{" "}
           <span className="font-mono">repost</span> and is left out of copy matching.
         </p>
         <p className="leading-relaxed">
-          An outlet credit can soften only a template match, and only when the name is one of the recognized news
-          outlets below and that outlet’s own account is the match’s originator or also posted in the cluster. A
-          verbatim or near copy is not cleared. The forms are <span className="font-mono">per</span>,{" "}
+          An outlet credit counts when the name is one of the recognized news outlets below and that outlet&apos;s
+          account is the cluster&apos;s originator or also posted in the cluster. On an exact or near copy it counts
+          only when that outlet is the account that was copied. A template match of a later restatement is re-pointed
+          to the cluster&apos;s originator when the credit names that originator&apos;s outlet; an exact or near match
+          is not re-pointed. The forms are <span className="font-mono">per</span>,{" "}
           <span className="font-mono">via</span>, <span className="font-mono">Source:</span>,{" "}
           <span className="font-mono">출처:</span>, a share-button line (<span className="font-mono">- CNBC</span> or{" "}
           <span className="font-mono">CNBC-</span>), and a bracket tag (<span className="font-mono">[CNBC]</span>).
@@ -298,9 +297,8 @@ export default function MethodologyPage() {
         <p className="leading-relaxed">
           A skeptic should be able to re-run the text. Paste the post, read the hash, and compare it with the cluster
           diff. Check these before treating the label as final: whether the match is your own earlier post; whether you
-          were the earliest account in the cluster; whether an outlet credit names a recognized news outlet whose
-          account is the originator or also posted in the cluster, and whether the match is only a template, because a
-          verbatim or near copy of a different account stays a copy; whether{" "}
+          were the earliest account in the cluster; whether a credit names the account that was copied, or that
+          post&apos;s outlet, because otherwise a verbatim or near copy stays a copy; whether{" "}
           <span className="font-mono">full_text</span> is truncated, because a cut row skips full-text near and
           template matching except when a later post contains its stored prefix or near-matches that prefix; whether
           both accounts are syndicating outlets, because an exact reprint between them is syndication; and whether a

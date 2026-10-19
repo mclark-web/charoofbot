@@ -257,6 +257,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
       [...clusterHandles].filter((handle) => isSyndicatingOutlet(handle)),
     );
     const syndicatingCluster = syndicatingAccounts.size >= 2;
+    const accountOf = new Map(group.map((feature) => [feature.post.id, feature.post.account]));
 
     for (const feature of group) {
       if (feature.post.account === originHandle) {
@@ -274,12 +275,14 @@ export function analyzeCorpus(corpus: Corpus): Report {
       }
       const prior = roleOf.get(feature.post.id);
       const matchKind = prior === "exact" || prior === "near" || prior === "template" ? prior : null;
+      const matchedAccount = accountOf.get(matchedId.get(feature.post.id) ?? "") ?? null;
       const creditRole = creditRoleFor(
         feature.credits,
         originHandle,
         clusterHandles,
         handleByKey,
         matchKind,
+        matchedAccount,
       );
       if (creditRole) roleOf.set(feature.post.id, creditRole);
     }
@@ -510,30 +513,37 @@ function creditQualifies(
   clusterHandles: Set<string>,
   handleByKey: Map<string, string>,
   matchKind: MatchKind | null,
+  matchedAccount: string | null,
 ): boolean {
   if (!credit.name) return false;
-  // A verbatim or near copy of another account stays a copy of that post.
-  // Credit can soften only a template-level match, and only when the credited
-  // outlet is that match's originator or posted in the cluster.
-  if (matchKind !== "template") return false;
+  // A handle credit counts when it names the cluster's originator, including
+  // on an exact or near copy of that account.
   if (credit.kind === "handle" || credit.kind === "tip") {
     return resolveCredit(credit, handleByKey) === originHandle;
   }
   if (!isRecognizedNewsOutlet(credit.name)) return false;
   const outlets = outletAccounts(credit.name);
-  return outlets.some((handle) => handle === originHandle || clusterHandles.has(handle));
+  const postedHere = outlets.some((handle) => handle === originHandle || clusterHandles.has(handle));
+  if (!postedHere) return false;
+  // An exact or near copy stays a copy unless the credited outlet is the
+  // matched earlier post's account. Crediting a different outlet does not clear it.
+  if ((matchKind === "exact" || matchKind === "near") && matchedAccount && !outlets.includes(matchedAccount)) {
+    return false;
+  }
+  return true;
 }
 
-/** Weight 0 only for this post, and only when the credit softens a template match. */
+/** Weight 0 only on this post, and only when the credit names the account that was copied. */
 function creditRoleFor(
   credits: SourceCredit[],
   originHandle: string,
   clusterHandles: Set<string>,
   handleByKey: Map<string, string>,
   matchKind: MatchKind | null,
+  matchedAccount: string | null,
 ): "attributed" | "syndicated" | null {
   const qualifying = credits.filter((credit) =>
-    creditQualifies(credit, originHandle, clusterHandles, handleByKey, matchKind),
+    creditQualifies(credit, originHandle, clusterHandles, handleByKey, matchKind, matchedAccount),
   );
   if (qualifying.length === 0) return null;
   if (qualifying.some((credit) => credit.kind === "handle" || credit.kind === "tip")) return "attributed";
