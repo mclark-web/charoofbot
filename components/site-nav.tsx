@@ -23,12 +23,12 @@ function canScrollFurtherRight(nav: HTMLElement): boolean {
 export function SiteNav() {
   const pathname = usePathname();
   const navRef = useRef<HTMLElement>(null);
-  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [atScrollEnd, setAtScrollEnd] = useState(false);
 
   const syncScrollCue = useCallback(() => {
     const nav = navRef.current;
     if (!nav) return;
-    setCanScrollRight(canScrollFurtherRight(nav));
+    setAtScrollEnd(!canScrollFurtherRight(nav));
   }, []);
 
   useLayoutEffect(() => {
@@ -55,14 +55,14 @@ export function SiteNav() {
       if (linkRect.right > fadeStart) {
         nav.scrollLeft += linkRect.right - fadeStart + 8;
       }
-      setCanScrollRight(canScrollFurtherRight(nav));
+      setAtScrollEnd(!canScrollFurtherRight(nav));
     });
   }
 
   return (
     <nav
       ref={navRef}
-      className={canScrollRight ? "site-nav can-scroll-right" : "site-nav"}
+      className={atScrollEnd ? "site-nav at-scroll-end" : "site-nav"}
       aria-label="Primary"
     >
       {LINKS.map((link) => {

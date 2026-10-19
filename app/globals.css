@@ -209,9 +209,40 @@ thead {
   scrollbar-width: none;
 }
 
-.site-nav.can-scroll-right {
-  mask-image: linear-gradient(90deg, #000 85%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+/* Present in the server CSS, before hydration. JS only removes it at the end. */
+@media (max-width: 819px) {
+  .site-nav {
+    mask-image: linear-gradient(90deg, #000 85%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 819px) {
+    .site-nav {
+      /* auto keeps the timeline from finishing at 0s and dropping the mask. */
+      animation: site-nav-unmask auto linear both;
+      animation-timeline: scroll(self inline);
+      animation-range: 85% 100%;
+    }
+  }
+}
+
+@keyframes site-nav-unmask {
+  from {
+    mask-image: linear-gradient(90deg, #000 85%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+  }
+  to {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+}
+
+.site-nav.at-scroll-end {
+  animation: none;
+  mask-image: none;
+  -webkit-mask-image: none;
 }
 
 .site-nav .nav-link:focus-visible {
