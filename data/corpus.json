@@ -13076,7 +13076,7 @@
       "narrativeId": "market-news",
       "action": "post",
       "url": "https://x.com/CNBC/status/2111788827421319175",
-      "refPostId": "2111656833144479753",
+      "refPostId": null,
       "source": "phrase-search",
       "textTruncated": false
     },

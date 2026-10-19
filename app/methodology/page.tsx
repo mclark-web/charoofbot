@@ -139,13 +139,13 @@ export default function MethodologyPage() {
           </table>
         </div>
         <p className="leading-relaxed text-ink-soft">
-          The copy score is the sum of match weights, capped at 100. One exact or near copy is enough to cross the clone
-          flag. A single template match is {THRESHOLDS.cloneTemplateWeight}, which is over the line of{" "}
-          {THRESHOLDS.cloneLabel}, but it does not label the account Clone unless there are at least{" "}
-          {THRESHOLDS.cloneMinTemplateMatches} template matches or copied posts are at least{" "}
-          {THRESHOLDS.cloneShareThreshold * 100}% of that account&apos;s posts in the window. Explicit credit and
-          attributed syndication add {THRESHOLDS.cloneAttributedWeight}. The headline GC score is 100 minus that copy
-          score. Original voice is the same reading. Amplifier detection is not subtracted.
+          An account&apos;s copy score is its highest single-post copy weight, so the headline GC score is 100 minus
+          that. One exact or near copy is enough to cross the clone flag. A single template match is{" "}
+          {THRESHOLDS.cloneTemplateWeight}, which is over the line of {THRESHOLDS.cloneLabel}, but it does not label
+          the account Clone unless there are at least {THRESHOLDS.cloneMinTemplateMatches} template matches or copied
+          posts are at least {THRESHOLDS.cloneShareThreshold * 100}% of that account&apos;s posts in the window.
+          Explicit credit and attributed syndication add {THRESHOLDS.cloneAttributedWeight}. Original voice is the same
+          reading. Amplifier detection is not subtracted.
         </p>
         <p className="leading-relaxed text-ink-soft">
           The detector amplifier signal, when there is at least one boost, is 100 times ({THRESHOLDS.ampBoostWeight} × boost share

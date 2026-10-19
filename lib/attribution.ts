@@ -12,7 +12,8 @@ export type SourceCredit = {
 const HANDLE = "([A-Za-z0-9_]+)";
 // Stop at sentence punctuation. A period is not part of the name, so
 // "per Reuters. When asked" is Reuters and not "Reuters. When".
-const OUTLET = "([A-Z][A-Za-z0-9&'’]*(?:\\s+[A-Z][A-Za-z0-9&'’]*){0,3})";
+// Horizontal whitespace only, so a credit name cannot continue onto the next line.
+const OUTLET = "([A-Z][A-Za-z0-9&'’]*(?:[^\\S\\n]+[A-Z][A-Za-z0-9&'’]*){0,3})";
 
 /**
  * Credits that can zero clone weight on this post alone.
@@ -20,7 +21,8 @@ const OUTLET = "([A-Z][A-Za-z0-9&'’]*(?:\\s+[A-Z][A-Za-z0-9&'’]*){0,3})";
  * outlet name is syndication. h/t counts only when a handle or outlet follows it.
  * A bare h/t gives no credit. "via the market" and "per share" do not match.
  * A quote action is not a credit. The outlet token stops at '.', ',', ';', ':',
- * a newline, or the end of the text. "출처:" matches anywhere in the text.
+ * a newline, or the end of the text. "출처:" matches anywhere, and its outlet name
+ * stays on that same line.
  * Share buttons ("… - CNBC", "CNBC- …") and a bracket tag ("[CNBC]") count only
  * for a recognized news outlet. per, via, and the dash form name the same outlet.
  */
@@ -44,7 +46,7 @@ export function extractCredits(text: string): SourceCredit[] {
   for (const match of text.matchAll(new RegExp(`\\bvia\\s+${OUTLET}`, "g"))) add("outlet", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bper\\s+@?#?${OUTLET}`, "g"))) add("outlet", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bSource:\\s+${OUTLET}`, "g"))) add("outlet", match[1]);
-  for (const match of text.matchAll(new RegExp(`출처\\s*[:：]\\s*@?${OUTLET}`, "g"))) add("outlet", match[1]);
+  for (const match of text.matchAll(new RegExp(`출처[^\\S\\n]*[:：][^\\S\\n]*@?${OUTLET}`, "g"))) add("outlet", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bh\\s*\\/\\s*t\\s+@${HANDLE}`, "gi"))) add("tip", match[1]);
   for (const match of text.matchAll(new RegExp(`\\bh\\s*\\/\\s*t\\s+${OUTLET}`, "g"))) add("tip", match[1]);
   // "headline - CNBC" and "CNBC- headline" are the share-button credit.

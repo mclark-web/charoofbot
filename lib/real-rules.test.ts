@@ -182,6 +182,21 @@ describe("real-data copy rules", () => {
     assert.equal(report.clusters[0]?.originAccount, "person");
     assert.equal(report.posts.find((item) => item.account === "Reuters")?.role, "exact");
   });
+
+  it("scores an account by its highest single-post copy weight", () => {
+    const report = analyzeCorpus(
+      corpus([
+        post({ id: "o", account: "desk", postedAt: "2026-10-18T08:00:00.000Z" }),
+        post({ id: "a", account: "relay", postedAt: "2026-10-18T09:00:00.000Z" }),
+        post({ id: "b", account: "relay", postedAt: "2026-10-18T10:00:00.000Z" }),
+      ]),
+    );
+    const relay = report.accounts.find((item) => item.handle === "relay");
+    assert.equal(report.posts.find((item) => item.id === "a")?.role, "exact");
+    assert.equal(report.posts.find((item) => item.id === "b")?.role, "exact");
+    assert.equal(relay?.cloneScore, THRESHOLDS.cloneExactWeight);
+    assert.equal(relay?.gcScore, 100 - THRESHOLDS.cloneExactWeight);
+  });
 });
 
 describe("false-positive classes", () => {
@@ -290,6 +305,12 @@ describe("false-positive classes", () => {
         text,
       );
     }
+    assert.deepEqual(
+      extractCredits(
+        "출처: CNBC Top News\nBlackRock's Larry Fink warns a data center moratorium could trigger a recession",
+      ).map((credit) => credit.name),
+      ["CNBC Top News"],
+    );
     assert.deepEqual(
       extractCredits("Goldman: Diesel prices set to stay high - CNBC https://t.co/Lp0TkawEMt").map((credit) => credit.name),
       ["CNBC"],
@@ -673,20 +694,25 @@ describe("real corpus after the rules", () => {
     assert.equal(reuters.graded, false);
 
     assert.equal(whales.graded, true);
-    // Verified complete text. Near copies attach, so this post is the originator again.
+    // Confirmed complete text, so this stays the originator. The old truncated/solo expectation was the cut-off guess.
     const capex = report.posts.find((item) => item.id === "2111548049214603437");
     assert.equal(capex?.textTruncated, undefined);
     assert.equal(capex?.role, "originator");
     assert.equal(report.posts.find((item) => item.id === "2111532949590196711")?.role, "originator");
-    // Near of CNBC (Jaccard 0.875). "per Goldman Sachs" is not a recognized outlet, so it stays a copy.
+    assert.equal(report.posts.find((item) => item.id === "2111865138747752678")?.role, "originator");
+    assert.equal(report.posts.find((item) => item.id === "2111842489447669798")?.role, "originator");
+    // Near of CNBC 2107393195059335458. "per Goldman Sachs" is not a recognized outlet, so this copy stays.
     const diesel = report.posts.find((item) => item.id === "2111910437012787363");
     assert.equal(diesel?.role, "near");
     assert.equal(diesel?.matchedAccount, "CNBC");
+    assert.equal(diesel?.matchedPostId, "2107393195059335458");
+    // That near copy is weight 55 and crosses the clone line, so the account is Clone.
+    // The old notEqual(Clone) described the truncation false negative, before this match counted.
     assert.equal(whales.label, "Clone");
     // Diesel near of CNBC is 55. The Fink template inside kreia's cluster is 45.
-    // The copy score is the sum, capped at 100, so GC is 0.
-    assert.equal(whales.cloneScore, 100);
-    assert.equal(whales.gcScore, 0);
+    // The copy score is the highest single-post weight, so GC is 100 minus 55.
+    assert.equal(whales.cloneScore, THRESHOLDS.cloneNearWeight);
+    assert.equal(whales.gcScore, 100 - THRESHOLDS.cloneNearWeight);
 
     assert.equal(cheddar.label, "Originator");
     assert.equal(cheddar.cloneScore, 0);
@@ -779,6 +805,7 @@ describe("real corpus after the rules", () => {
     const whalesPost = report.posts.find((item) => item.id === "2111910437012787363");
     assert.equal(whalesPost?.role, "near");
     assert.equal(whalesPost?.matchedAccount, "CNBC");
+    assert.equal(whalesPost?.matchedPostId, "2107393195059335458");
     assert.equal(report.posts.find((item) => item.id === "2111548049214603437")?.role, "originator");
     assert.equal(report.posts.find((item) => item.id === "2111532949590196711")?.role, "originator");
 
@@ -792,6 +819,7 @@ describe("real corpus after the rules", () => {
     }
     const foreclosure = report.posts.find((item) => item.id === "2111865138747752678");
     assert.equal(foreclosure?.account, "unusual_whales");
+    assert.equal(foreclosure?.role, "originator");
     assert.equal(foreclosure?.textTruncated, undefined);
     assert.equal(foreclosure?.text.includes("per ATTOM"), true);
     const leading = report.posts.find((item) => item.id === "2111883300516098419");
@@ -829,6 +857,7 @@ describe("real corpus after the rules", () => {
     for (const id of ["2111842489447669798", "2111850039483961757", "2111895337493217774"]) {
       assert.equal(report.posts.find((item) => item.id === id)?.textTruncated, undefined, id);
     }
+    assert.equal(report.posts.find((item) => item.id === "2111842489447669798")?.role, "originator");
     // The stored text matches the note, so the [CNBC] line can template-match.
     const bracket = report.posts.find((item) => item.id === "2107395357952905438");
     assert.equal(bracket?.account, "miraclemasui");
@@ -870,7 +899,7 @@ describe("real corpus after the rules", () => {
     assert.equal(quinn.graded, false);
   });
 
-  it("keeps truncated notes off template matches", () => {
+  it("keeps truncated notes on exact hash only", () => {
     const flagged = [
       "2110431151793848340",
       "2110923292747940044",
@@ -882,7 +911,7 @@ describe("real corpus after the rules", () => {
       const post = report.posts.find((item) => item.id === id);
       assert.equal(post?.textTruncated, true, id);
       if (post && post.role !== "solo" && post.role !== "originator") {
-        assert.ok(post.role === "exact" || post.role === "near", `${id} ${post.role}`);
+        assert.equal(post.role, "exact", id);
       }
     }
   });

@@ -631,14 +631,16 @@ function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): Acc
     const originPosts = owned.filter(
       (post) => post.role === "originator" || post.isNarrativeOriginatorPost,
     );
+    // The copy score is the highest single-post weight, not a sum.
     let cloneScore = 0;
     for (const post of clonePosts) {
       if (post.role === "exact" || post.role === "near" || post.role === "template") {
-        cloneScore += cloneWeight(post.role);
+        cloneScore = Math.max(cloneScore, cloneWeight(post.role));
       }
     }
-    cloneScore += attributedPosts.length * THRESHOLDS.cloneAttributedWeight;
-    cloneScore = Math.min(100, cloneScore);
+    if (attributedPosts.length > 0) {
+      cloneScore = Math.max(cloneScore, THRESHOLDS.cloneAttributedWeight);
+    }
 
     const boostDays = new Set(boostPosts.map((post) => dayKey(post.postedAt))).size;
     const activeDays = new Set(owned.map((post) => dayKey(post.postedAt))).size;
