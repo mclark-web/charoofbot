@@ -1,11 +1,10 @@
 /**
- * Outlet accounts in the real corpus, including local desks such as KING5Seattle.
- * Handles are the X handles, matched case-sensitively.
- * A near or template paraphrase among two or more of these accounts is one cluster
- * with an originator. Those paraphrases are not scored as clones of each other.
- * An exact copy between two of these accounts stays a copy.
+ * Syndicating outlets. Handles are the X handles, matched case-sensitively.
+ * This is not the credit list. A near or template paraphrase among two or more
+ * of these accounts is one cluster with an originator. Those paraphrases are
+ * not scored as clones of each other. An exact copy between two of them stays a copy.
  */
-export const WIRE_OUTLETS: readonly { handle: string; name: string }[] = [
+export const SYNDICATING_OUTLETS: readonly { handle: string; name: string }[] = [
   { handle: "Reuters", name: "Reuters" },
   { handle: "business", name: "Bloomberg" },
   { handle: "CNBC", name: "CNBC" },
@@ -16,52 +15,44 @@ export const WIRE_OUTLETS: readonly { handle: string; name: string }[] = [
   { handle: "KING5Seattle", name: "KING 5 Seattle" },
 ];
 
-const WIRE_HANDLES = new Set(WIRE_OUTLETS.map((outlet) => outlet.handle));
+const SYNDICATING_HANDLES = new Set(SYNDICATING_OUTLETS.map((outlet) => outlet.handle));
 
-export function isWireOutlet(handle: string): boolean {
-  return WIRE_HANDLES.has(handle);
+export function isSyndicatingOutlet(handle: string): boolean {
+  return SYNDICATING_HANDLES.has(handle);
 }
 
 /**
- * Outlets a credit may name. Aliases are matched after lowercasing and
- * stripping a leading "the". Goldman is not on this list.
+ * Recognized news outlets: names a credit may use, and the handle that publishes
+ * that outlet in this corpus. Aliases are matched after lowercasing and stripping
+ * a leading "the". Goldman is not on this list. This is not the syndicating-outlet list.
  */
-export const RECOGNIZED_OUTLETS: readonly string[] = [
-  "reuters",
-  "bloomberg",
-  "cnbc",
-  "cnbc markets",
-  "cnbc top news",
-  "cnbc pro",
-  "wsj",
-  "wall street journal",
-  "ap",
-  "associated press",
-  "ft",
-  "financial times",
-  "coindesk",
-  "conference board",
+export const RECOGNIZED_NEWS_OUTLETS: readonly {
+  label: string;
+  handle: string;
+  names: readonly string[];
+}[] = [
+  { label: "Reuters", handle: "Reuters", names: ["reuters"] },
+  { label: "Bloomberg", handle: "business", names: ["bloomberg"] },
+  { label: "CNBC", handle: "CNBC", names: ["cnbc", "cnbc markets", "cnbc top news"] },
+  { label: "CNBC Pro", handle: "CNBCPro", names: ["cnbc pro"] },
+  { label: "WSJ", handle: "WSJ", names: ["wsj", "wall street journal"] },
+  { label: "AP", handle: "AP", names: ["ap", "associated press"] },
+  { label: "FT", handle: "FT", names: ["ft", "financial times"] },
+  { label: "CoinDesk", handle: "CoinDesk", names: ["coindesk"] },
+  { label: "Conference Board", handle: "ConferenceBoard", names: ["conference board"] },
 ];
 
-const RECOGNIZED = new Set(RECOGNIZED_OUTLETS);
+/** Credit-name strings for the recognized news outlets, including aliases. */
+export const RECOGNIZED_NEWS_OUTLET_NAMES: readonly string[] = RECOGNIZED_NEWS_OUTLETS.flatMap(
+  (outlet) => outlet.names,
+);
 
-/** Handles that publish the recognized outlet, when this corpus has one. */
-const OUTLET_ACCOUNTS: Readonly<Record<string, readonly string[]>> = {
-  reuters: ["Reuters"],
-  bloomberg: ["business"],
-  cnbc: ["CNBC"],
-  "cnbc markets": ["CNBC"],
-  "cnbc top news": ["CNBC"],
-  "cnbc pro": ["CNBCPro"],
-  wsj: ["WSJ"],
-  "wall street journal": ["WSJ"],
-  ap: ["AP"],
-  "associated press": ["AP"],
-  ft: ["FT"],
-  "financial times": ["FT"],
-  coindesk: ["CoinDesk"],
-  "conference board": ["ConferenceBoard"],
-};
+const RECOGNIZED = new Set(RECOGNIZED_NEWS_OUTLET_NAMES);
+
+/** Handles that publish a recognized news outlet, when this corpus has one. */
+const OUTLET_ACCOUNTS: Readonly<Record<string, readonly string[]>> = Object.fromEntries(
+  RECOGNIZED_NEWS_OUTLETS.flatMap((outlet) => outlet.names.map((name) => [name, [outlet.handle]])),
+);
 
 export function outletKey(name: string): string {
   return name
@@ -72,7 +63,7 @@ export function outletKey(name: string): string {
     .trim();
 }
 
-export function isRecognizedOutlet(name: string): boolean {
+export function isRecognizedNewsOutlet(name: string): boolean {
   return RECOGNIZED.has(outletKey(name));
 }
 
@@ -80,21 +71,3 @@ export function isRecognizedOutlet(name: string): boolean {
 export function outletAccounts(name: string): readonly string[] {
   return OUTLET_ACCOUNTS[outletKey(name)] ?? [];
 }
-
-/** Recognized news outlets: the X handle, and the credit names that map to it. */
-export type RecognizedNewsOutlet = {
-  handle: string;
-  names: readonly string[];
-};
-
-export const RECOGNIZED_NEWS_OUTLETS: readonly RecognizedNewsOutlet[] = (() => {
-  const namesByHandle = new Map<string, string[]>();
-  for (const [name, handles] of Object.entries(OUTLET_ACCOUNTS)) {
-    for (const handle of handles) {
-      const list = namesByHandle.get(handle);
-      if (list) list.push(name);
-      else namesByHandle.set(handle, [name]);
-    }
-  }
-  return [...namesByHandle.entries()].map(([handle, names]) => ({ handle, names }));
-})();

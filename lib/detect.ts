@@ -12,7 +12,7 @@ import {
 } from "./normalize";
 import { compareText } from "./order";
 import { passesAmplifierGate, SCORE_WINDOW, THRESHOLDS } from "./thresholds";
-import { isRecognizedOutlet, isWireOutlet, outletAccounts } from "./wires";
+import { isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
 import type {
   AccountLabel,
   AccountReport,
@@ -248,8 +248,10 @@ export function analyzeCorpus(corpus: Corpus): Report {
     // move the origin or clear the other copiers.
     const originHandle = group[0].post.account;
     const clusterHandles = new Set(group.map((feature) => feature.post.account));
-    const wireAccounts = new Set([...clusterHandles].filter((handle) => isWireOutlet(handle)));
-    const syndicatedWire = wireAccounts.size >= 2;
+    const syndicatingAccounts = new Set(
+      [...clusterHandles].filter((handle) => isSyndicatingOutlet(handle)),
+    );
+    const syndicatingCluster = syndicatingAccounts.size >= 2;
     const accountOf = new Map(group.map((feature) => [feature.post.id, feature.post.account]));
 
     for (const feature of group) {
@@ -260,9 +262,9 @@ export function analyzeCorpus(corpus: Corpus): Report {
         matchedG.set(feature.post.id, 0);
         continue;
       }
-      if (syndicatedWire && isWireOutlet(feature.post.account)) {
+      if (syndicatingCluster && isSyndicatingOutlet(feature.post.account)) {
         const prior = roleOf.get(feature.post.id);
-        // A paraphrase among listed outlets is syndicated. An exact copy is not.
+        // A paraphrase among syndicating outlets is syndicated. An exact copy is not.
         if (prior !== "exact") {
           roleOf.set(feature.post.id, "syndicated");
           continue;
@@ -448,8 +450,8 @@ function wordingCopied(current: string[], previous: string[]): boolean {
 
 /**
  * Similarity only. Credit text never drops a near or template match.
- * A wire outlet's template paraphrase is not a clone. Exact copies, including
- * exact copies between two listed outlets, stay matches.
+ * A syndicating outlet's template paraphrase is not a clone. Exact copies, including
+ * exact copies between two syndicating outlets, stay matches.
  */
 function pairMatch(
   current: Features,
@@ -474,8 +476,8 @@ function pairMatch(
       kind = "template";
     }
   }
-  // Template paraphrases by a listed outlet are not clones. Exact is never cleared.
-  if (kind === "template" && isWireOutlet(current.post.account) && !wordingCopied(current.tokens, prev.tokens)) {
+  // Template paraphrases by a syndicating outlet are not clones. Exact is never cleared.
+  if (kind === "template" && isSyndicatingOutlet(current.post.account) && !wordingCopied(current.tokens, prev.tokens)) {
     kind = null;
   }
   if (!kind) return null;
@@ -500,7 +502,7 @@ function creditQualifies(
   if (credit.kind === "handle" || credit.kind === "tip") {
     return resolveCredit(credit, handleByKey) === originHandle;
   }
-  if (!isRecognizedOutlet(credit.name)) return false;
+  if (!isRecognizedNewsOutlet(credit.name)) return false;
   const outlets = outletAccounts(credit.name);
   const postedHere = outlets.some((handle) => handle === originHandle || clusterHandles.has(handle));
   if (!postedHere) return false;

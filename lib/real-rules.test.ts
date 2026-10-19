@@ -7,7 +7,7 @@ import { analyzeCorpus, isCopyRole } from "./detect";
 import { gcScoreFrom } from "./grade";
 import { THRESHOLDS } from "./thresholds";
 import type { AnnotatedPost, Corpus, FixtureAccount, FixturePost } from "./types";
-import { isWireOutlet } from "./wires";
+import { isSyndicatingOutlet } from "./wires";
 
 const TEXT =
   "President Trump has declined to rule out declaring a national emergency related to the midterms and legal experts expect litigation delays across several states.";
@@ -115,10 +115,10 @@ describe("real-data copy rules", () => {
     assert.equal(isAttributedRepost("A note with no credit.", "quote"), false);
   });
 
-  it("syndicates a wire paraphrase and still scores an exact copy between listed outlets", () => {
-    assert.equal(isWireOutlet("Reuters"), true);
-    assert.equal(isWireOutlet("business"), true);
-    assert.equal(isWireOutlet("copier"), false);
+  it("syndicates a paraphrase between syndicating outlets and still scores an exact copy", () => {
+    assert.equal(isSyndicatingOutlet("Reuters"), true);
+    assert.equal(isSyndicatingOutlet("business"), true);
+    assert.equal(isSyndicatingOutlet("copier"), false);
     const paraphrased = TEXT.replace("several", "multiple");
     const near = analyzeCorpus(
       corpus(
@@ -154,7 +154,7 @@ describe("real-data copy rules", () => {
     assert.equal(report.accounts.find((item) => item.handle === "copier")?.label, "Clone");
   });
 
-  it("still clones a single outlet that copies a non-outlet with no other wire in the cluster", () => {
+  it("still clones a single syndicating outlet that copies a non-outlet with no second syndicating outlet", () => {
     const report = analyzeCorpus(
       corpus([
         post({ id: "p", account: "person", postedAt: "2026-10-18T07:00:00.000Z" }),

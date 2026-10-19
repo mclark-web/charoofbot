@@ -4,7 +4,7 @@ import { AMPLIFIER_NOT_AVAILABLE_SENTENCE, ORGANIC_REACH_RULE } from "@/componen
 import { formatStamp } from "@/lib/format";
 import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
 import { AGE_AS_OF, SCORE_WINDOW, THRESHOLDS } from "@/lib/thresholds";
-import { RECOGNIZED_NEWS_OUTLETS, WIRE_OUTLETS } from "@/lib/wires";
+import { RECOGNIZED_NEWS_OUTLETS, SYNDICATING_OUTLETS } from "@/lib/wires";
 
 export const metadata: Metadata = {
   title: "Methodology",
@@ -189,8 +189,8 @@ export default function MethodologyPage() {
       <section className="grid gap-3">
         <h2 className="font-serif text-2xl">Real-data rules</h2>
         <p className="leading-relaxed">
-          The scored file is real public posts as of {formatStamp(AGE_AS_OF)}. These rules keep wire desks and
-          credited reposts from reading as clones of language they posted first or marked as someone else’s.
+          The scored file is real public posts as of {formatStamp(AGE_AS_OF)}. These rules keep syndicating outlets
+          and credited reposts from reading as clones of language they posted first or marked as someone else’s.
         </p>
         <h3 className="font-serif text-xl">Self-repeats</h3>
         <p className="leading-relaxed">
@@ -230,29 +230,32 @@ export default function MethodologyPage() {
           Uncredited exact and near copies keep their clone weight. The earliest in-corpus account stays the
           Originator. Ordinary phrases such as “via the market” or “per share” are not credits.
         </p>
+        <p className="leading-relaxed">Recognized news outlets:</p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           {RECOGNIZED_NEWS_OUTLETS.map((outlet) => (
             <li key={outlet.handle}>
-              @{outlet.handle}
-              {outlet.names.length > 0 ? ` · ${outlet.names.join(", ")}` : ""}
+              {outlet.label} (@{outlet.handle})
+              {outlet.names.length > 1
+                ? ` · also ${outlet.names.slice(1).map(aliasLabel).join(", ")}`
+                : ""}
             </li>
           ))}
         </ul>
-        <h3 className="font-serif text-xl">Syndicated wires</h3>
+        <h3 className="font-serif text-xl">Syndicating outlets</h3>
         <p className="leading-relaxed">
-          When two or more of these outlet accounts share a headline as a near or template paraphrase, that text is
-          one cluster. The earliest poster is the originator. The other outlets in the set are Syndicated, with copy
-          weight 0. They are not clones of each other for that paraphrase. An exact copy between two of them is not
-          cleared: it stays a copy. An account outside the set that pastes the same headline without a qualifying
-          credit is still a copy. A single outlet copying a non-outlet, with no second outlet in the cluster, is still
-          a copy. A credit on one post never marks the whole cluster source outside corpus and never drops the clone
+          Syndicating outlets are a separate list from the recognized news outlets above. When two or more syndicating
+          outlets share a headline as a near or template paraphrase, that text is one cluster. The earliest poster is
+          the originator. The other syndicating outlets in the set are Syndicated, with copy weight 0. They are not
+          clones of each other for that paraphrase. An exact copy between two of them is not cleared: it stays a copy.
+          An account outside the set that pastes the same headline without a qualifying credit is still a copy. A
+          single syndicating outlet copying a non-outlet, with no second syndicating outlet in the cluster, is still a
+          copy. A credit on one post never marks the whole cluster source outside corpus and never drops the clone
           weight on an uncredited copy.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
-          {WIRE_OUTLETS.map((outlet) => (
+          {SYNDICATING_OUTLETS.map((outlet) => (
             <li key={outlet.handle}>
-              @{outlet.handle}
-              {outlet.name === outlet.handle ? "" : ` · ${outlet.name}`}
+              {outlet.name} (@{outlet.handle})
             </li>
           ))}
         </ul>
@@ -293,7 +296,7 @@ export default function MethodologyPage() {
           account is the originator or also posted in the cluster; whether the post is a verbatim or near copy of a
           different account, in which case that credit does not count; whether{" "}
           <span className="font-mono">full_text</span> is truncated, because only truncated rows skip fuzzy matching;
-          whether an exact copy is between two wire outlets, because that stays a copy; and whether a lone template
+          whether an exact copy is between two syndicating outlets, because that stays a copy; and whether a lone template
           match is the only evidence. If the grade line says thin sample, count the posts in the {SCORE_WINDOW.start}–
           {SCORE_WINDOW.end} window against the {THRESHOLDS.leaderboardMinPosts}-post minimum.
         </p>
@@ -306,6 +309,17 @@ export default function MethodologyPage() {
       </section>
     </article>
   );
+}
+
+function aliasLabel(name: string): string {
+  const labels: Record<string, string> = {
+    "cnbc markets": "CNBC Markets",
+    "cnbc top news": "CNBC Top News",
+    "wall street journal": "Wall Street Journal",
+    "associated press": "Associated Press",
+    "financial times": "Financial Times",
+  };
+  return labels[name] ?? name;
 }
 
 function Row({ label, value }: { label: string; value: string }) {
