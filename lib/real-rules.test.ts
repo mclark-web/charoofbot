@@ -81,7 +81,7 @@ describe("real-data copy rules", () => {
     assert.equal(copier?.label, "Clone");
   });
 
-  it("removes clone weight for explicit credit and does not treat a quote as credit", () => {
+  it("keeps a verbatim credit as a copy and clears only a template credit", () => {
     const credited = [
       `${TEXT} — via @wire`,
       `${TEXT}\nSource:\n@wire`,
@@ -99,10 +99,28 @@ describe("real-data copy rules", () => {
       );
       const relay = report.posts.find((item) => item.id === "b");
       const scored = report.accounts.find((item) => item.handle === "relay");
-      assert.equal(relay?.role, "attributed", text);
-      assert.equal(scored?.cloneScore, 0);
-      assert.notEqual(scored?.label, "Clone");
+      assert.equal(isCopyRole(relay?.role ?? "solo"), true, text);
+      assert.notEqual(relay?.role, "attributed", text);
+      assert.ok((scored?.cloneScore ?? 0) > 0, text);
     }
+    const edited = TEXT.replace("several", "multiple").replace("legal experts", "court watchers");
+    const softened = analyzeCorpus(
+      corpus(
+        [
+          post({ id: "a", account: "wire", postedAt: "2026-10-05T00:00:00.000Z" }),
+          post({
+            id: "b",
+            account: "relay",
+            postedAt: "2026-10-06T00:00:00.000Z",
+            text: `${edited} via @wire`,
+          }),
+        ],
+        [account("wire")],
+      ),
+    );
+    const templateCredit = softened.posts.find((item) => item.id === "b");
+    assert.equal(templateCredit?.role, "attributed");
+    assert.equal(softened.accounts.find((item) => item.handle === "relay")?.cloneScore, 0);
 
     const quoted = analyzeCorpus(
       corpus([
@@ -115,7 +133,7 @@ describe("real-data copy rules", () => {
     assert.equal(isAttributedRepost("A note with no credit.", "quote"), false);
   });
 
-  it("syndicates a paraphrase between syndicating outlets and still scores an exact copy", () => {
+  it("syndicates a paraphrase and an exact reprint between syndicating outlets", () => {
     assert.equal(isSyndicatingOutlet("Reuters"), true);
     assert.equal(isSyndicatingOutlet("business"), true);
     assert.equal(isSyndicatingOutlet("copier"), false);
@@ -146,11 +164,11 @@ describe("real-data copy rules", () => {
     assert.equal(report.clusters.length, 1);
     const cluster = report.clusters[0];
     assert.equal(cluster.originAccount, "Reuters");
-    assert.equal(cluster.posts.find((item) => item.account === "CNBC")?.role, "exact");
+    assert.equal(cluster.posts.find((item) => item.account === "CNBC")?.role, "syndicated");
     assert.equal(cluster.posts.find((item) => item.account === "copier")?.role, "exact");
     assert.equal(report.accounts.find((item) => item.handle === "Reuters")?.cloneScore, 0);
-    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.cloneScore, THRESHOLDS.cloneExactWeight);
-    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.label, "Clone");
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.cloneScore, 0);
+    assert.notEqual(report.accounts.find((item) => item.handle === "CNBC")?.label, "Clone");
     assert.equal(report.accounts.find((item) => item.handle === "copier")?.label, "Clone");
   });
 
@@ -167,7 +185,7 @@ describe("real-data copy rules", () => {
 });
 
 describe("false-positive classes", () => {
-  it("treats per, via, Source, and 출처 plus an outlet name as syndication", () => {
+  it("keeps a near copy that names an outlet as a copy", () => {
     const texts = [
       `${TEXT}, per Reuters`,
       `${TEXT} via Reuters`,
@@ -185,9 +203,10 @@ describe("false-positive classes", () => {
         ),
       );
       const relay = report.posts.find((item) => item.id === "b");
-      assert.equal(relay?.role, "syndicated", text);
-      assert.equal(report.accounts.find((item) => item.handle === "relay")?.cloneScore, 0);
-      assert.notEqual(report.accounts.find((item) => item.handle === "relay")?.label, "Clone");
+      assert.equal(isCopyRole(relay?.role ?? "solo"), true, text);
+      assert.notEqual(relay?.role, "syndicated", text);
+      assert.ok((report.accounts.find((item) => item.handle === "relay")?.cloneScore ?? 0) > 0, text);
+      assert.equal(report.accounts.find((item) => item.handle === "relay")?.label, "Clone", text);
       assert.equal(report.clusters[0]?.sourceOutside, false);
     }
   });
@@ -354,7 +373,22 @@ describe("false-positive classes", () => {
       );
       return report.posts.find((item) => item.id === "c")?.role;
     });
-    assert.deepEqual(present, ["syndicated", "syndicated", "syndicated"]);
+    assert.deepEqual(present, ["near", "near", "near"]);
+    const edited = TEXT.replace("several", "multiple").replace("legal experts", "court watchers");
+    const templateForms = [`${edited}, per Reuters`, `${edited} - Reuters`, `${edited} via Reuters`];
+    const softened = templateForms.map((text) => {
+      const report = analyzeCorpus(
+        corpus(
+          [
+            post({ id: "o", account: "Reuters", postedAt: "2026-10-06T08:00:00.000Z" }),
+            post({ id: "c", account: "relay", postedAt: "2026-10-06T09:00:00.000Z", text }),
+          ],
+          [account("Reuters"), account("relay")],
+        ),
+      );
+      return report.posts.find((item) => item.id === "c")?.role;
+    });
+    assert.deepEqual(softened, ["syndicated", "syndicated", "syndicated"]);
   });
 
   it("reads a bracket outlet tag as credit", () => {
@@ -649,6 +683,8 @@ describe("real corpus after the rules", () => {
     assert.equal(diesel?.role, "near");
     assert.equal(diesel?.matchedAccount, "CNBC");
     assert.equal(whales.label, "Clone");
+    // Diesel near of CNBC is 55. The Fink template inside kreia's cluster is 45.
+    // The copy score is the sum, capped at 100, so GC is 0.
     assert.equal(whales.cloneScore, 100);
     assert.equal(whales.gcScore, 0);
 
@@ -657,9 +693,13 @@ describe("real corpus after the rules", () => {
     assert.equal(cheddar.ampScore, 0);
     assert.equal(cheddar.gcScore, 100);
 
-    assert.equal(joshua.label, "Clean");
-    assert.equal(joshua.cloneScore, 0);
-    assert.equal(joshua.gcScore, 100);
+    const joshuaCopy = report.posts.find((item) => item.id === "2111544732405121126");
+    assert.equal(joshuaCopy?.role, "near");
+    assert.equal(joshuaCopy?.matchedPostId, "2111532949590196711");
+    assert.equal(joshuaCopy?.matchedAccount, "unusual_whales");
+    assert.equal(joshua.label, "Clone");
+    assert.equal(joshua.cloneScore, THRESHOLDS.cloneNearWeight);
+    assert.equal(joshua.gcScore, 100 - THRESHOLDS.cloneNearWeight);
     assert.equal(report.posts.find((item) => item.id === "2107220780006408594")?.role, "attributed");
 
     assert.equal(joe.label, "Clean");
@@ -671,7 +711,10 @@ describe("real corpus after the rules", () => {
       assert.notEqual(account.label, "Amplifier");
       assert.equal(account.passesAmpGate, false);
     }
-    assert.equal(report.posts.find((item) => item.id === "2110230998008893535")?.role, "attributed");
+    const rattner = report.posts.find((item) => item.id === "2110230998008893535");
+    assert.equal(rattner?.account, "RobertCFried");
+    assert.equal(rattner?.role, "near");
+    assert.equal(rattner?.matchedAccount, "SteveRattner");
   });
 
   it("scores uncredited diesel and Fink copies even when one post names an outlet", () => {
@@ -686,6 +729,10 @@ describe("real corpus after the rules", () => {
     copy("2107414972074729955", "ArcherDion");
     const diesel = report.clusters.find((cluster) => cluster.posts.some((item) => item.id === "2107393195059335458"));
     assert.equal(diesel?.originAccount, "CNBC");
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.label, "Originator");
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.cloneScore, 0);
+    assert.equal(report.posts.find((item) => item.id === "2111788827421319175")?.role, "syndicated");
+    assert.equal(report.posts.find((item) => item.id === "2111788827421319175")?.matchedAccount, "Reuters");
     assert.equal(diesel?.sourceOutside, false);
     for (const handle of ["dbs62", "TheSlowDollar"]) {
       const account = report.accounts.find((item) => item.handle === handle);
@@ -694,11 +741,12 @@ describe("real corpus after the rules", () => {
       assert.equal(isCopyRole(match.role), true, `${handle} ${match.role}`);
       assert.ok((account?.cloneScore ?? 0) > 0, handle);
     }
-    // "… - CNBC" is a share-button credit. CNBC posted the origin, and the line
-    // copies CNBC, so the credit counts and this post is not a clone.
+    // "… - CNBC" is a share-button credit and CNBC posted the origin, but the line
+    // is a near copy of CNBC. Credit does not soften a near match.
     const naagesh = diesel?.posts.find((item) => item.account === "Naagesh_tweets");
-    assert.equal(naagesh?.role, "syndicated");
-    assert.equal(report.accounts.find((item) => item.handle === "Naagesh_tweets")?.cloneScore, 0);
+    assert.equal(naagesh?.role, "near");
+    assert.equal(naagesh?.matchedAccount, "CNBC");
+    assert.ok((report.accounts.find((item) => item.handle === "Naagesh_tweets")?.cloneScore ?? 0) > 0);
     const press = report.posts.find((item) => item.id === "2107478547849716017");
     assert.equal(press?.account, "ManhattanPress");
     assert.equal(press?.role, "solo");
@@ -748,16 +796,46 @@ describe("real corpus after the rules", () => {
     assert.equal(foreclosure?.text.includes("per ATTOM"), true);
     const leading = report.posts.find((item) => item.id === "2111883300516098419");
     assert.equal(leading?.account, "LeadingReport");
-    assert.equal(leading?.matchedAccount, "Reuters");
-    assert.equal(leading?.role, "syndicated");
-    // The stored text is cut, so the old template match to CNBC is skipped.
-    // The [CNBC] credit is still read, and it does not create a match by itself.
+    assert.equal(leading?.matchedPostId, "2111812852852097103");
+    assert.equal(leading?.matchedAccount, "unusual_whales");
+    assert.equal(leading?.role, "near");
+    assert.equal(report.accounts.find((item) => item.handle === "LeadingReport")?.label, "Clone");
+    const pasted = analyzeCorpus({
+      ...corpusJson,
+      posts: [
+        ...corpusJson.posts,
+        {
+          id: "paste-uw-reuters",
+          account: "paste_lane",
+          postedAt: "2026-10-18T20:00:00.000Z",
+          text: `${report.posts.find((item) => item.id === "2111812852852097103")?.text} per Reuters`,
+          narrativeId: null,
+          action: "post",
+          url: "https://x.com/paste_lane/status/1",
+        },
+      ],
+    });
+    const paste = pasted.posts.find((item) => item.id === "paste-uw-reuters");
+    assert.equal(paste?.matchedPostId, "2111812852852097103");
+    assert.equal(paste?.matchedAccount, "unusual_whales");
+    assert.equal(paste?.role, "near");
+    const rong = report.posts.find((item) => item.id === "2111851269472358737");
+    assert.equal(rong?.account, "RongrongBell");
+    assert.equal(rong?.textTruncated, undefined);
+    assert.equal(rong?.matchedPostId, "2111842489447669798");
+    assert.equal(rong?.matchedAccount, "unusual_whales");
+    assert.equal(rong?.role, "template");
+    assert.equal(report.accounts.find((item) => item.handle === "RongrongBell")?.label, "Clone");
+    for (const id of ["2111842489447669798", "2111850039483961757", "2111895337493217774"]) {
+      assert.equal(report.posts.find((item) => item.id === id)?.textTruncated, undefined, id);
+    }
+    // The stored text matches the note, so the [CNBC] line can template-match.
     const bracket = report.posts.find((item) => item.id === "2107395357952905438");
     assert.equal(bracket?.account, "miraclemasui");
-    assert.equal(bracket?.textTruncated, true);
+    assert.equal(bracket?.textTruncated, undefined);
     assert.ok(extractCredits(bracket?.text ?? "").some((credit) => credit.name === "CNBC"));
-    assert.equal(bracket?.matchedAccount, null);
-    assert.equal(bracket?.role, "solo");
+    assert.equal(bracket?.matchedAccount, "CNBC");
+    assert.equal(bracket?.role, "syndicated");
   });
 
   it("gives ConflictAlarm and MofaYasir the same copy verdict as each other", () => {

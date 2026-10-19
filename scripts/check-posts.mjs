@@ -1,6 +1,7 @@
 // Fails the build when posts.csv breaks the truncation invariants.
 // full_text is verified, truncated, or unknown, and text_truncated agrees.
 // Known cuts and note_tweet cuts are truncated. Checked rows are verified.
+// A note_tweet whose stored text matches the note after normalization is verified.
 // unknown is only a repost or a post under 250 characters.
 // Texts are not rewritten here.
 import { readFileSync } from "node:fs";
@@ -35,7 +36,6 @@ export const KNOWN_TRUNCATED = [
   "2111790305615769779",
   "2111804753545986049",
   "2111831773831192979",
-  "2111846319937536357",
   "2111846805637910778",
   "2111861235994259936",
   "2111892097200464335",
@@ -74,8 +74,28 @@ export const CONFIRMED_SHORT = [
   "2111889643503259923",
 ];
 
-/** note_tweet was present, so the stored text is cut. The foreclosure note is stored in full instead. */
+/** note_tweet was present and the stored text is still shorter than the note. */
 export const NOTE_TRUNCATED = [
+  "2111092645237854530",
+  "2111147917566267609",
+  "2111197415071965242",
+  "2111411410517234076",
+  "2111457453082657046",
+  "2111502751075283291",
+  "2111517850334896217",
+  "2111558052956549622",
+  "2111563148834853345",
+  "2111566107303936213",
+  "2111667586521821370",
+  "2111858369476915271",
+  "2111898430389817832",
+];
+
+/**
+ * note_tweet was present, but the stored text matches note_tweet.text after
+ * normalization, so the row is complete.
+ */
+export const NOTE_TEXT_COMPLETE = [
   "2107306997955862598",
   "2107395357952905438",
   "2107478547849716017",
@@ -87,31 +107,20 @@ export const NOTE_TRUNCATED = [
   "2110708517548007600",
   "2110813853428728290",
   "2110885652900294951",
-  "2111092645237854530",
   "2111129418554888611",
   "2111130123390882046",
   "2111137596294266984",
-  "2111147917566267609",
   "2111156887798378990",
   "2111170586672033929",
-  "2111197415071965242",
   "2111207114303742232",
   "2111354877477826768",
-  "2111411410517234076",
   "2111417610130649225",
   "2111431033321136213",
   "2111448026082398410",
-  "2111457453082657046",
   "2111470144039838071",
   "2111477042562715756",
-  "2111502751075283291",
-  "2111517850334896217",
-  "2111558052956549622",
-  "2111563148834853345",
-  "2111566107303936213",
   "2111577365222711649",
   "2111609670330986649",
-  "2111667586521821370",
   "2111694737996472734",
   "2111701641611407443",
   "2111754789059006904",
@@ -124,15 +133,14 @@ export const NOTE_TRUNCATED = [
   "2111842149419332042",
   "2111842489447669798",
   "2111842685439115378",
+  "2111846319937536357",
   "2111850039483961757",
-  "2111858369476915271",
   "2111867016445677955",
   "2111886141913714960",
   "2111891858766823506",
   "2111893175686381800",
   "2111895337493217774",
   "2111895453746991458",
-  "2111898430389817832",
   "2111914538337751292",
   "2111917415273775610",
 ];
@@ -251,9 +259,9 @@ export function assertPosts(text = readFileSync(POSTS, "utf8")) {
   const failures = [];
   const seen = new Set();
   const known = new Set([...KNOWN_TRUNCATED, ...NOTE_TRUNCATED]);
-  const confirmed = new Set([...CONFIRMED_SHORT, ...NOTE_VERIFIED, FULL_NOTE_VERIFIED]);
+  const confirmed = new Set([...CONFIRMED_SHORT, ...NOTE_VERIFIED, ...NOTE_TEXT_COMPLETE, FULL_NOTE_VERIFIED]);
   if (known.size !== KNOWN_TRUNCATED.length + NOTE_TRUNCATED.length) failures.push("truncated id lists overlap or repeat");
-  if (confirmed.size !== CONFIRMED_SHORT.length + NOTE_VERIFIED.length + 1) {
+  if (confirmed.size !== CONFIRMED_SHORT.length + NOTE_VERIFIED.length + NOTE_TEXT_COMPLETE.length + 1) {
     failures.push("verified id lists overlap or repeat");
   }
   for (const id of known) {

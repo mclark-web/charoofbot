@@ -184,10 +184,11 @@ export function analyzeCorpus(corpus: Corpus): Report {
       }
     }
 
-    // A later restatement can outscore the earliest original. When this post
-    // credits that original outlet, and the original itself still matches,
-    // attach there so the credit is judged against the outlet, not the restatement.
-    if (best) {
+    // A template match against a later restatement can move to the cluster
+    // origin when this post credits that origin's outlet. An exact or near
+    // match is never replaced: that would downgrade a copy of a different
+    // account into a weaker template the credit can then clear.
+    if (best && best.kind === "template") {
       const originId = clusterOf.get(best.id) ?? best.id;
       const origin = originId === best.id ? undefined : featureById.get(originId);
       if (
@@ -198,7 +199,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
         const originDelta = currentMs - Date.parse(origin.post.postedAt);
         if (originDelta >= 0 && originDelta <= WINDOW_MS) {
           const originMatch = pairMatch(current, origin);
-          if (originMatch) {
+          if (originMatch && rank(originMatch.kind) >= rank(best.kind)) {
             best = {
               id: origin.post.id,
               clusterId: originId,
@@ -256,7 +257,6 @@ export function analyzeCorpus(corpus: Corpus): Report {
       [...clusterHandles].filter((handle) => isSyndicatingOutlet(handle)),
     );
     const syndicatingCluster = syndicatingAccounts.size >= 2;
-    const accountOf = new Map(group.map((feature) => [feature.post.id, feature.post.account]));
 
     for (const feature of group) {
       if (feature.post.account === originHandle) {
@@ -267,23 +267,19 @@ export function analyzeCorpus(corpus: Corpus): Report {
         continue;
       }
       if (syndicatingCluster && isSyndicatingOutlet(feature.post.account)) {
-        const prior = roleOf.get(feature.post.id);
-        // A paraphrase among syndicating outlets is syndicated. An exact copy is not.
-        if (prior !== "exact") {
-          roleOf.set(feature.post.id, "syndicated");
-          continue;
-        }
+        // A headline reprinted by another syndicating outlet is syndication,
+        // including a verbatim reprint. Accounts outside the set stay copies.
+        roleOf.set(feature.post.id, "syndicated");
+        continue;
       }
       const prior = roleOf.get(feature.post.id);
       const matchKind = prior === "exact" || prior === "near" || prior === "template" ? prior : null;
-      const matchedAccount = accountOf.get(matchedId.get(feature.post.id) ?? "") ?? null;
       const creditRole = creditRoleFor(
         feature.credits,
         originHandle,
         clusterHandles,
         handleByKey,
         matchKind,
-        matchedAccount,
       );
       if (creditRole) roleOf.set(feature.post.id, creditRole);
     }
@@ -453,9 +449,10 @@ function wordingCopied(current: string[], previous: string[]): boolean {
 }
 
 /**
- * Similarity only. Credit text never drops a near or template match.
- * A syndicating outlet's template paraphrase is not a clone. Exact copies, including
- * exact copies between two syndicating outlets, stay matches.
+ * Similarity only. Credit text never drops a match here. A later pass clears a
+ * template match when the credit qualifies, and clears a syndicating outlet's
+ * reprint, including an exact reprint, when another syndicating outlet is in
+ * the cluster.
  * A truncated row skips full-text near and template comparison. A later post can
  * still copy it when the stored prefix is long enough: contained text is exact,
  * and a near match over the later post's leading span is near.
@@ -513,35 +510,30 @@ function creditQualifies(
   clusterHandles: Set<string>,
   handleByKey: Map<string, string>,
   matchKind: MatchKind | null,
-  matchedAccount: string | null,
 ): boolean {
   if (!credit.name) return false;
+  // A verbatim or near copy of another account stays a copy of that post.
+  // Credit can soften only a template-level match, and only when the credited
+  // outlet is that match's originator or posted in the cluster.
+  if (matchKind !== "template") return false;
   if (credit.kind === "handle" || credit.kind === "tip") {
     return resolveCredit(credit, handleByKey) === originHandle;
   }
   if (!isRecognizedNewsOutlet(credit.name)) return false;
   const outlets = outletAccounts(credit.name);
-  const postedHere = outlets.some((handle) => handle === originHandle || clusterHandles.has(handle));
-  if (!postedHere) return false;
-  // A verbatim or near copy of some other account stays a copy. The credit
-  // does not wash it, even when the outlet's own account is in the cluster.
-  if ((matchKind === "exact" || matchKind === "near") && matchedAccount && !outlets.includes(matchedAccount)) {
-    return false;
-  }
-  return true;
+  return outlets.some((handle) => handle === originHandle || clusterHandles.has(handle));
 }
 
-/** Weight 0 only for this post, and only when rule 1 says the credit counts. */
+/** Weight 0 only for this post, and only when the credit softens a template match. */
 function creditRoleFor(
   credits: SourceCredit[],
   originHandle: string,
   clusterHandles: Set<string>,
   handleByKey: Map<string, string>,
   matchKind: MatchKind | null,
-  matchedAccount: string | null,
 ): "attributed" | "syndicated" | null {
   const qualifying = credits.filter((credit) =>
-    creditQualifies(credit, originHandle, clusterHandles, handleByKey, matchKind, matchedAccount),
+    creditQualifies(credit, originHandle, clusterHandles, handleByKey, matchKind),
   );
   if (qualifying.length === 0) return null;
   if (qualifying.some((credit) => credit.kind === "handle" || credit.kind === "tip")) return "attributed";

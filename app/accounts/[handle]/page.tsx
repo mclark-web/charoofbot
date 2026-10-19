@@ -47,11 +47,11 @@ export default async function AccountPage({ params }: PageProps) {
           </Link>{" "}
           / account
         </p>
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <h1 className="font-serif text-4xl text-ink">@{account.handle}</h1>
+        <h1 className="mt-3 font-serif text-4xl text-ink">@{account.handle}</h1>
+        <p className="account-label mt-3 flex flex-wrap items-center gap-2">
           <LabelBadge label={account.label} />
           <AgeBadge band={account.ageBand} showEstablished showUnknown />
-        </div>
+        </p>
         <p className="mt-2 text-ink-soft">{account.name}</p>
         <p className="mt-3 max-w-2xl text-lg leading-relaxed">{account.bio}</p>
         {DEFAULT_BIO.test(account.bio) ? (

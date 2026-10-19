@@ -4906,7 +4906,7 @@
       "url": "https://x.com/RedCandleRx/status/2107306997955862598",
       "refPostId": null,
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2107393195059335458",
@@ -4942,7 +4942,7 @@
       "url": "https://x.com/miraclemasui/status/2107395357952905438",
       "refPostId": "2107393195059335458",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2107399759547842747",
@@ -5026,7 +5026,7 @@
       "url": "https://x.com/ManhattanPress/status/2107478547849716017",
       "refPostId": "2107393195059335458",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2107506142754812150",
@@ -5182,7 +5182,7 @@
       "url": "https://x.com/headstone1967/status/2107905937126097147",
       "refPostId": "2107306997955862598",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2107910297252196397",
@@ -5194,7 +5194,7 @@
       "url": "https://x.com/agentfloor/status/2107910297252196397",
       "refPostId": "2107306997955862598",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2107916238580330932",
@@ -5242,7 +5242,7 @@
       "url": "https://x.com/chriscbim/status/2108161441199013940",
       "refPostId": "2107562768387686860",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2108207479393755377",
@@ -5254,7 +5254,7 @@
       "url": "https://x.com/grok/status/2108207479393755377",
       "refPostId": "2107306997955862598",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2108243065542733964",
@@ -6010,7 +6010,7 @@
       "url": "https://x.com/kreia/status/2110410304064786626",
       "refPostId": null,
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2110410326965727601",
@@ -6454,7 +6454,7 @@
       "url": "https://x.com/JTFOz/status/2110708517548007600",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2110727549286563953",
@@ -6910,7 +6910,7 @@
       "url": "https://x.com/TraderJonesy/status/2110813853428728290",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2110815810855805396",
@@ -7210,7 +7210,7 @@
       "url": "https://x.com/realalexvieira/status/2110885652900294951",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2110886290829005068",
@@ -8122,7 +8122,7 @@
       "url": "https://x.com/CoversJLo/status/2111129418554888611",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111130123390882046",
@@ -8134,7 +8134,7 @@
       "url": "https://x.com/realalexvieira/status/2111130123390882046",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111131141663039960",
@@ -8314,7 +8314,7 @@
       "url": "https://x.com/JonMetler/status/2111137596294266984",
       "refPostId": "2111118437611344326",
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111137895851360332",
@@ -8698,7 +8698,7 @@
       "url": "https://x.com/clintoptions/status/2111156887798378990",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111158124421828771",
@@ -8962,7 +8962,7 @@
       "url": "https://x.com/clintoptions/status/2111170586672033929",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111171531124670647",
@@ -9646,7 +9646,7 @@
       "url": "https://x.com/Covers_josh/status/2111207114303742232",
       "refPostId": "2111084151147270511",
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111208393532936619",
@@ -10450,7 +10450,7 @@
       "url": "https://x.com/1769_alex/status/2111354877477826768",
       "refPostId": "2111150370613346526",
       "source": "quotes",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111362592182554906",
@@ -10582,7 +10582,7 @@
       "url": "https://x.com/JonMetler/status/2111417610130649225",
       "refPostId": "2111156720382931329",
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111427253888536684",
@@ -10618,7 +10618,7 @@
       "url": "https://x.com/Covers_josh/status/2111431033321136213",
       "refPostId": "2109811831099269194",
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111431929761321075",
@@ -10774,7 +10774,7 @@
       "url": "https://x.com/Covers_josh/status/2111448026082398410",
       "refPostId": "2111207114303742232",
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111449902697828812",
@@ -10930,7 +10930,7 @@
       "url": "https://x.com/varuntakkar01/status/2111470144039838071",
       "refPostId": "2111150370613346526",
       "source": "quotes",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111471974341882133",
@@ -11002,7 +11002,7 @@
       "url": "https://x.com/DustinSaracini/status/2111477042562715756",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111477179234345118",
@@ -11554,7 +11554,7 @@
       "url": "https://x.com/theinvestorbrfg/status/2111577365222711649",
       "refPostId": "2111577362437693839",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111587252480668147",
@@ -11806,7 +11806,7 @@
       "url": "https://x.com/Simoncuocuo/status/2111609670330986649",
       "refPostId": null,
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111610324239683937",
@@ -12574,7 +12574,7 @@
       "url": "https://x.com/MilitarySummary/status/2111694737996472734",
       "refPostId": "2111656833144479753",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111697571026448514",
@@ -12598,7 +12598,7 @@
       "url": "https://x.com/unbiased_update/status/2111701641611407443",
       "refPostId": "2111656833144479753",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111707171427864736",
@@ -12742,7 +12742,7 @@
       "url": "https://x.com/TheCrawlHub/status/2111754789059006904",
       "refPostId": "2111656833144479753",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111758495968284848",
@@ -12994,7 +12994,7 @@
       "url": "https://x.com/Altas_WorldNewS/status/2111774642285547562",
       "refPostId": "2111656833144479753",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111775267513667747",
@@ -13018,7 +13018,7 @@
       "url": "https://x.com/geopoliticsnow_/status/2111776717840994568",
       "refPostId": "2111656833144479753",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111777975192682771",
@@ -13222,7 +13222,7 @@
       "url": "https://x.com/unusual_whales/status/2111799253920256160",
       "refPostId": "2111609670330986649",
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111801079834812876",
@@ -13690,7 +13690,7 @@
       "url": "https://x.com/kholov23/status/2111827499730571288",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111829196590969251",
@@ -13750,7 +13750,7 @@
       "url": "https://x.com/LeeLester14/status/2111834476422861048",
       "refPostId": "2111741606248284350",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111834864060100926",
@@ -13834,7 +13834,7 @@
       "url": "https://x.com/TheBestWager/status/2111837779785040379",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111839869941223792",
@@ -13906,7 +13906,7 @@
       "url": "https://x.com/TheBestWager/status/2111842149419332042",
       "refPostId": "2111837779785040379",
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111842337118675081",
@@ -13930,7 +13930,7 @@
       "url": "https://x.com/unusual_whales/status/2111842489447669798",
       "refPostId": "2111741606248284350",
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111842685439115378",
@@ -13942,7 +13942,7 @@
       "url": "https://x.com/theREALNewt_70/status/2111842685439115378",
       "refPostId": "2111741606248284350",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111843432214012225",
@@ -14038,7 +14038,7 @@
       "url": "https://x.com/DustinSaracini/status/2111846319937536357",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111846326723883194",
@@ -14170,7 +14170,7 @@
       "url": "https://x.com/unusual_whales/status/2111850039483961757",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111851269472358737",
@@ -14518,7 +14518,7 @@
       "url": "https://x.com/LeeLester14/status/2111867016445677955",
       "refPostId": "2111741606248284350",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111871056567054530",
@@ -14770,7 +14770,7 @@
       "url": "https://x.com/Rob__Paul/status/2111886141913714960",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111887182977782144",
@@ -14854,7 +14854,7 @@
       "url": "https://x.com/SMB_Attorney/status/2111891858766823506",
       "refPostId": "2110410304064786626",
       "source": "quotes",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111892097200464335",
@@ -14950,7 +14950,7 @@
       "url": "https://x.com/Russia14_Gft/status/2111893175686381800",
       "refPostId": "2111656833144479753",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111893809416269948",
@@ -15010,7 +15010,7 @@
       "url": "https://x.com/unusual_whales/status/2111895337493217774",
       "refPostId": null,
       "source": "timeline",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111895453746991458",
@@ -15022,7 +15022,7 @@
       "url": "https://x.com/theREALNewt_70/status/2111895453746991458",
       "refPostId": "2111895337493217774",
       "source": "phrase-search",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111895535196262802",
@@ -15562,7 +15562,7 @@
       "url": "https://x.com/BEmpress1984/status/2111914538337751292",
       "refPostId": "2107306997955862598",
       "source": "quotes",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111914586387403224",
@@ -15946,7 +15946,7 @@
       "url": "https://x.com/wing120th/status/2111917415273775610",
       "refPostId": "2111043778274345114",
       "source": "quotes",
-      "textTruncated": true
+      "textTruncated": false
     },
     {
       "id": "2111917497851019407",

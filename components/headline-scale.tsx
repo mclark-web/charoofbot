@@ -14,9 +14,12 @@ export function HeadlineScale({
     return (
       <div className="min-w-0">
         <h3 className="font-serif text-lg text-ink">GC score</h3>
-        <p className="gc-ungraded mt-2">
-          {account.postCount === 0 ? NO_POSTS_LINE : THIN_SAMPLE_LINE}
-        </p>
+        <GcScale
+          score="withheld"
+          label="GC Scale"
+          orientation={orientation}
+          signal={account.postCount === 0 ? NO_POSTS_LINE : THIN_SAMPLE_LINE}
+        />
       </div>
     );
   }

@@ -1,13 +1,6 @@
-import corpusJson from "@/data/corpus.json";
-import { analyzeCorpus } from "@/lib/detect";
-import type { Corpus } from "@/lib/types";
+import type { Report } from "./types";
 
 const ORIGIN = "https://charoofbot.vercel.app";
-
-// A metadata sitemap threw on the preview. This route returns one XML string
-// built from the static corpus import and prerendered with the build.
-export const dynamic = "force-static";
-export const revalidate = false;
 
 function escapeXml(value: string): string {
   return value
@@ -22,8 +15,8 @@ function loc(path: string, priority: string): string {
   return `<url>\n<loc>${url}</loc>\n<changefreq>weekly</changefreq>\n<priority>${priority}</priority>\n</url>`;
 }
 
-function sitemapXml(): string {
-  const report = analyzeCorpus(corpusJson as Corpus);
+/** Static sitemap body. Served from public/sitemap.xml so the route is not a function. */
+export function sitemapXml(report: Report): string {
   const urls = [
     loc("/", "1"),
     loc("/accounts", "0.7"),
@@ -33,14 +26,4 @@ function sitemapXml(): string {
     ...report.accounts.map((account) => loc(`/accounts/${encodeURIComponent(account.handle)}`, "0.5")),
   ];
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>\n`;
-}
-
-const body = sitemapXml();
-
-export function GET(): Response {
-  return new Response(body, {
-    headers: {
-      "Content-Type": "application/xml; charset=utf-8",
-    },
-  });
 }

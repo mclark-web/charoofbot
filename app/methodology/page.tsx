@@ -154,9 +154,8 @@ export default function MethodologyPage() {
           are not first-seen + {THRESHOLDS.ampVolumeWeight} × boost count / {THRESHOLDS.ampVolumePostsForFull}). Each
           ratio is capped at 1. A boost is a short quote with no commentary of its own, a reply, or a non-copied slogan
           on someone else’s narrative. A quote that carries the author’s own commentary is not a boost. Verbatim copies
-          do not count as boosts. A tracked lane account is never scored as a booster. This corpus does not include
-          booster timelines, only the tracked sources, so the amplifier gate
-          cannot fire here. {AMPLIFIER_NOT_AVAILABLE_SENTENCE} The meter reads Not graded yet. It is not shown as 100 STRONG, as
+          do not count as boosts. A tracked lane account is never scored as a booster. {AMPLIFIER_NOT_AVAILABLE_SENTENCE}{" "}
+          The meter reads Not graded yet. It is not shown as 100 STRONG, as
           WEAK, or as 0. {ORGANIC_REACH_RULE} That gate is what the paste bench uses when the pasted text includes a
           timeline. Phrase-search and quote-search rows are not a timeline, so they cannot supply the{" "}
           {THRESHOLDS.ampTimelineBaseline}-post baseline.
@@ -209,30 +208,34 @@ export default function MethodologyPage() {
         </p>
         <h3 className="font-serif text-xl">Attributed reposts</h3>
         <p className="leading-relaxed">
-          Credit zeroes clone weight only on the post that names the source. It never clears the other posts in the
-          cluster. The similarity threshold decides whether a reworded headline is a copy. A near or template match
-          stays a copy unless this credit rule clears that post. The credit text itself never drops a match.{" "}
+          Credit zeroes clone weight only on the post that names the source, and only when that post is a template
+          match. It never clears the other posts in the cluster. A verbatim or near match of a different account stays
+          a copy of that post, whatever credit it carries. The credit text itself never drops a match.{" "}
           <span className="font-mono">per Reuters</span>, <span className="font-mono">- Reuters</span>, and{" "}
           <span className="font-mono">via Reuters</span> are the same credit.
         </p>
         <p className="leading-relaxed">
           A handle credit (<span className="font-mono">via @handle</span> or{" "}
           <span className="font-mono">Source: @handle</span>) or <span className="font-mono">h/t</span> plus a handle
-          counts only when that handle is the cluster’s originator. A bare h/t gives no credit. A quote is not credit.
+          counts only on a template match, and only when that handle is the cluster’s originator. A bare h/t gives no
+          credit. A quote is not credit.
           A repost stored as <span className="font-mono">RT @</span> uses action{" "}
           <span className="font-mono">repost</span> and is left out of copy matching.
         </p>
         <p className="leading-relaxed">
-          An outlet credit counts only when the name is one of the recognized news outlets below, that outlet’s own
-          account is the originator or also posted in the cluster, and the crediting post is not a verbatim or near
-          copy of a different account. The forms are <span className="font-mono">per</span>,{" "}
+          An outlet credit can soften only a template match, and only when the name is one of the recognized news
+          outlets below and that outlet’s own account is the match’s originator or also posted in the cluster. A
+          verbatim or near copy is not cleared. The forms are <span className="font-mono">per</span>,{" "}
           <span className="font-mono">via</span>, <span className="font-mono">Source:</span>,{" "}
           <span className="font-mono">출처:</span>, a share-button line (<span className="font-mono">- CNBC</span> or{" "}
           <span className="font-mono">CNBC-</span>), and a bracket tag (<span className="font-mono">[CNBC]</span>).
-          Naming Goldman, ATTOM, or any other name that is not a recognized news outlet does not zero the score. The
-          crediting post stays visible as Attributed or Syndicated and weighs {THRESHOLDS.cloneAttributedWeight}.
-          Uncredited exact and near copies keep their clone weight. The earliest in-corpus account stays the
-          Originator. Ordinary phrases such as “via the market” or “per share” are not credits.
+          Naming Goldman, ATTOM, or any other name that is not a recognized news outlet does not zero the score. When
+          the credit does count, the post stays visible as Attributed or Syndicated and weighs{" "}
+          {THRESHOLDS.cloneAttributedWeight}. Uncredited exact and near copies keep their clone weight. The earliest
+          in-corpus account stays the Originator. Ordinary phrases such as “via the market” or “per share” are not
+          credits. A known limitation: unusual_whales’ Larry Fink line says “per CNBC” and is a template match inside
+          kreia’s cluster. CNBC is not that cluster’s originator and did not post in it, so the credit does not clear
+          the template. The post stays a copy.
         </p>
         <p className="leading-relaxed">Recognized news outlets:</p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
@@ -248,13 +251,12 @@ export default function MethodologyPage() {
         <h3 className="font-serif text-xl">Syndicating outlets</h3>
         <p className="leading-relaxed">
           Syndicating outlets are a separate list from the recognized news outlets above. When two or more syndicating
-          outlets share a headline as a near or template paraphrase, that text is one cluster. The earliest poster is
-          the originator. The other syndicating outlets in the set are Syndicated, with copy weight 0. They are not
-          clones of each other for that paraphrase. An exact copy between two of them is not cleared: it stays a copy.
-          An account outside the set that pastes the same headline without a qualifying credit is still a copy. A
-          single syndicating outlet copying a non-outlet, with no second syndicating outlet in the cluster, is still a
-          copy. A credit on one post never marks the whole cluster source outside corpus and never drops the clone
-          weight on an uncredited copy.
+          outlets share a headline, including an exact reprint, that text is one cluster. The earliest poster is the
+          originator. The other syndicating outlets in the set are Syndicated, with copy weight 0. They are not clones
+          of each other for that headline. CNBC reprinting Reuters’ Alberta headline is syndication. An account outside
+          the set that pastes the same headline is still a copy. A single syndicating outlet copying a non-outlet, with
+          no second syndicating outlet in the cluster, is still a copy. A credit on one post never marks the whole
+          cluster source outside corpus and never drops the clone weight on an uncredited copy.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           {SYNDICATING_OUTLETS.map((outlet) => (
@@ -297,12 +299,13 @@ export default function MethodologyPage() {
           A skeptic should be able to re-run the text. Paste the post, read the hash, and compare it with the cluster
           diff. Check these before treating the label as final: whether the match is your own earlier post; whether you
           were the earliest account in the cluster; whether an outlet credit names a recognized news outlet whose
-          account is the originator or also posted in the cluster; whether the post is a verbatim or near copy of a
-          different account, in which case that credit does not count; whether{" "}
+          account is the originator or also posted in the cluster, and whether the match is only a template, because a
+          verbatim or near copy of a different account stays a copy; whether{" "}
           <span className="font-mono">full_text</span> is truncated, because a cut row skips full-text near and
-          template matching except when a later post contains its stored prefix or near-matches that prefix;
-          whether an exact copy is between two syndicating outlets, because that stays a copy; and whether a lone template
-          match is the only evidence. If the grade line says thin sample, count the posts in the {SCORE_WINDOW.start}–
+          template matching except when a later post contains its stored prefix or near-matches that prefix; whether
+          both accounts are syndicating outlets, because an exact reprint between them is syndication; and whether a
+          lone template match is the only evidence. If the grade line says thin sample, count the posts in the{" "}
+          {SCORE_WINDOW.start}–
           {SCORE_WINDOW.end} window against the {THRESHOLDS.leaderboardMinPosts}-post minimum.
         </p>
         <p className="leading-relaxed">
