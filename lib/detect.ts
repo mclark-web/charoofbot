@@ -516,21 +516,24 @@ function creditQualifies(
   matchedAccount: string | null,
 ): boolean {
   if (!credit.name) return false;
-  // A handle credit counts when it names the cluster's originator, including
-  // on an exact or near copy of that account.
+  // Exact and near copies clear only when the credit names the copied account,
+  // or that post's outlet. A credit to anyone else stays a copy.
+  if (matchKind === "exact" || matchKind === "near") {
+    if (!matchedAccount) return false;
+    if (credit.kind === "handle" || credit.kind === "tip") {
+      return resolveCredit(credit, handleByKey) === matchedAccount;
+    }
+    if (!isRecognizedNewsOutlet(credit.name)) return false;
+    return outletAccounts(credit.name).includes(matchedAccount);
+  }
+  // Template matches can still be cleared by crediting the cluster's originator.
+  if (matchKind !== "template") return false;
   if (credit.kind === "handle" || credit.kind === "tip") {
     return resolveCredit(credit, handleByKey) === originHandle;
   }
   if (!isRecognizedNewsOutlet(credit.name)) return false;
   const outlets = outletAccounts(credit.name);
-  const postedHere = outlets.some((handle) => handle === originHandle || clusterHandles.has(handle));
-  if (!postedHere) return false;
-  // An exact or near copy stays a copy unless the credited outlet is the
-  // matched earlier post's account. Crediting a different outlet does not clear it.
-  if ((matchKind === "exact" || matchKind === "near") && matchedAccount && !outlets.includes(matchedAccount)) {
-    return false;
-  }
-  return true;
+  return outlets.some((handle) => handle === originHandle || clusterHandles.has(handle));
 }
 
 /** Weight 0 only on this post, and only when the credit names the account that was copied. */

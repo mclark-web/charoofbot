@@ -897,6 +897,50 @@ describe("real corpus after the rules", () => {
     assert.notEqual(report.accounts.find((item) => item.handle === "AlArabiya_Eng")?.label, "Clone");
   });
 
+  it("does not let a handle credit to someone else clear a verbatim copy", () => {
+    const probe = (id: string, sourceId: string, suffix: string) => {
+      const source = report.posts.find((item) => item.id === sourceId);
+      const handle = `probe_${id}`;
+      const analyzed = analyzeCorpus({
+        ...corpusJson,
+        posts: [
+          ...corpusJson.posts,
+          {
+            id,
+            account: handle,
+            postedAt: "2026-10-18T21:00:00.000Z",
+            text: `${source?.text ?? ""}${suffix}`,
+            narrativeId: null,
+            action: "post",
+            url: `https://x.com/${handle}/status/1`,
+          },
+        ],
+      });
+      return {
+        post: analyzed.posts.find((item) => item.id === id),
+        account: analyzed.accounts.find((item) => item.handle === handle),
+      };
+    };
+
+    const reutersHandle = probe("probe-reuters-handle", "2111812852852097103", " via @Reuters");
+    // @Reuters is stripped and the word "via" remains, so the copy is near, not a hash match.
+    // The handle is not the copied account, so the credit does not clear it.
+    assert.equal(reutersHandle.post?.matchedAccount, "unusual_whales");
+    assert.equal(reutersHandle.post?.role, "near");
+    assert.equal(reutersHandle.account?.label, "Clone");
+    assert.equal(reutersHandle.account?.cloneScore, THRESHOLDS.cloneNearWeight);
+    assert.equal(reutersHandle.account?.gcScore, 100 - THRESHOLDS.cloneNearWeight);
+
+    const leading = probe("probe-leading-source", "2111883300516098419", " Source: @Reuters");
+    assert.equal(isCopyRole(leading.post?.role ?? "solo"), true);
+
+    const kreia = probe("probe-fink-kreia", "2111857588858147149", " via @kreia");
+    assert.equal(isCopyRole(kreia.post?.role ?? "solo"), true);
+
+    const whales = probe("probe-fink-whales", "2111857588858147149", " via @unusual_whales");
+    assert.equal(whales.post?.role, "attributed");
+  });
+
   it("clears RobertCFried and Naagesh when the credit names the copied account", () => {
     const robertPost = report.posts.find((item) => item.id === "2110230998008893535");
     const robert = report.accounts.find((item) => item.handle === "RobertCFried");

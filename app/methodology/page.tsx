@@ -215,7 +215,9 @@ export default function MethodologyPage() {
         <p className="leading-relaxed">
           A handle credit (<span className="font-mono">via @handle</span> or{" "}
           <span className="font-mono">Source: @handle</span>) or <span className="font-mono">h/t</span> plus a handle
-          counts when that handle is the cluster&apos;s originator. A bare h/t gives no credit. A quote is not credit.
+          follows the same rule. A credit clears a verbatim or near copy only when it names the copied account or that
+          post&apos;s outlet. A template match can be cleared by crediting the cluster&apos;s originator. A bare h/t
+          gives no credit. A quote is not credit.
           A repost stored as <span className="font-mono">RT @</span> uses action{" "}
           <span className="font-mono">repost</span> and is left out of copy matching.
         </p>
