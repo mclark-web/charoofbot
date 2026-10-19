@@ -11,7 +11,7 @@ Built for accountability in an age of market fomo, prediction craze, and loud an
 - Open the dashboard. Figure 1 is narrative volume (which frames are being sewn, and how hard). Figure 1b is the same narratives split by poster age: accounts under 30 days, and accounts from 30 days to under 1 year. Figure 2 links narratives that share accounts and rings the ones new accounts dominate. Copied-language clusters and the flagged-amplifier list stay separate. The list leads with the lowest organic reach. A new-account badge sits beside a grade and does not change it.
 - Open a cluster for the originator, the timeline, and a normalized text diff.
 - Open an account. Original voice and organic reach are two authenticity meters. Higher means more trustworthy. They are not added together. A withheld amplifier signal reads Not graded yet.
-- Paste a duplicate of a fixture post on `/paste`. Decorations (links, @handles, cashtags, emoji) are stripped, and an exact copy lowers original voice. A slogan without the copied paragraph is a boost hit, not copied wording.
+- Paste a duplicate of a practice set post on `/paste`. Decorations (links, @handles, cashtags, emoji) are stripped, and an exact copy lowers original voice. A slogan without the copied paragraph is a boost hit, not copied wording.
 
 ## Run locally
 
@@ -23,11 +23,11 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). No `.env` file is required.
 
-`npm test` checks the SHA-256 fingerprint, the fixture roles (exact, near, template, amplifier, originator), and the paste bench.
+`npm test` checks the SHA-256 fingerprint, the practice-set roles (exact, near, template, amplifier, originator), and the paste bench. `npm run typecheck` generates route types, then runs `tsc`.
 
 ## Try the paste bench
 
-On `/paste`, use **Exact fixture duplicate**. That sample is the AI-capex originator text plus a URL, an @mention-free cashtag, and an emoji. The scorer should call it an exact clone of `@ledger_mina`.
+On `/paste`, use **Exact practice set duplicate**. That sample is the AI-capex originator text plus a URL, an @mention-free cashtag, and an emoji. The scorer should call it an exact clone of `@ledger_mina`.
 
 Other buttons load a one-word near-duplicate, amplifier framing, and an unrelated note.
 
@@ -35,7 +35,7 @@ You can also paste your own text, several posts split by a line that is only `--
 
 ```json
 [
-  {"account": "@pasted_demo", "text": "paste a fixture sentence here"}
+  {"account": "@pasted_demo", "text": "paste a practice set sentence here"}
 ]
 ```
 
@@ -59,7 +59,7 @@ The corpus (`data/corpus.json`) is real public X posts as of 18 Oct 2026: recent
 `data/gcbot/*.csv` is the source of truth. `data/corpus.json` is generated from it; do not edit the JSON by hand.
 
 - `accounts.csv`: one row per X account, keyed by `handle`. `tracked_board` is `sports` or `fintwit` for accounts tracked on the other GradedCalls boards and empty for accounts found copying or quoting them. `narrative_id` is the tracked account's lane.
-- `posts.csv`: one row per public post, keyed by `post_id`, with `handle`, `created_at` (UTC), `action` (`post`, `quote`, `reply`), `text`, `url`, `narrative_id`, `ref_post_id` (the tracked post it copies or quotes), `source` (`timeline`, `phrase-search`, `quotes`) and `fetched_at`.
+- `posts.csv`: one row per public post, keyed by `post_id`, with `handle`, `created_at` (UTC), `action` (`post`, `quote`, `reply`), `text`, `url`, `narrative_id`, `ref_post_id` (the tracked post it copies or quotes), `ref_in_corpus` (`true` when that ref is a row in this file and strictly earlier, `false` when the ref is outside the file), `source` (`timeline`, `phrase-search`, `quotes`) and `fetched_at`. `fetched_at` is a full ISO-8601 UTC datetime. The exact fetch clock time was not recorded for these rows, so both `posts.csv` and `accounts.csv` use `2026-10-18T00:00:00Z`. Equal timestamps break by snowflake id: the smaller `post_id` is earlier.
 - `narratives.csv`: one row per narrative. `frame_phrases` is optional, `|`-separated.
 
 The files are append-only. To add an account or a weekly refresh, append rows (new handles to `accounts.csv`, new post ids to `posts.csv`) and run:

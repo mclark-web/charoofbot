@@ -249,12 +249,16 @@ describe("paste bench", () => {
     const fixture = runPaste(JSON.stringify([{ account: "copy_lane", text: "A short aside.", ageDays: 9000 }]));
     assert.equal(fixture.findings[0].ageBand, "fresh");
     assert.equal(fixture.findings[0].ageDays, 17);
-    assert.ok(fixture.warnings.some((warning) => warning.includes("copy_lane")));
+    assert.ok(
+      fixture.warnings.some(
+        (warning) => warning === "@copy_lane keeps the practice set created date. The pasted age was ignored.",
+      ),
+    );
   });
 
   it("badges a fresh amplifier without turning the paste into clone speech", () => {
     const run = runPaste(samplePastes.fresh);
-    assert.equal(run.findings.length, 2);
+    assert.equal(run.findings.length, 3);
     for (const finding of run.findings) {
       assert.equal(finding.role, "solo");
       assert.equal(finding.isBoost, true);

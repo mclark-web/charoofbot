@@ -13,6 +13,24 @@ export function peelRetweet(raw: string): { body: string; isRetweet: boolean } {
   return { body: trimmed.slice(match[0].length), isRetweet: true };
 }
 
+const TRAILING_TCO = /\s*https?:\/\/t\.co\/\S+\s*$/i;
+
+/**
+ * Prefix of a cut post. Drop a trailing t.co link, then the partial last word,
+ * and return the normalized remainder. Callers require a minimum length.
+ */
+export function truncatedPrefix(raw: string): string {
+  let text = raw.trim();
+  let stripped = text.replace(TRAILING_TCO, "").trimEnd();
+  while (stripped !== text) {
+    text = stripped;
+    stripped = text.replace(TRAILING_TCO, "").trimEnd();
+  }
+  const lastBreak = Math.max(text.lastIndexOf(" "), text.lastIndexOf("\n"), text.lastIndexOf("\t"));
+  if (lastBreak <= 0) return "";
+  return normalizeText(text.slice(0, lastBreak));
+}
+
 /** Lowercase, then strip URLs, @handles, cashtags, emoji, punctuation, and extra space. */
 export function normalizeText(raw: string): string {
   return raw

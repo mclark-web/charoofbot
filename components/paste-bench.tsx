@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { AgeBadge, LabelBadge } from "@/components/label-badge";
+import { HeadlineScale } from "@/components/headline-scale";
+import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
 import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
 import { ORGANIC_REACH_NOT_GRADED, organicReachMutedNote } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
@@ -12,7 +13,7 @@ import { samplePastes } from "@/lib/samples";
 import type { AccountReport, AnnotatedPost } from "@/lib/types";
 
 const SAMPLES = [
-  { id: "exact", label: "Exact fixture duplicate", text: samplePastes.exact },
+  { id: "exact", label: "Exact practice set duplicate", text: samplePastes.exact },
   { id: "near", label: "Near-duplicate", text: samplePastes.near },
   { id: "amp", label: "Boost framing", text: samplePastes.amp },
   { id: "clean", label: "Unrelated note", text: samplePastes.clean },
@@ -65,7 +66,7 @@ export function PasteBench() {
         </div>
         <div className="tap-row">
           <button type="submit" className="btn btn-primary">
-            Score against fixtures
+            Score against the practice set
           </button>
           <p className="text-sm text-ink-soft">Runs in the browser. Nothing is uploaded.</p>
         </div>
@@ -101,8 +102,8 @@ function PasteResults({ outcome }: { outcome: PasteRun }) {
         <section>
           <h2 className="font-serif text-2xl text-ink">Handles in this paste</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-ink-soft">
-            Original voice and organic reach stay in separate meters. Higher means more authentic. A handle that already exists in the fixture
-            directory is rescored with its fixture posts plus this paste. A new handle is scored from the paste alone.
+            The GC score is the headline. Original voice and organic reach stay under it. Higher means more authentic. A handle that already exists in the practice
+            set is rescored with its saved posts plus this paste. A new handle is scored from the paste alone.
           </p>
           <div className="mt-4 grid gap-4">
             {outcome.accounts.map((account) => (
@@ -136,6 +137,8 @@ function FindingCard({
         <span className="font-mono text-xs text-ink-soft">@{finding.account}</span>
         {finding.isRetweet ? (
           <span className="meta-badge">Retweet excluded</span>
+        ) : finding.role === "attributed" || finding.role === "syndicated" ? (
+          <RoleBadge role={finding.role} />
         ) : cloneKind ? (
           <span className="meta-badge">{matchLabel(cloneKind)}</span>
         ) : (
@@ -155,7 +158,7 @@ function FindingCard({
           A leading RT @handle: is set aside. It does not lower original voice, and it does not count as organic reach.
         </p>
       ) : null}
-      {cloneKind ? (
+      {cloneKind || finding.role === "attributed" || finding.role === "syndicated" ? (
         <dl className="mt-4 grid gap-2 text-sm sm:grid-cols-2">
           <div>
             <dt className="kicker">Matched</dt>
@@ -201,11 +204,12 @@ function AccountSlice({ account }: { account: AccountReport }) {
           <AgeBadge band={account.ageBand} showEstablished showUnknown />
         </div>
         <p className="mt-2 text-sm text-ink-soft">
-          {account.inDirectory ? "Includes fixture history." : "Paste only. Not in the fixture directory."}{" "}
+          {account.inDirectory ? "Includes saved history." : "Paste only. No saved history for this handle."}{" "}
           {account.ageDays === null
             ? "Account age was omitted, so it stays unknown."
-            : `Account age ${formatAgeDays(account.ageDays)} at the fixture clock. Not added to either grade.`}
+            : `Account age ${formatAgeDays(account.ageDays)} at the scan clock. Not added to either grade.`}
         </p>
+        <HeadlineScale account={account} />
       </div>
       <div className="grid gap-3">
         <ScoreMeter
@@ -216,8 +220,8 @@ function AccountSlice({ account }: { account: AccountReport }) {
         />
         <ScoreMeter
           label="Organic reach"
-          score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
-          signal={organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays)}
+          score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays, account.timelinePostCount)}
+          signal={organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays, account.timelinePostCount)}
           detail={
             account.passesAmpGate
               ? `${account.boostPostCount} boosts across ${account.boostDays} days. Higher means less of the activity is boosting someone else.`

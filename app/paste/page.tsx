@@ -17,7 +17,7 @@ export default function PastePage() {
           send a JSON array of <span className="font-mono">{`{ "account", "text" }`}</span>. An optional created date
           or age in days flags the poster. Leave both off and the age stays unknown. Text is normalized, hashed, and
           compared with the synthetic practice set and the rest of the batch. Retweets are set aside. Copied wording and boosts
-          are reported on separate lines. The meters show authenticity, higher means more authentic, and neither grade absorbs the age flag.
+          are reported on separate lines. The headline GC score is 100 minus the higher detector signal. The meters under it show authenticity, and neither grade absorbs the age flag.
         </p>
       </header>
       <PasteBench />
@@ -34,7 +34,7 @@ export default function PastePage() {
           <span className="font-mono">accountCreatedAt</span>, <span className="font-mono">createdAt</span>, or{" "}
           <span className="font-mono">joined</span> is a date. <span className="font-mono">ageDays</span> is the age in
           days when you do not have a date. Omit both and the finding is marked age unknown. A handle that already
-          exists in the fixture directory keeps its fixture created date.
+          exists in the practice set keeps its saved created date.
         </p>
         <p className="mt-3">
           Plain text can carry the same fields on their own lines, or on the handle line:{" "}

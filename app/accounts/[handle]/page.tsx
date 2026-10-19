@@ -2,11 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AgeBadge, LabelBadge, RoleBadge } from "@/components/label-badge";
-import { amplifierScaleScore, detectorSignal } from "@/components/gc-scale";
-import { ORGANIC_REACH_NOT_GRADED, organicReachMutedNote } from "@/components/organic-reach-copy";
+import { HeadlineScale } from "@/components/headline-scale";
+import { detectorSignal } from "@/components/gc-scale";
+import { AMPLIFIER_NOT_AVAILABLE_SENTENCE } from "@/components/organic-reach-copy";
 import { ScoreMeter } from "@/components/score-meter";
+import { SourceLink } from "@/components/source-link";
 import { getReport } from "@/lib/corpus";
-import { excerpt, formatAgeDays, formatStamp } from "@/lib/format";
+import { accountSourceUrl, countNoun, displayPostText, excerpt, formatAgeDays, formatStamp } from "@/lib/format";
+import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
+import { THRESHOLDS } from "@/lib/thresholds";
 
 type PageProps = {
   params: Promise<{ handle: string }>;
@@ -43,11 +47,11 @@ export default async function AccountPage({ params }: PageProps) {
           </Link>{" "}
           / account
         </p>
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <h1 className="font-serif text-4xl text-ink">@{account.handle}</h1>
+        <h1 className="mt-3 font-serif text-4xl text-ink">@{account.handle}</h1>
+        <p className="account-label mt-3 flex flex-wrap items-center gap-2">
           <LabelBadge label={account.label} />
           <AgeBadge band={account.ageBand} showEstablished showUnknown />
-        </div>
+        </p>
         <p className="mt-2 text-ink-soft">{account.name}</p>
         <p className="mt-3 max-w-2xl text-lg leading-relaxed">{account.bio}</p>
         {DEFAULT_BIO.test(account.bio) ? (
@@ -57,22 +61,35 @@ export default async function AccountPage({ params }: PageProps) {
         ) : null}
       </div>
 
+      <p className="text-sm text-ink-soft">
+        <SourceLink href={accountSourceUrl(account.handle, posts)} handle={account.handle} />
+      </p>
+
+      <HeadlineScale account={account} />
+
       <div className="grid gap-4 md:grid-cols-2">
         <ScoreMeter
           label="Original voice"
-          score={account.cloneScore}
-          signal={detectorSignal("clone", account.cloneScore)}
-          detail={`${account.clonePostCount} post${account.clonePostCount === 1 ? "" : "s"} matched earlier language. Exact matches weigh more than near-duplicates and templates. Higher means more of the voice is original.`}
+          score={account.graded ? account.cloneScore : "withheld"}
+          signal={
+            account.graded
+              ? detectorSignal("clone", account.cloneScore)
+              : account.postCount === 0
+                ? null
+                : THIN_SAMPLE_LINE
+          }
+          detail={
+            account.graded
+              ? `${countNoun(account.clonePostCount, "copied post")} and ${countNoun(account.attributedPostCount, "attributed repost")}. Attributed reposts weigh ${THRESHOLDS.cloneAttributedWeight}, under the full copy weights. Higher means more of the voice is original.`
+              : account.postCount === 0
+                ? `${NO_POSTS_LINE}. This account has no posts in the window, so original voice is withheld.`
+                : `${THIN_SAMPLE_LINE}. ${countNoun(account.clonePostCount, "copied post")} and ${countNoun(account.attributedPostCount, "attributed repost")}. Fewer than ${THRESHOLDS.leaderboardMinPosts} posts, so no GC percent is shown.`
+          }
         />
         <ScoreMeter
           label="Organic reach"
-          score={amplifierScaleScore(account.boostPostCount, account.ampScore, account.boostDays)}
-          signal={organicReachMutedNote(account.boostPostCount, account.ampScore, account.boostDays)}
-          detail={
-            account.passesAmpGate
-              ? `${account.boostPostCount} boosts on ${account.boostDays} day${account.boostDays === 1 ? "" : "s"}. Passes the persistence gate. Higher means less of the activity is boosting someone else.`
-              : ORGANIC_REACH_NOT_GRADED
-          }
+          score="withheld"
+          detail={AMPLIFIER_NOT_AVAILABLE_SENTENCE}
         />
       </div>
 
@@ -89,7 +106,7 @@ export default async function AccountPage({ params }: PageProps) {
       <section>
         <h2 className="font-serif text-2xl">Narratives touched</h2>
         {narratives.length === 0 ? (
-          <p className="mt-2 text-sm text-ink-soft">No fixture narrative.</p>
+          <p className="mt-2 text-sm text-ink-soft">None in this window.</p>
         ) : (
           <ul className="mt-3 flex flex-wrap gap-2">
             {narratives.map((narrative) => (
@@ -115,8 +132,11 @@ export default async function AccountPage({ params }: PageProps) {
                   ) : null}
                   <span className="text-ink-soft">{formatStamp(post.postedAt)}</span>
                   <span className="text-ink-soft">{post.action}</span>
+                  {post.textTruncated ? <span className="meta-badge">Truncated text</span> : null}
                 </div>
-                <p className="mt-3 leading-relaxed">{post.text}</p>
+                <p className="mt-3 whitespace-pre-wrap break-words leading-relaxed">
+                  {displayPostText(post.text, post.textTruncated)}
+                </p>
                 <p className="mt-2 text-sm text-ink-soft">
                   {narrative ? narrative.title : "No narrative tag"}
                   {post.clusterId ? (

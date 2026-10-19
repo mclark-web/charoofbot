@@ -157,12 +157,12 @@ describe("amplifierScaleScore", () => {
     assert.equal(underLabel, "withheld");
     assert.equal(gradeFor(authenticityFrom(underLabel)), "ungraded");
 
-    const gradedFull = amplifierScaleScore(2, 100, 2);
+    const gradedFull = amplifierScaleScore(3, 100, 3);
     assert.equal(authenticityFrom(gradedFull), 0);
     assert.equal(gradeFor(authenticityFrom(gradedFull)), "exit");
 
-    assert.equal(authenticityFrom(amplifierScaleScore(3, 63, 2)), 37);
-    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(3, 63, 2))), "weak");
+    assert.equal(authenticityFrom(amplifierScaleScore(3, 63, 3)), 37);
+    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(3, 63, 3))), "weak");
     assert.equal(detectorSignal("clone", 90), "clone signal 90%");
   });
 
@@ -202,11 +202,11 @@ describe("amplifierScaleScore", () => {
     assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(2, 80, 1))), "ungraded");
     assert.equal(amplifierScaleScore(1, 80, 2), "withheld");
     assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(1, 80, 2))), "ungraded");
-    assert.equal(amplifierScaleScore(2, 69, 2), 69);
+    assert.equal(amplifierScaleScore(3, 69, 3), 69);
   });
 
-  it("withholds 2 boosts on 2 days when the signal is under 45, and grades 45 or more", () => {
-    const under = amplifierScaleScore(2, 38, 2);
+  it("withholds a boost pattern under the gate, and grades the signal once the gate passes", () => {
+    const under = amplifierScaleScore(3, 38, 3);
     assert.equal(under, "withheld");
     assert.equal(authenticityFrom(under), "withheld");
     assert.equal(gradeFor(authenticityFrom(under)), "ungraded");
@@ -216,17 +216,17 @@ describe("amplifierScaleScore", () => {
     assert.equal(authenticityFrom(38), 62);
     assert.equal(gradeFor(authenticityFrom(38)), "provisional");
 
-    assert.equal(amplifierScaleScore(2, 44, 2), "withheld");
-    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(2, 44, 2))), "ungraded");
+    assert.equal(amplifierScaleScore(3, 44, 3), "withheld");
+    assert.equal(gradeFor(authenticityFrom(amplifierScaleScore(3, 44, 3))), "ungraded");
 
-    const atGate = amplifierScaleScore(2, 45, 2);
+    const atGate = amplifierScaleScore(3, 45, 3);
     assert.equal(atGate, 45);
     assert.equal(authenticityFrom(atGate), 55);
     assert.equal(gradeFor(authenticityFrom(atGate)), "provisional");
     assert.equal(detectorSignal("amplifier", atGate), "amplifier signal 45%");
     assert.equal(formatScorePercent(authenticityFrom(atGate)), "55%");
 
-    const above = amplifierScaleScore(2, 80, 2);
+    const above = amplifierScaleScore(3, 80, 3);
     assert.equal(above, 80);
     assert.equal(gradeFor(authenticityFrom(above)), "weak");
   });
@@ -234,14 +234,14 @@ describe("amplifierScaleScore", () => {
   it("uses the short not-graded note and keeps the full organic-reach rule", () => {
     assert.equal(
       ORGANIC_REACH_NOT_GRADED,
-      "Not graded yet — needs 2+ boosts on 2 days and a signal of 45+.",
+      "Not graded yet — needs 3+ boosts on 3 days, 3+ timeline posts, and a signal of 45+.",
     );
-    assert.equal(amplifierScaleScore(2, 38, 2), "withheld");
+    assert.equal(amplifierScaleScore(3, 38, 3), "withheld");
     assert.equal(ORGANIC_REACH_NOT_GRADED.includes("0%"), false);
     assert.equal(ORGANIC_REACH_NOT_GRADED.includes("EXIT LIQUIDITY"), false);
     assert.equal(
       ORGANIC_REACH_RULE,
-      "Organic reach is graded only when the amplifier signal is 45 or higher with at least 2 boosts on 2 different days; otherwise it reads Not graded yet.",
+      "Organic reach is graded only when the amplifier signal is 45 or higher with at least 3 boosts on 3 different days and at least 3 timeline posts; otherwise it reads Not graded yet.",
     );
     assert.notEqual(ORGANIC_REACH_NOT_GRADED, ORGANIC_REACH_RULE);
   });
@@ -250,6 +250,6 @@ describe("amplifierScaleScore", () => {
     assert.equal(organicReachMutedNote(0, 0, 0), "amplifier signal withheld");
     assert.equal(organicReachMutedNote(2, 38, 2), "organic reach withheld");
     assert.equal(organicReachMutedNote(1, 69, 1), "organic reach withheld");
-    assert.equal(organicReachMutedNote(2, 45, 2), "amplifier signal 45%");
+    assert.equal(organicReachMutedNote(3, 45, 3), "amplifier signal 45%");
   });
 });

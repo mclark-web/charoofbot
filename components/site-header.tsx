@@ -11,7 +11,7 @@ export function SiteHeader() {
           <SiteNav />
         </Suspense>
       </div>
-      <p className="fixture-label">Real X posts · 18 Oct 2026</p>
+      <p className="corpus-stamp">Real X posts · 18 Oct 2026</p>
     </header>
   );
 }

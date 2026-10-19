@@ -1,4 +1,5 @@
 import { GcScale } from "@/components/gc-scale";
+import { countNoun, joinPresent } from "@/lib/format";
 
 export type VolumeRow = {
   shortLabel: string;
@@ -41,7 +42,13 @@ export function VolumeChart({ rows }: { rows: VolumeRow[] }) {
             showPercent={false}
             meterMax={max}
             meterNow={row.postCount}
-            meterLabel={`${row.title}, ${row.postCount} posts. ${row.originPosts} origin, ${row.clonePosts} copied, ${row.boostPosts} boosts, ${row.otherPosts} other.`}
+            meterLabel={joinPresent([
+              `${row.title}, ${countNoun(row.postCount, "post")}`,
+              `${row.originPosts} origin`,
+              row.clonePosts > 0 && countNoun(row.clonePosts, "copied post"),
+              countNoun(row.boostPosts, "boost"),
+              countNoun(row.otherPosts, "other note"),
+            ])}
             segments={SEGMENTS.map((segment) => ({
               name: segment.name,
               value: row[segment.key],
@@ -49,8 +56,14 @@ export function VolumeChart({ rows }: { rows: VolumeRow[] }) {
             }))}
           />
           <p className="mt-2 text-xs leading-relaxed text-ink-soft">
-            {row.originPosts} origin · {row.clonePosts} copied · {row.boostPosts} boosts · {row.otherPosts} other ·{" "}
-            {row.freshVolumePct}% under 30 days · {row.underYearVolumePct}% under 1 year
+            {joinPresent([
+              `${row.originPosts} origin`,
+              row.clonePosts > 0 && countNoun(row.clonePosts, "copied post"),
+              countNoun(row.boostPosts, "boost"),
+              countNoun(row.otherPosts, "other note"),
+              `${row.freshVolumePct}% under 30 days`,
+              `${row.underYearVolumePct}% under 1 year`,
+            ])}
           </p>
         </div>
       ))}

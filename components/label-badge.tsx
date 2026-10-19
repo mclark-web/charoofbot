@@ -9,6 +9,9 @@ const ROLE_LABEL: Record<PostRole, string> = {
   exact: "Exact clone",
   near: "Near duplicate",
   template: "Template",
+  attributed: "Attributed",
+  syndicated: "Syndicated",
+  outside: "Source outside corpus",
   solo: "Solo",
 };
 
