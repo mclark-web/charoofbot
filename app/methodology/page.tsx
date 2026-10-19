@@ -98,9 +98,12 @@ export default function MethodologyPage() {
           {THRESHOLDS.minTokens} tokens are not clustered. Each stored post has a{" "}
           <span className="font-mono">full_text</span> value. <span className="font-mono">verified</span> means the
           text was checked and is complete. <span className="font-mono">truncated</span> means the stored text is cut
-          off: that row skips near-duplicate and template matching, an exact hash can still match, and the page adds
-          an ellipsis. <span className="font-mono">unknown</span> means not yet checked. Unknown does not skip
-          matching and does not add a badge or an ellipsis. Only truncated rows skip fuzzy matching.
+          off. That row skips full-text near-duplicate and template matching. A later post whose normalized text
+          contains the stored prefix is an exact copy, and one that near-matches the prefix over its leading span is
+          a near copy. The prefix drops a trailing t.co link and the partial last word, and it has to be at least{" "}
+          {THRESHOLDS.prefixMinChars} characters. An exact hash can still match, and the page adds an ellipsis.{" "}
+          <span className="font-mono">unknown</span> means not yet checked. Unknown does not skip matching and does
+          not add a badge or an ellipsis. Unknown is only for reposts and posts under 250 characters.
         </p>
       </section>
 
@@ -119,6 +122,7 @@ export default function MethodologyPage() {
               <Row label="Template Jaccard" value={`≥ ${THRESHOLDS.templateJaccard} and < ${THRESHOLDS.nearDupeJaccard}`} />
               <Row label="Template shared 4-grams" value={`≥ ${THRESHOLDS.templateSharedFourGrams}`} />
               <Row label="Minimum tokens" value={String(THRESHOLDS.minTokens)} />
+              <Row label="Truncated prefix" value={`≥ ${THRESHOLDS.prefixMinChars} characters`} />
               <Row label="Cluster window" value={`${WINDOW_DAYS} days after first seen`} />
               <Row label="Exact / near / template weights" value={`${THRESHOLDS.cloneExactWeight} / ${THRESHOLDS.cloneNearWeight} / ${THRESHOLDS.cloneTemplateWeight}`} />
               <Row label="Attributed repost weight" value={String(THRESHOLDS.cloneAttributedWeight)} />
@@ -295,7 +299,8 @@ export default function MethodologyPage() {
           were the earliest account in the cluster; whether an outlet credit names a recognized news outlet whose
           account is the originator or also posted in the cluster; whether the post is a verbatim or near copy of a
           different account, in which case that credit does not count; whether{" "}
-          <span className="font-mono">full_text</span> is truncated, because only truncated rows skip fuzzy matching;
+          <span className="font-mono">full_text</span> is truncated, because a cut row skips full-text near and
+          template matching except when a later post contains its stored prefix or near-matches that prefix;
           whether an exact copy is between two syndicating outlets, because that stays a copy; and whether a lone template
           match is the only evidence. If the grade line says thin sample, count the posts in the {SCORE_WINDOW.start}–
           {SCORE_WINDOW.end} window against the {THRESHOLDS.leaderboardMinPosts}-post minimum.

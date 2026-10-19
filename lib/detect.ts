@@ -9,6 +9,7 @@ import {
   peelRetweet,
   sharedCount,
   tokensOf,
+  truncatedPrefix,
 } from "./normalize";
 import { compareText } from "./order";
 import { passesAmplifierGate, SCORE_WINDOW, THRESHOLDS } from "./thresholds";
@@ -40,6 +41,8 @@ type Features = {
   frameNarrativeIds: string[];
   framePhrases: string[];
   credits: SourceCredit[];
+  /** Normalized prefix of a truncated post. Empty when the post is complete or the prefix is too short. */
+  prefix: string;
 };
 
 const WINDOW_MS = THRESHOLDS.clusterWindowHours * 60 * 60 * 1000;
@@ -89,6 +92,7 @@ function featurize(post: FixturePost, narratives: Corpus["narratives"]): Feature
     frameNarrativeIds: frames.ids,
     framePhrases: frames.phrases,
     credits: extractCredits(post.text),
+    prefix: post.textTruncated ? truncatedPrefix(post.text) : "",
   };
 }
 
@@ -452,6 +456,9 @@ function wordingCopied(current: string[], previous: string[]): boolean {
  * Similarity only. Credit text never drops a near or template match.
  * A syndicating outlet's template paraphrase is not a clone. Exact copies, including
  * exact copies between two syndicating outlets, stay matches.
+ * A truncated row skips full-text near and template comparison. A later post can
+ * still copy it when the stored prefix is long enough: contained text is exact,
+ * and a near match over the later post's leading span is near.
  */
 function pairMatch(
   current: Features,
@@ -465,6 +472,16 @@ function pairMatch(
     kind = "exact";
     score = 1;
     shared = sharedCount(current.grams, prev.grams);
+  } else if (prev.prefix.length >= THRESHOLDS.prefixMinChars && current.normalized.includes(prev.prefix)) {
+    kind = "exact";
+    score = 1;
+    shared = sharedCount(current.grams, prev.grams);
+  } else if (prev.prefix.length >= THRESHOLDS.prefixMinChars) {
+    const prefixTokens = tokensOf(prev.prefix);
+    const lead = new Set(current.tokens.slice(0, prefixTokens.length));
+    score = jaccard(new Set(prefixTokens), lead);
+    shared = sharedCount(current.grams, prev.grams);
+    if (score >= THRESHOLDS.nearDupeJaccard) kind = "near";
   } else if (!truncated) {
     score = jaccard(current.tokenSet, prev.tokenSet);
     shared = sharedCount(current.grams, prev.grams);

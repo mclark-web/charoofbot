@@ -8,6 +8,11 @@ export const THRESHOLDS = {
   templateSharedFourGrams: 2,
   /** Shorter normalized texts are not clustered. */
   minTokens: 8,
+  /**
+   * A truncated row can still be copied when its stored prefix is at least this
+   * long. The prefix drops a trailing t.co link and the partial last word.
+   */
+  prefixMinChars: 120,
   /** Copies only join a cluster inside this window after first seen. */
   clusterWindowHours: 14 * 24,
   cloneExactWeight: 70,

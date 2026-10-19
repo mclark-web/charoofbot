@@ -463,27 +463,37 @@ describe("false-positive classes", () => {
     assert.equal(share.accounts.find((item) => item.handle === "bot")?.label, "Clone");
   });
 
-  it("keeps truncated text out of near-duplicate and template matches", () => {
+  it("copies a truncated row by its stored prefix and skips other fuzzy matches", () => {
     const full =
       "lenders repossessed thousands of homes in august and the filings jumped from a year earlier while new foreclosure starts barely grew";
-    const earlier =
-      "lenders repossessed thousands of houses in august and the filings jumped from a year earlier while new foreclosure starts barely grew";
     const later =
       "lenders repossessed thousands of homes in august and the filings jumped from a year earlier while new foreclosure starts barely grew today";
+    const stored =
+      "Banks are taking back more homes. Lenders repossessed 5794 homes in August, up 42 percent from a year ago and 22 percent from July, per the county filing desk. That is far faster than the 13 percent rise in overall foreclosure filings, meaning more distressed homeowners are reaching the end of the process https://t.co/foreclosure";
     const report = analyzeCorpus(
       corpus([
         post({ id: "full", account: "desk", postedAt: "2026-10-10T12:00:00.000Z", text: full }),
         post({ id: "cut-later", account: "other", postedAt: "2026-10-10T13:00:00.000Z", text: later, textTruncated: true }),
-        post({ id: "cut-earlier", account: "third", postedAt: "2026-10-10T11:00:00.000Z", text: earlier, textTruncated: true }),
+        post({ id: "cut-source", account: "wire", postedAt: "2026-10-10T11:00:00.000Z", text: stored, textTruncated: true }),
+        post({ id: "contains", account: "copy", postedAt: "2026-10-10T15:00:00.000Z", text: `${stored.replace(" https://t.co/foreclosure", "")} and the county clerk confirmed the count.` }),
+        post({ id: "near-prefix", account: "edit", postedAt: "2026-10-10T16:00:00.000Z", text: stored.replace("5794", "5800").replace(" https://t.co/foreclosure", " today") }),
         post({ id: "same", account: "fourth", postedAt: "2026-10-10T14:00:00.000Z", text: full, textTruncated: true }),
+        post({ id: "template", account: "skel", postedAt: "2026-10-10T17:00:00.000Z", text: "A different desk note about rainfall, wheat shipments, and a quiet bond close with no shared foreclosure wording at all." }),
       ]),
     );
     assert.equal(report.posts.find((item) => item.id === "cut-later")?.role, "solo");
-    assert.equal(report.posts.find((item) => item.id === "cut-earlier")?.role, "solo");
+    assert.equal(report.posts.find((item) => item.id === "cut-source")?.role, "originator");
     assert.equal(report.posts.find((item) => item.id === "full")?.role, "originator");
     const exact = report.posts.find((item) => item.id === "same");
     assert.equal(exact?.role, "exact");
     assert.equal(exact?.matchedPostId, "full");
+    const contained = report.posts.find((item) => item.id === "contains");
+    assert.equal(contained?.role, "exact");
+    assert.equal(contained?.matchedPostId, "cut-source");
+    const near = report.posts.find((item) => item.id === "near-prefix");
+    assert.equal(near?.role, "near");
+    assert.equal(near?.matchedPostId, "cut-source");
+    assert.equal(report.posts.find((item) => item.id === "template")?.role, "solo");
 
     const unflagged = analyzeCorpus(
       corpus([
@@ -727,18 +737,27 @@ describe("real corpus after the rules", () => {
     for (const id of ["2111889643503259923", "2111890078922375229"]) {
       const copied = report.posts.find((item) => item.id === id);
       assert.equal(copied?.account, "twrzalinski1", id);
+      assert.equal(copied?.textTruncated, undefined, id);
+      assert.equal(copied?.matchedPostId, "2111865138747752678", id);
       assert.equal(copied?.matchedAccount, "unusual_whales", id);
       assert.equal(isCopyRole(copied?.role ?? "solo"), true, `${id} ${copied?.role}`);
     }
+    const foreclosure = report.posts.find((item) => item.id === "2111865138747752678");
+    assert.equal(foreclosure?.account, "unusual_whales");
+    assert.equal(foreclosure?.textTruncated, undefined);
+    assert.equal(foreclosure?.text.includes("per ATTOM"), true);
     const leading = report.posts.find((item) => item.id === "2111883300516098419");
     assert.equal(leading?.account, "LeadingReport");
     assert.equal(leading?.matchedAccount, "Reuters");
     assert.equal(leading?.role, "syndicated");
+    // The stored text is cut, so the old template match to CNBC is skipped.
+    // The [CNBC] credit is still read, and it does not create a match by itself.
     const bracket = report.posts.find((item) => item.id === "2107395357952905438");
     assert.equal(bracket?.account, "miraclemasui");
+    assert.equal(bracket?.textTruncated, true);
     assert.ok(extractCredits(bracket?.text ?? "").some((credit) => credit.name === "CNBC"));
-    assert.equal(bracket?.matchedAccount, "CNBC");
-    assert.equal(bracket?.role, "syndicated");
+    assert.equal(bracket?.matchedAccount, null);
+    assert.equal(bracket?.role, "solo");
   });
 
   it("gives ConflictAlarm and MofaYasir the same copy verdict as each other", () => {
@@ -773,7 +792,7 @@ describe("real corpus after the rules", () => {
     assert.equal(quinn.graded, false);
   });
 
-  it("keeps truncated notes on exact hash only", () => {
+  it("keeps truncated notes off template matches", () => {
     const flagged = [
       "2110431151793848340",
       "2110923292747940044",
@@ -785,7 +804,7 @@ describe("real corpus after the rules", () => {
       const post = report.posts.find((item) => item.id === id);
       assert.equal(post?.textTruncated, true, id);
       if (post && post.role !== "solo" && post.role !== "originator") {
-        assert.equal(post.role, "exact", id);
+        assert.ok(post.role === "exact" || post.role === "near", `${id} ${post.role}`);
       }
     }
   });
