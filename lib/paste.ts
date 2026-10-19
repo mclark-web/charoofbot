@@ -1,4 +1,4 @@
-import corpusJson from "@/data/corpus.json";
+import corpusJson from "@/data/fixture-corpus.json";
 import { parseCreatedAt } from "./age";
 import { analyzeCorpus } from "./detect";
 import { DEMO_PASTE_STAMP } from "./thresholds";
@@ -159,7 +159,8 @@ function parseJson(raw: string, stamp: string): PasteParse {
           ? record.handle
           : "pasted";
     const account = handleRaw.replace(/^@/, "").toLowerCase() || "pasted";
-    const action = record.action === "quote" || record.action === "reply" ? record.action : "post";
+    let action: PostAction = record.action === "quote" || record.action === "reply" || record.action === "repost" ? record.action : "post";
+    if (text.startsWith("RT @")) action = "repost";
     const postedAt =
       typeof record.postedAt === "string" && !Number.isNaN(Date.parse(record.postedAt))
         ? new Date(record.postedAt).toISOString()
@@ -245,7 +246,7 @@ export function runPaste(raw: string): PasteRun {
   }
   const warnings = [...parsed.warnings];
   for (const handle of ignoredAges) {
-    warnings.push(`@${handle} keeps the fixture created date. The pasted age was ignored.`);
+    warnings.push(`@${handle} keeps the practice set created date. The pasted age was ignored.`);
   }
   return { warnings, findings, accounts, report };
 }

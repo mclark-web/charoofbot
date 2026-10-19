@@ -95,12 +95,16 @@ export function showsEmptyGlass(score: GradeInput, graded = true): boolean {
 }
 
 /**
- * Organic reach uses the detector amplifier gate: 2+ boosts on 2+ days and a
- * signal of at least 45. Anything else is withheld, not flipped.
- * Scoring itself is unchanged; only the scale input is.
+ * Organic reach uses the detector amplifier gate: repeated boosts on enough days,
+ * a timeline baseline, and a signal of at least 45. Anything else is withheld.
  */
-export function amplifierScaleScore(boostPostCount: number, ampScore: number, boostDays: number): GradeInput {
-  if (!passesAmplifierGate(ampScore, boostPostCount, boostDays)) return "withheld";
+export function amplifierScaleScore(
+  boostPostCount: number,
+  ampScore: number,
+  boostDays: number,
+  timelinePostCount?: number,
+): GradeInput {
+  if (!passesAmplifierGate(ampScore, boostPostCount, boostDays, timelinePostCount)) return "withheld";
   return ampScore;
 }
 

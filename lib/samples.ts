@@ -1,4 +1,4 @@
-import corpusJson from "../data/corpus.json";
+import corpusJson from "../data/fixture-corpus.json";
 import type { Corpus } from "./types";
 
 const corpus = corpusJson as Corpus;
@@ -15,14 +15,20 @@ export const samplePastes = {
   {
     "account": "@fresh_horn",
     "text": "AI capex supercycle keeps showing up in my replies this week, and I still have not opened a supplier filing.",
-    "accountCreatedAt": "2026-09-08",
-    "postedAt": "2026-09-20T15:00:00.000Z"
+    "accountCreatedAt": "2026-10-04",
+    "postedAt": "2026-10-16T15:00:00.000Z"
   },
   {
     "account": "@fresh_horn",
     "text": "Passing the AI capex supercycle along again today. No supplier invoice on my side, just the frame.",
-    "accountCreatedAt": "2026-09-08",
-    "postedAt": "2026-09-21T16:00:00.000Z"
+    "accountCreatedAt": "2026-10-04",
+    "postedAt": "2026-10-17T16:00:00.000Z"
+  },
+  {
+    "account": "@fresh_horn",
+    "text": "AI capex supercycle one more day. I am repeating the frame, not filing a new purchase order.",
+    "accountCreatedAt": "2026-10-04",
+    "postedAt": "2026-10-18T16:00:00.000Z"
   }
 ]`,
 } as const;

@@ -9,7 +9,7 @@ import { samplePastes } from "./samples";
 import type { Corpus } from "./types.ts";
 
 const corpus = JSON.parse(
-  readFileSync(new URL("../data/corpus.json", import.meta.url), "utf8"),
+  readFileSync(new URL("../data/fixture-corpus.json", import.meta.url), "utf8"),
 ) as Corpus;
 
 const report = analyzeCorpus(corpus);
@@ -226,7 +226,7 @@ describe("paste bench", () => {
 
   it("reads a created date, an age in days, and keeps fixture ages", () => {
     const joined = runPaste(
-      "@week_old\njoined: 2026-09-01\nAI capex supercycle keeps showing up in my replies this week, and I still have not opened a supplier filing.",
+      "@week_old\njoined: 2026-09-27\nAI capex supercycle keeps showing up in my replies this week, and I still have not opened a supplier filing.",
     );
     assert.equal(joined.findings[0].ageBand, "fresh");
     assert.equal(joined.findings[0].ageDays, 21);
@@ -249,12 +249,16 @@ describe("paste bench", () => {
     const fixture = runPaste(JSON.stringify([{ account: "copy_lane", text: "A short aside.", ageDays: 9000 }]));
     assert.equal(fixture.findings[0].ageBand, "fresh");
     assert.equal(fixture.findings[0].ageDays, 17);
-    assert.ok(fixture.warnings.some((warning) => warning.includes("copy_lane")));
+    assert.ok(
+      fixture.warnings.some(
+        (warning) => warning === "@copy_lane keeps the practice set created date. The pasted age was ignored.",
+      ),
+    );
   });
 
   it("badges a fresh amplifier without turning the paste into clone speech", () => {
     const run = runPaste(samplePastes.fresh);
-    assert.equal(run.findings.length, 2);
+    assert.equal(run.findings.length, 3);
     for (const finding of run.findings) {
       assert.equal(finding.role, "solo");
       assert.equal(finding.isBoost, true);
