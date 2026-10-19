@@ -98,20 +98,7 @@ for (const row of postRows) {
     throw new Error(`posts.csv: post ${row.post_id} has action repost but the text does not start with "RT @"`);
   }
   if (row.narrative_id && !narrativeIds.has(row.narrative_id)) throw new Error(`posts.csv: post ${row.post_id} names unknown narrative ${row.narrative_id}`);
-  if (row.ref_post_id && postById.has(row.ref_post_id)) {
-    const target = postById.get(row.ref_post_id);
-    if (target.created_at > row.created_at || (target.created_at === row.created_at && target.post_id > row.post_id)) {
-      throw new Error(
-        `posts.csv: post ${row.post_id} ref_post_id ${row.ref_post_id} points at a later post (${target.created_at} is after ${row.created_at})`,
-      );
-    }
-    const earliest = sameText.get(target.text.trim())[0];
-    if (earliest.post_id !== target.post_id) {
-      throw new Error(
-        `posts.csv: post ${row.post_id} ref_post_id ${row.ref_post_id} is not the earliest match (earliest is ${earliest.post_id})`,
-      );
-    }
-  }
+  assertRef(row, postById, sameText);
 }
 
 const corpus = {
@@ -158,6 +145,49 @@ const corpus = {
 
 function effectivelyTruncated(row) {
   return row.full_text === "truncated" || row.text_truncated === "true";
+}
+
+// Same clock time breaks by snowflake id. 2111201312607981974 quotes
+// 2111201310351495320 in the same second; the smaller id was issued first.
+function isStrictlyEarlier(target, row) {
+  if (target.created_at < row.created_at) return true;
+  if (target.created_at > row.created_at) return false;
+  return BigInt(target.post_id) < BigInt(row.post_id);
+}
+
+function assertRef(row, postById, sameText) {
+  const flag = row.ref_in_corpus;
+  if (flag !== "true" && flag !== "false") {
+    throw new Error(
+      `posts.csv: post ${row.post_id} ref_in_corpus must be true or false, got ${JSON.stringify(flag)}`,
+    );
+  }
+  const ref = row.ref_post_id;
+  const target = ref ? postById.get(ref) : undefined;
+  if (flag === "false") {
+    if (target) {
+      throw new Error(
+        `posts.csv: post ${row.post_id} ref_post_id ${ref} is in posts.csv, so ref_in_corpus must be true`,
+      );
+    }
+    return;
+  }
+  if (!target) {
+    throw new Error(
+      `posts.csv: post ${row.post_id} ref_in_corpus is true but ref_post_id ${JSON.stringify(ref || "")} is not in posts.csv`,
+    );
+  }
+  if (!isStrictlyEarlier(target, row)) {
+    throw new Error(
+      `posts.csv: post ${row.post_id} ref_post_id ${ref} is not strictly earlier (${target.created_at} ${target.post_id} vs ${row.created_at} ${row.post_id}). Clear the ref if it is not an earlier source.`,
+    );
+  }
+  const earliest = sameText.get(target.text.trim())[0];
+  if (earliest.post_id !== target.post_id) {
+    throw new Error(
+      `posts.csv: post ${row.post_id} ref_post_id ${ref} is not the earliest match (earliest is ${earliest.post_id})`,
+    );
+  }
 }
 
 if (process.argv[1]?.endsWith("build-corpus.mjs")) {

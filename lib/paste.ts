@@ -246,7 +246,7 @@ export function runPaste(raw: string): PasteRun {
   }
   const warnings = [...parsed.warnings];
   for (const handle of ignoredAges) {
-    warnings.push(`@${handle} keeps the fixture created date. The pasted age was ignored.`);
+    warnings.push(`@${handle} keeps the practice set created date. The pasted age was ignored.`);
   }
   return { warnings, findings, accounts, report };
 }

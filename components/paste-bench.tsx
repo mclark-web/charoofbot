@@ -13,7 +13,7 @@ import { samplePastes } from "@/lib/samples";
 import type { AccountReport, AnnotatedPost } from "@/lib/types";
 
 const SAMPLES = [
-  { id: "exact", label: "Exact fixture duplicate", text: samplePastes.exact },
+  { id: "exact", label: "Exact practice set duplicate", text: samplePastes.exact },
   { id: "near", label: "Near-duplicate", text: samplePastes.near },
   { id: "amp", label: "Boost framing", text: samplePastes.amp },
   { id: "clean", label: "Unrelated note", text: samplePastes.clean },
@@ -66,7 +66,7 @@ export function PasteBench() {
         </div>
         <div className="tap-row">
           <button type="submit" className="btn btn-primary">
-            Score against fixtures
+            Score against the practice set
           </button>
           <p className="text-sm text-ink-soft">Runs in the browser. Nothing is uploaded.</p>
         </div>
