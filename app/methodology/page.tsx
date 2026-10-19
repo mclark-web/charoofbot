@@ -4,7 +4,7 @@ import { AMPLIFIER_NOT_AVAILABLE_SENTENCE, ORGANIC_REACH_RULE } from "@/componen
 import { formatStamp } from "@/lib/format";
 import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
 import { AGE_AS_OF, SCORE_WINDOW, THRESHOLDS } from "@/lib/thresholds";
-import { WIRE_OUTLETS } from "@/lib/wires";
+import { RECOGNIZED_NEWS_OUTLETS, WIRE_OUTLETS } from "@/lib/wires";
 
 export const metadata: Metadata = {
   title: "Methodology",
@@ -22,8 +22,8 @@ export default function MethodologyPage() {
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
           GCBot phase 0 shows one headline GC score, with original voice underneath, without an API bill.
           Higher on the GC Scale means more authentic, and STRONG means trustworthy. The numbers below are the
-          detector constants. The headline GC score is 100 minus the copy score, and amplifier detection is not in that
-          number. {AMPLIFIER_NOT_AVAILABLE_SENTENCE}
+          detector constants. The headline GC score is 100 minus the copy score. Amplifier detection is not in that
+          number, as the Thresholds section explains.
         </p>
       </header>
 
@@ -63,7 +63,7 @@ export default function MethodologyPage() {
         <p className="leading-relaxed">
           The detector still flags Originator, Clone, or Clean on this corpus. Amplifier and Clone+Amp stay in the
           practice paste bench, where a supplied timeline can clear the boost gate. Those badges mark the flag. They
-          are not grade pills. The GC Scale is authenticity. {AMPLIFIER_NOT_AVAILABLE_SENTENCE}
+          are not grade pills. The GC Scale is authenticity.
         </p>
       </section>
 
@@ -71,8 +71,8 @@ export default function MethodologyPage() {
         <h2 className="font-serif text-2xl">How the GC Scale is shown</h2>
         <p className="leading-relaxed">
           Display only: the headline authenticity is 100 − the copy score. A graded, finite copy signal is flipped.
-          The organic-reach meter on these accounts is not a number. It reads Not graded yet.{" "}
-          {AMPLIFIER_NOT_AVAILABLE_SENTENCE} Withheld values are never flipped into 100 STRONG. A reading above 100 is not graded.
+          The organic-reach meter on these accounts is not a number. It reads Not graded yet. Withheld values are
+          never flipped into 100 STRONG. A reading above 100 is not graded.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           <li>70 and above is STRONG. That is the trustworthy band.</li>
@@ -95,8 +95,12 @@ export default function MethodologyPage() {
           Near-duplicates use token Jaccard on those normalized words. Template matches require at least{" "}
           {THRESHOLDS.templateSharedFourGrams} shared 4-grams and a Jaccard of at least{" "}
           {THRESHOLDS.templateJaccard}, while staying under the near-duplicate line. Posts shorter than{" "}
-          {THRESHOLDS.minTokens} tokens are not clustered. A post whose stored text is marked truncated stays out of
-          near-duplicate and template matching, because the wording is incomplete. An exact hash can still match.
+          {THRESHOLDS.minTokens} tokens are not clustered. Each stored post has a{" "}
+          <span className="font-mono">full_text</span> value. <span className="font-mono">verified</span> means the
+          text was checked and is complete. <span className="font-mono">truncated</span> means the stored text is cut
+          off: that row skips near-duplicate and template matching, an exact hash can still match, and the page adds
+          an ellipsis. <span className="font-mono">unknown</span> means not yet checked. Unknown does not skip
+          matching and does not add a badge or an ellipsis. Only truncated rows skip fuzzy matching.
         </p>
       </section>
 
@@ -201,29 +205,48 @@ export default function MethodologyPage() {
         </p>
         <h3 className="font-serif text-xl">Attributed reposts</h3>
         <p className="leading-relaxed">
-          Credit zeroes clone weight only on the post that names the source, and only when that source is the
-          cluster’s originator or a recognized outlet (Reuters, Bloomberg, CNBC, WSJ, AP, FT, CoinDesk, the Conference
-          Board, and aliases such as CNBC Markets and CNBC Top News). Explicit credit is{" "}
-          <span className="font-mono">via @handle</span> or <span className="font-mono">Source: @handle</span>.{" "}
-          <span className="font-mono">h/t</span> counts only when a handle or outlet follows it. A bare h/t gives no
-          credit. Attributed syndication is <span className="font-mono">per</span>, <span className="font-mono">via</span>,{" "}
-          <span className="font-mono">Source:</span>, or <span className="font-mono">출처:</span> plus that outlet name.
-          The crediting post stays visible as Attributed or Syndicated and weighs {THRESHOLDS.cloneAttributedWeight}.
-          One credit does not clear the other posts in the cluster. Uncredited exact and near copies keep their clone
-          weight. The earliest in-corpus account stays the Originator unless an earlier in-corpus post exists. A quote
-          post is not credit by itself. Ordinary phrases such as “via the market” or “per share” are not credits. A
-          repost stored as <span className="font-mono">RT @</span> uses action <span className="font-mono">repost</span>{" "}
-          and is left out of copy matching.
+          Credit zeroes clone weight only on the post that names the source. It never clears the other posts in the
+          cluster. The similarity threshold decides whether a reworded headline is a copy. A near or template match
+          stays a copy unless this credit rule clears that post. The credit text itself never drops a match.{" "}
+          <span className="font-mono">per Reuters</span>, <span className="font-mono">- Reuters</span>, and{" "}
+          <span className="font-mono">via Reuters</span> are the same credit.
         </p>
+        <p className="leading-relaxed">
+          A handle credit (<span className="font-mono">via @handle</span> or{" "}
+          <span className="font-mono">Source: @handle</span>) or <span className="font-mono">h/t</span> plus a handle
+          counts only when that handle is the cluster’s originator. A bare h/t gives no credit. A quote is not credit.
+          A repost stored as <span className="font-mono">RT @</span> uses action{" "}
+          <span className="font-mono">repost</span> and is left out of copy matching.
+        </p>
+        <p className="leading-relaxed">
+          An outlet credit counts only when the name is one of the recognized news outlets below, that outlet’s own
+          account is the originator or also posted in the cluster, and the crediting post is not a verbatim or near
+          copy of a different account. The forms are <span className="font-mono">per</span>,{" "}
+          <span className="font-mono">via</span>, <span className="font-mono">Source:</span>,{" "}
+          <span className="font-mono">출처:</span>, a share-button line (<span className="font-mono">- CNBC</span> or{" "}
+          <span className="font-mono">CNBC-</span>), and a bracket tag (<span className="font-mono">[CNBC]</span>).
+          Naming Goldman, ATTOM, or any other name that is not a recognized news outlet does not zero the score. The
+          crediting post stays visible as Attributed or Syndicated and weighs {THRESHOLDS.cloneAttributedWeight}.
+          Uncredited exact and near copies keep their clone weight. The earliest in-corpus account stays the
+          Originator. Ordinary phrases such as “via the market” or “per share” are not credits.
+        </p>
+        <ul className="list-disc space-y-2 pl-5 leading-relaxed">
+          {RECOGNIZED_NEWS_OUTLETS.map((outlet) => (
+            <li key={outlet.handle}>
+              @{outlet.handle}
+              {outlet.names.length > 0 ? ` · ${outlet.names.join(", ")}` : ""}
+            </li>
+          ))}
+        </ul>
         <h3 className="font-serif text-xl">Syndicated wires</h3>
         <p className="leading-relaxed">
-          When two or more recognized news outlets share a headline, that text is one cluster. The earliest poster is
-          the originator. The other outlets in the set are Syndicated, with copy weight 0. They are not clones of each
-          other. An account outside the set that pastes the same headline without a credit is still a copy. A single
-          outlet copying a non-outlet, with no second outlet in the cluster, is still a copy. Naming Goldman, or any
-          name that is not the originator and not a recognized outlet, does not zero anyone’s score. A credit on one
-          post never marks the whole cluster source outside corpus and never drops the clone weight on an uncredited
-          copy.
+          When two or more of these outlet accounts share a headline as a near or template paraphrase, that text is
+          one cluster. The earliest poster is the originator. The other outlets in the set are Syndicated, with copy
+          weight 0. They are not clones of each other for that paraphrase. An exact copy between two of them is not
+          cleared: it stays a copy. An account outside the set that pastes the same headline without a qualifying
+          credit is still a copy. A single outlet copying a non-outlet, with no second outlet in the cluster, is still
+          a copy. A credit on one post never marks the whole cluster source outside corpus and never drops the clone
+          weight on an uncredited copy.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           {WIRE_OUTLETS.map((outlet) => (
@@ -242,8 +265,8 @@ export default function MethodologyPage() {
           reads “{THIN_SAMPLE_LINE}” and no GC percent is shown. An account with no posts in the window reads
           “{NO_POSTS_LINE}.” The lanes omit that account. The account page uses those same two lines for the headline
           and for original voice. When no graded account is under STRONG, the lane reads “No graded account is under
-          STRONG yet.” A thin sample is not a 0 and not a STRONG meter.
-          The organic-reach meter is a separate “Not graded yet.” {AMPLIFIER_NOT_AVAILABLE_SENTENCE}
+          STRONG yet.” A thin sample is not a 0 and not a STRONG meter. The organic-reach meter is a separate “Not
+          graded yet.”
         </p>
       </section>
 
@@ -265,11 +288,14 @@ export default function MethodologyPage() {
         <h2 className="font-serif text-2xl">How to dispute</h2>
         <p className="leading-relaxed">
           A skeptic should be able to re-run the text. Paste the post, read the hash, and compare it with the cluster
-          diff. Check these before treating the label as final: whether the match is your own earlier post, whether you
-          were the earliest account in the cluster, whether the text credits a source with via, per, Source:, or 출처:,
-          whether the named source sits outside the corpus, whether both accounts are on the wire list above, and
-          whether a lone template match is the only evidence. If the grade line says thin sample, count the posts in
-          the {SCORE_WINDOW.start}–{SCORE_WINDOW.end} window against the {THRESHOLDS.leaderboardMinPosts}-post minimum.
+          diff. Check these before treating the label as final: whether the match is your own earlier post; whether you
+          were the earliest account in the cluster; whether an outlet credit names a recognized news outlet whose
+          account is the originator or also posted in the cluster; whether the post is a verbatim or near copy of a
+          different account, in which case that credit does not count; whether{" "}
+          <span className="font-mono">full_text</span> is truncated, because only truncated rows skip fuzzy matching;
+          whether an exact copy is between two wire outlets, because that stays a copy; and whether a lone template
+          match is the only evidence. If the grade line says thin sample, count the posts in the {SCORE_WINDOW.start}–
+          {SCORE_WINDOW.end} window against the {THRESHOLDS.leaderboardMinPosts}-post minimum.
         </p>
         <p className="leading-relaxed">
           If the label is still wrong, the review queue for a solo operator is manual: one draft, one person, no

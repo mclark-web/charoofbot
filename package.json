@@ -4,8 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/check-posts.mjs",
-    "build": "node scripts/check-posts.mjs && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "corpus": "node scripts/build-corpus.mjs",

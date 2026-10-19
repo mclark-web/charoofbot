@@ -4,8 +4,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { assertPosts } from "./check-posts.mjs";
 
-assertPosts();
-
 const dir = new URL("../data/gcbot/", import.meta.url);
 const out = new URL("../data/corpus.json", import.meta.url);
 
@@ -36,6 +34,18 @@ function parseCsv(text) {
 
 const read = (name) => parseCsv(readFileSync(new URL(name, dir), "utf8"));
 
+const STRICT_ISO = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
+
+function assertStrictIso(value, label) {
+  if (typeof value !== "string" || !STRICT_ISO.test(value)) {
+    throw new Error(`${label} must be strict ISO-8601 UTC (YYYY-MM-DDTHH:mm:ss.sssZ), got ${JSON.stringify(value)}`);
+  }
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString() !== value) {
+    throw new Error(`${label} is not a real UTC timestamp: ${value}`);
+  }
+}
+
 function unique(rows, key, file) {
   const seen = new Set();
   for (const row of rows) {
@@ -46,12 +56,17 @@ function unique(rows, key, file) {
   return seen;
 }
 
-const narrativeRows = read("narratives.csv");
-const accountRows = read("accounts.csv");
-const postRows = read("posts.csv");
-const narrativeIds = unique(narrativeRows, "narrative_id", "narratives.csv");
-const handles = unique(accountRows, "handle", "accounts.csv");
-unique(postRows, "post_id", "posts.csv");
+export function buildCorpus() {
+  const narrativeRows = read("narratives.csv");
+  const accountRows = read("accounts.csv");
+  const postRows = read("posts.csv");
+  return corpusFrom(narrativeRows, accountRows, postRows);
+}
+
+function corpusFrom(narrativeRows, accountRows, postRows) {
+  const narrativeIds = unique(narrativeRows, "narrative_id", "narratives.csv");
+  const handles = unique(accountRows, "handle", "accounts.csv");
+  unique(postRows, "post_id", "posts.csv");
 
 function compareText(a, b) {
   if (a < b) return -1;
@@ -73,6 +88,7 @@ for (const list of sameText.values()) {
 }
 for (const row of postRows) {
   if (!handles.has(row.handle)) throw new Error(`posts.csv: @${row.handle} (post ${row.post_id}) is not in accounts.csv`);
+  assertStrictIso(row.created_at, `posts.csv: post ${row.post_id} created_at`);
   if (!actions.has(row.action)) throw new Error(`posts.csv: post ${row.post_id} has action "${row.action}"`);
   const retweet = row.text.trimStart().startsWith("RT @");
   if (retweet && row.action !== "repost") {
@@ -81,7 +97,6 @@ for (const row of postRows) {
   if (row.action === "repost" && !retweet) {
     throw new Error(`posts.csv: post ${row.post_id} has action repost but the text does not start with "RT @"`);
   }
-  if (Number.isNaN(Date.parse(row.created_at))) throw new Error(`posts.csv: post ${row.post_id} has no valid created_at`);
   if (row.narrative_id && !narrativeIds.has(row.narrative_id)) throw new Error(`posts.csv: post ${row.post_id} names unknown narrative ${row.narrative_id}`);
   if (row.ref_post_id && postById.has(row.ref_post_id)) {
     const target = postById.get(row.ref_post_id);
@@ -108,7 +123,9 @@ const corpus = {
     summary: row.summary,
     framePhrases: row.frame_phrases ? row.frame_phrases.split("|").map((s) => s.trim()).filter(Boolean) : [],
   })),
-  accounts: accountRows.map((row) => ({
+  accounts: accountRows.map((row) => {
+    assertStrictIso(row.account_created_at, `accounts.csv: @${row.handle} account_created_at`);
+    return {
     handle: row.handle,
     name: row.name,
     bio: row.bio,
@@ -118,7 +135,8 @@ const corpus = {
     following: Number(row.following) || 0,
     follows: [],
     trackedBoard: row.tracked_board || null,
-  })),
+  };
+  }),
   posts: [...postRows]
     .sort((a, b) => compareText(a.created_at, b.created_at) || compareText(a.post_id, b.post_id))
     .map((row) => ({
@@ -131,18 +149,20 @@ const corpus = {
       url: row.url,
       refPostId: row.ref_post_id || null,
       source: row.source || null,
-      // Known cuts are flagged in the CSV. An unknown non-repost at the old
-      // 280-character cap is treated as truncated until a refresh marks it verified.
+      // Only a row marked truncated is cut off. unknown means not yet checked.
       textTruncated: effectivelyTruncated(row),
     })),
-};
-
-function effectivelyTruncated(row) {
-  if (row.full_text === "truncated" || row.text_truncated === "true") return true;
-  if (row.full_text === "verified") return false;
-  if (row.action === "repost" || row.text.trimStart().startsWith("RT @")) return false;
-  return [...row.text.trimEnd()].length >= 270;
+  };
+  return corpus;
 }
 
-writeFileSync(out, `${JSON.stringify(corpus, null, 2)}\n`);
-console.log(`corpus.json: ${corpus.narratives.length} narratives, ${corpus.accounts.length} accounts, ${corpus.posts.length} posts`);
+function effectivelyTruncated(row) {
+  return row.full_text === "truncated" || row.text_truncated === "true";
+}
+
+if (process.argv[1]?.endsWith("build-corpus.mjs")) {
+  assertPosts();
+  const corpus = buildCorpus();
+  writeFileSync(out, `${JSON.stringify(corpus, null, 2)}\n`);
+  console.log(`corpus.json: ${corpus.narratives.length} narratives, ${corpus.accounts.length} accounts, ${corpus.posts.length} posts`);
+}

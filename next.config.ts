@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import type { NextConfig } from "next";
 
 // Vercel invokes `next build` directly, which skips npm prebuild.
-execFileSync(process.execPath, ["scripts/check-posts.mjs"], { stdio: "inherit" });
+execFileSync(process.execPath, ["scripts/check-build.mjs"], { stdio: "inherit" });
 
 const nextConfig: NextConfig = {
   images: {

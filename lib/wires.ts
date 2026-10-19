@@ -1,8 +1,9 @@
 /**
- * Verified major news outlets in the real corpus.
+ * Outlet accounts in the real corpus, including local desks such as KING5Seattle.
  * Handles are the X handles, matched case-sensitively.
- * Syndicated wire text among two or more of these accounts is one cluster
- * with an originator. The other outlets are not scored as clones of each other.
+ * A near or template paraphrase among two or more of these accounts is one cluster
+ * with an originator. Those paraphrases are not scored as clones of each other.
+ * An exact copy between two of these accounts stays a copy.
  */
 export const WIRE_OUTLETS: readonly { handle: string; name: string }[] = [
   { handle: "Reuters", name: "Reuters" },
@@ -79,3 +80,21 @@ export function isRecognizedOutlet(name: string): boolean {
 export function outletAccounts(name: string): readonly string[] {
   return OUTLET_ACCOUNTS[outletKey(name)] ?? [];
 }
+
+/** Recognized news outlets: the X handle, and the credit names that map to it. */
+export type RecognizedNewsOutlet = {
+  handle: string;
+  names: readonly string[];
+};
+
+export const RECOGNIZED_NEWS_OUTLETS: readonly RecognizedNewsOutlet[] = (() => {
+  const namesByHandle = new Map<string, string[]>();
+  for (const [name, handles] of Object.entries(OUTLET_ACCOUNTS)) {
+    for (const handle of handles) {
+      const list = namesByHandle.get(handle);
+      if (list) list.push(name);
+      else namesByHandle.set(handle, [name]);
+    }
+  }
+  return [...namesByHandle.entries()].map(([handle, names]) => ({ handle, names }));
+})();

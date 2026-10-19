@@ -129,6 +129,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
   const matchedId = new Map<string, string | null>();
   const matchedJ = new Map<string, number>();
   const matchedG = new Map<string, number>();
+  const featureById = new Map(features.map((feature) => [feature.post.id, feature]));
 
   for (let index = 0; index < features.length; index++) {
     const current = features[index];
@@ -158,34 +159,9 @@ export function analyzeCorpus(corpus: Corpus): Report {
       const delta = currentMs - Date.parse(prev.post.postedAt);
       if (delta < 0 || delta > WINDOW_MS) continue;
 
-      let kind: MatchKind | null = null;
-      let score = 0;
-      let shared = 0;
-      const truncated = Boolean(current.post.textTruncated || prev.post.textTruncated);
-      if (current.hash === prev.hash) {
-        kind = "exact";
-        score = 1;
-        shared = sharedCount(current.grams, prev.grams);
-      } else if (!truncated) {
-        score = jaccard(current.tokenSet, prev.tokenSet);
-        shared = sharedCount(current.grams, prev.grams);
-        if (score >= THRESHOLDS.nearDupeJaccard) kind = "near";
-        else if (
-          shared >= THRESHOLDS.templateSharedFourGrams &&
-          score >= THRESHOLDS.templateJaccard
-        ) {
-          kind = "template";
-        }
-      }
-      if (kind && kind !== "exact" && !wordingCopied(current.tokens, prev.tokens)) {
-        // A wire outlet's paraphrase of a wire story is not a clone.
-        if (kind === "template" && isWireOutlet(current.post.account)) kind = null;
-        // A reworded headline that credits some other named source is not a clone
-        // of this post. Exact copies, and posts that still contain the other
-        // post's wording, stay matches.
-        if (kind && creditedReword(current, prev.post.account)) kind = null;
-      }
-      if (!kind) continue;
+      const classified = pairMatch(current, prev);
+      if (!classified) continue;
+      const { kind, score, shared } = classified;
 
       const better =
         !best ||
@@ -201,6 +177,34 @@ export function analyzeCorpus(corpus: Corpus): Report {
           shared,
           at: prev.post.postedAt,
         };
+      }
+    }
+
+    // A later restatement can outscore the earliest original. When this post
+    // credits that original outlet, and the original itself still matches,
+    // attach there so the credit is judged against the outlet, not the restatement.
+    if (best) {
+      const originId = clusterOf.get(best.id) ?? best.id;
+      const origin = originId === best.id ? undefined : featureById.get(originId);
+      if (
+        origin &&
+        origin.post.account !== current.post.account &&
+        creditsOutletAccount(current.credits, origin.post.account)
+      ) {
+        const originDelta = currentMs - Date.parse(origin.post.postedAt);
+        if (originDelta >= 0 && originDelta <= WINDOW_MS) {
+          const originMatch = pairMatch(current, origin);
+          if (originMatch) {
+            best = {
+              id: origin.post.id,
+              clusterId: originId,
+              kind: originMatch.kind,
+              jaccard: originMatch.score,
+              shared: originMatch.shared,
+              at: origin.post.postedAt,
+            };
+          }
+        }
       }
     }
 
@@ -257,8 +261,12 @@ export function analyzeCorpus(corpus: Corpus): Report {
         continue;
       }
       if (syndicatedWire && isWireOutlet(feature.post.account)) {
-        roleOf.set(feature.post.id, "syndicated");
-        continue;
+        const prior = roleOf.get(feature.post.id);
+        // A paraphrase among listed outlets is syndicated. An exact copy is not.
+        if (prior !== "exact") {
+          roleOf.set(feature.post.id, "syndicated");
+          continue;
+        }
       }
       const prior = roleOf.get(feature.post.id);
       const matchKind = prior === "exact" || prior === "near" || prior === "template" ? prior : null;
@@ -287,7 +295,6 @@ export function analyzeCorpus(corpus: Corpus): Report {
     if (feature) narrativeOriginAccount.set(narrativeId, feature.post.account);
   }
 
-  const featureById = new Map(features.map((feature) => [feature.post.id, feature]));
   const accountDirectory = new Map(corpus.accounts.map((account) => [account.handle, account]));
   const ageById = new Map(
     features.map((feature) => [feature.post.id, ageOfPoster(feature.post, accountDirectory)]),
@@ -440,19 +447,45 @@ function wordingCopied(current: string[], previous: string[]): boolean {
 }
 
 /**
- * Outlet credit on a headline that does not actually contain the other post's
- * wording. Copying that post's words (exact, or the full token string) still counts.
- * A handle credit of the matched account is the copier naming who they copied.
+ * Similarity only. Credit text never drops a near or template match.
+ * A wire outlet's template paraphrase is not a clone. Exact copies, including
+ * exact copies between two listed outlets, stay matches.
  */
-function creditedReword(current: Features, matchedAccount: string): boolean {
-  const outlets = current.credits.filter((credit) => credit.kind === "outlet" && credit.name);
-  if (outlets.length === 0) return false;
-  const namesMatched = current.credits.some((credit) => {
-    if (credit.kind !== "handle" && credit.kind !== "tip") return false;
-    return credit.name.toLowerCase() === matchedAccount.toLowerCase();
-  });
-  if (namesMatched) return false;
-  return !outlets.some((credit) => outletAccounts(credit.name).includes(matchedAccount));
+function pairMatch(
+  current: Features,
+  prev: Features,
+): { kind: MatchKind; score: number; shared: number } | null {
+  let kind: MatchKind | null = null;
+  let score = 0;
+  let shared = 0;
+  const truncated = Boolean(current.post.textTruncated || prev.post.textTruncated);
+  if (current.hash === prev.hash) {
+    kind = "exact";
+    score = 1;
+    shared = sharedCount(current.grams, prev.grams);
+  } else if (!truncated) {
+    score = jaccard(current.tokenSet, prev.tokenSet);
+    shared = sharedCount(current.grams, prev.grams);
+    if (score >= THRESHOLDS.nearDupeJaccard) kind = "near";
+    else if (
+      shared >= THRESHOLDS.templateSharedFourGrams &&
+      score >= THRESHOLDS.templateJaccard
+    ) {
+      kind = "template";
+    }
+  }
+  // Template paraphrases by a listed outlet are not clones. Exact is never cleared.
+  if (kind === "template" && isWireOutlet(current.post.account) && !wordingCopied(current.tokens, prev.tokens)) {
+    kind = null;
+  }
+  if (!kind) return null;
+  return { kind, score, shared };
+}
+
+function creditsOutletAccount(credits: SourceCredit[], handle: string): boolean {
+  return credits.some(
+    (credit) => credit.kind === "outlet" && outletAccounts(credit.name).includes(handle),
+  );
 }
 
 function creditQualifies(

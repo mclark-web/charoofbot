@@ -21,7 +21,8 @@ const OUTLET = "([A-Z][A-Za-z0-9&'’]*(?:\\s+[A-Z][A-Za-z0-9&'’]*){0,3})";
  * A bare h/t gives no credit. "via the market" and "per share" do not match.
  * A quote action is not a credit. The outlet token stops at '.', ',', ';', ':',
  * a newline, or the end of the text. "출처:" matches anywhere in the text.
- * Share buttons ("… - CNBC", "CNBC- …") count only for a recognized outlet.
+ * Share buttons ("… - CNBC", "CNBC- …") and a bracket tag ("[CNBC]") count only
+ * for a recognized outlet. per, via, and the dash form name the same outlet.
  */
 export function extractCredits(text: string): SourceCredit[] {
   const credits: SourceCredit[] = [];
@@ -53,6 +54,9 @@ export function extractCredits(text: string): SourceCredit[] {
     if (isRecognizedOutlet(match[1])) add("outlet", match[1]);
   }
   for (const match of text.matchAll(new RegExp(`^${OUTLET}[-–—]\\s+`, "g"))) {
+    if (isRecognizedOutlet(match[1])) add("outlet", match[1]);
+  }
+  for (const match of text.matchAll(new RegExp(`\\[${OUTLET}\\]`, "g"))) {
     if (isRecognizedOutlet(match[1])) add("outlet", match[1]);
   }
   return credits;

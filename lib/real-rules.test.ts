@@ -115,32 +115,42 @@ describe("real-data copy rules", () => {
     assert.equal(isAttributedRepost("A note with no credit.", "quote"), false);
   });
 
-  it("treats syndicated wire text as one cluster and does not clone the outlets", () => {
+  it("syndicates a wire paraphrase and still scores an exact copy between listed outlets", () => {
     assert.equal(isWireOutlet("Reuters"), true);
     assert.equal(isWireOutlet("business"), true);
     assert.equal(isWireOutlet("copier"), false);
+    const paraphrased = TEXT.replace("several", "multiple");
+    const near = analyzeCorpus(
+      corpus(
+        [
+          post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+          post({ id: "b", account: "business", postedAt: "2026-10-18T08:05:00.000Z", text: paraphrased }),
+        ],
+        [account("Reuters"), account("business")],
+      ),
+    );
+    assert.equal(near.posts.find((item) => item.account === "business")?.role, "syndicated");
+    assert.equal(near.accounts.find((item) => item.handle === "business")?.cloneScore, 0);
+    assert.equal(near.accounts.find((item) => item.handle === "business")?.label, "Clean");
+
     const report = analyzeCorpus(
       corpus(
         [
           post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
-          post({ id: "b", account: "business", postedAt: "2026-10-18T08:05:00.000Z" }),
           post({ id: "c", account: "CNBC", postedAt: "2026-10-18T08:10:00.000Z" }),
           post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
         ],
-        [account("Reuters"), account("business"), account("CNBC"), account("copier")],
+        [account("Reuters"), account("CNBC"), account("copier")],
       ),
     );
     assert.equal(report.clusters.length, 1);
     const cluster = report.clusters[0];
     assert.equal(cluster.originAccount, "Reuters");
-    assert.equal(cluster.syndicatedCount, 2);
-    assert.equal(cluster.cloneCount, 1);
-    assert.equal(cluster.posts.find((item) => item.account === "business")?.role, "syndicated");
-    assert.equal(cluster.posts.find((item) => item.account === "CNBC")?.role, "syndicated");
+    assert.equal(cluster.posts.find((item) => item.account === "CNBC")?.role, "exact");
     assert.equal(cluster.posts.find((item) => item.account === "copier")?.role, "exact");
     assert.equal(report.accounts.find((item) => item.handle === "Reuters")?.cloneScore, 0);
-    assert.equal(report.accounts.find((item) => item.handle === "business")?.cloneScore, 0);
-    assert.equal(report.accounts.find((item) => item.handle === "business")?.label, "Clean");
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.cloneScore, THRESHOLDS.cloneExactWeight);
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.label, "Clone");
     assert.equal(report.accounts.find((item) => item.handle === "copier")?.label, "Clone");
   });
 
@@ -292,6 +302,66 @@ describe("false-positive classes", () => {
       return report.posts.find((item) => item.id === "c")?.role;
     });
     assert.deepEqual(roles, ["near", "near", "near", "near", "near"]);
+  });
+
+  it("still scores a one-word edit that adds per Bloomberg", () => {
+    const edited = TEXT.replace("several", "multiple");
+    const report = analyzeCorpus(
+      corpus(
+        [
+          post({ id: "o", account: "desk", postedAt: "2026-10-06T08:00:00.000Z" }),
+          post({
+            id: "c",
+            account: "relay",
+            postedAt: "2026-10-06T09:00:00.000Z",
+            text: `${edited}, per Bloomberg`,
+          }),
+        ],
+        [account("desk")],
+      ),
+    );
+    const copy = report.posts.find((item) => item.id === "c");
+    // The credit tokens pull this under the near line. It is still a template copy.
+    assert.equal(copy?.role, "template");
+    assert.equal(isCopyRole(copy?.role ?? "solo"), true);
+    assert.equal(report.accounts.find((item) => item.handle === "relay")?.cloneScore, THRESHOLDS.cloneTemplateWeight);
+  });
+
+  it("gives per, dash, and via the same verdict", () => {
+    const forms = [`${TEXT}, per Reuters`, `${TEXT} - Reuters`, `${TEXT} via Reuters`];
+    const absent = forms.map((text) => {
+      const report = analyzeCorpus(
+        corpus(
+          [
+            post({ id: "o", account: "desk", postedAt: "2026-10-06T08:00:00.000Z" }),
+            post({ id: "c", account: "relay", postedAt: "2026-10-06T09:00:00.000Z", text }),
+          ],
+          [account("desk")],
+        ),
+      );
+      return report.posts.find((item) => item.id === "c")?.role;
+    });
+    assert.deepEqual(absent, ["near", "near", "near"]);
+    const present = forms.map((text) => {
+      const report = analyzeCorpus(
+        corpus(
+          [
+            post({ id: "o", account: "Reuters", postedAt: "2026-10-06T08:00:00.000Z" }),
+            post({ id: "c", account: "relay", postedAt: "2026-10-06T09:00:00.000Z", text }),
+          ],
+          [account("Reuters"), account("relay")],
+        ),
+      );
+      return report.posts.find((item) => item.id === "c")?.role;
+    });
+    assert.deepEqual(present, ["syndicated", "syndicated", "syndicated"]);
+  });
+
+  it("reads a bracket outlet tag as credit", () => {
+    assert.deepEqual(
+      extractCredits("[CNBC] 17:47 Goldman: Diesel prices set to stay high").map((credit) => credit.name),
+      ["CNBC"],
+    );
   });
 
   it("does not count a quote with commentary as a boost and requires a timeline baseline", () => {
@@ -559,17 +629,18 @@ describe("real corpus after the rules", () => {
     assert.equal(reuters.graded, false);
 
     assert.equal(whales.graded, true);
-    // 277 characters and full_text=unknown, so near copies do not attach.
+    // Verified complete text. Near copies attach, so this post is the originator again.
     const capex = report.posts.find((item) => item.id === "2111548049214603437");
-    assert.equal(capex?.textTruncated, true);
-    assert.equal(capex?.role, "solo");
+    assert.equal(capex?.textTruncated, undefined);
+    assert.equal(capex?.role, "originator");
     assert.equal(report.posts.find((item) => item.id === "2111532949590196711")?.role, "originator");
+    // Near of CNBC (Jaccard 0.875). "per Goldman Sachs" is not a recognized outlet, so it stays a copy.
     const diesel = report.posts.find((item) => item.id === "2111910437012787363");
-    assert.equal(isCopyRole(diesel?.role ?? "solo"), false);
-    assert.notEqual(whales.label, "Clone");
-    assert.equal(whales.cloneScore, 0);
-    assert.equal(whales.gcScore, 100);
-    assert.equal(whales.label, "Originator");
+    assert.equal(diesel?.role, "near");
+    assert.equal(diesel?.matchedAccount, "CNBC");
+    assert.equal(whales.label, "Clone");
+    assert.equal(whales.cloneScore, 100);
+    assert.equal(whales.gcScore, 0);
 
     assert.equal(cheddar.label, "Originator");
     assert.equal(cheddar.cloneScore, 0);
@@ -648,9 +719,26 @@ describe("real corpus after the rules", () => {
     }
 
     const whalesPost = report.posts.find((item) => item.id === "2111910437012787363");
-    assert.equal(isCopyRole(whalesPost?.role ?? "solo"), false);
-    assert.equal(report.posts.find((item) => item.id === "2111548049214603437")?.role, "solo");
+    assert.equal(whalesPost?.role, "near");
+    assert.equal(whalesPost?.matchedAccount, "CNBC");
+    assert.equal(report.posts.find((item) => item.id === "2111548049214603437")?.role, "originator");
     assert.equal(report.posts.find((item) => item.id === "2111532949590196711")?.role, "originator");
+
+    for (const id of ["2111889643503259923", "2111890078922375229"]) {
+      const copied = report.posts.find((item) => item.id === id);
+      assert.equal(copied?.account, "twrzalinski1", id);
+      assert.equal(copied?.matchedAccount, "unusual_whales", id);
+      assert.equal(isCopyRole(copied?.role ?? "solo"), true, `${id} ${copied?.role}`);
+    }
+    const leading = report.posts.find((item) => item.id === "2111883300516098419");
+    assert.equal(leading?.account, "LeadingReport");
+    assert.equal(leading?.matchedAccount, "Reuters");
+    assert.equal(leading?.role, "syndicated");
+    const bracket = report.posts.find((item) => item.id === "2107395357952905438");
+    assert.equal(bracket?.account, "miraclemasui");
+    assert.ok(extractCredits(bracket?.text ?? "").some((credit) => credit.name === "CNBC"));
+    assert.equal(bracket?.matchedAccount, "CNBC");
+    assert.equal(bracket?.role, "syndicated");
   });
 
   it("gives ConflictAlarm and MofaYasir the same copy verdict as each other", () => {

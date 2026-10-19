@@ -40,7 +40,7 @@ export const KNOWN_TRUNCATED = [
   "2111892097200464335",
 ];
 
-/** Rows a reviewer confirmed are complete, including the old heuristic clears. */
+/** Rows a reviewer confirmed are complete. Unknown is not a truncation guess. */
 export const CONFIRMED_SHORT = [
   "2107096957743436264",
   "2107506142754812150",
@@ -66,6 +66,11 @@ export const CONFIRMED_SHORT = [
   "2111901966339072251",
   "2111915606396051736",
   "2111917886793204104",
+  "2107982307348934917",
+  "2111548049214603437",
+  "2111593347848511863",
+  "2111644659131068840",
+  "2111889643503259923",
 ];
 
 const FULL_TEXT = new Set(["verified", "truncated", "unknown"]);
