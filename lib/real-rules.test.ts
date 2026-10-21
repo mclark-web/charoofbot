@@ -711,10 +711,15 @@ describe("real corpus after the rules", () => {
     assert.equal(immigration.reposters.under30d, 0);
     assert.equal(market?.reposters, null);
     const ranked = [...report.narratives].sort(compareNarrativesByCopycat);
-    // Europe's copied share stays ahead of immigration after the off-topic posts move.
-    assert.equal(ranked[0]?.id, "europe-protests");
-    assert.equal(ranked[1]?.id, "immigration");
+    // Immigration's copied share leads once the earliest poster of the shared
+    // wording stays the originator and the later CBS News reprint counts as a copy.
+    assert.equal(ranked[0]?.id, "immigration");
+    assert.equal(ranked[1]?.id, "europe-protests");
     assert.equal(ranked.at(-1)?.id, "affordability");
+    const iran = report.narratives.find((item) => item.id === "iran");
+    assert.equal(iran?.postCount, 89);
+    assert.equal(iran?.clonePosts, 6);
+    assert.equal(iran?.accountCount, 76);
   });
 
   it("never scores a post as a copy of the same account", () => {

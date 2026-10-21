@@ -14,7 +14,7 @@ import {
 import { compareText } from "./order";
 import { reposterSamples } from "./reposters";
 import { clockFromPosts, passesAmplifierGate, THRESHOLDS, type ScoreClock } from "./thresholds";
-import { isCbsInvestigationLede, isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
+import { isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
 import type {
   AccountLabel,
   AccountReport,
@@ -252,8 +252,9 @@ export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report
       continue;
     }
 
-    // The earliest in-corpus poster stays the originator. One later credit does not
-    // move the origin or clear the other copiers.
+    // The earliest poster of this text is its originator. One later credit does not
+    // move the origin or clear the other copiers. A later outlet is not relabeled
+    // originator for publishing the same wording.
     const originHandle = group[0].post.account;
     const clusterHandles = new Set(group.map((feature) => feature.post.account));
     const syndicatingAccounts = new Set(
@@ -289,16 +290,6 @@ export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report
       );
       if (creditRole) roleOf.set(feature.post.id, creditRole);
     }
-  }
-
-  // The CBS investigation lede is the desk's own story, including when another
-  // account pasted the wording first. Both CBS accounts read as Originator.
-  for (const feature of features) {
-    if (!isCbsInvestigationLede(feature.post.account, feature.post.text)) continue;
-    roleOf.set(feature.post.id, "originator");
-    matchedId.set(feature.post.id, null);
-    matchedJ.set(feature.post.id, 0);
-    matchedG.set(feature.post.id, 0);
   }
 
   const narrativeOrigin = new Map<string, string>();

@@ -24,15 +24,6 @@ export function isSyndicatingOutlet(handle: string): boolean {
 }
 
 /**
- * CBS published this lede ("a CBS News Investigation"). Other accounts pasted
- * the same wording earlier. The desk that published it is an originator.
- */
-export function isCbsInvestigationLede(account: string, text: string): boolean {
-  if (account !== "CBSNews" && account !== "CBSPhiladelphia") return false;
-  return /cbs news investigation/i.test(text);
-}
-
-/**
  * Recognized news outlets: names a credit may use, and the handle that publishes
  * that outlet in this corpus. Aliases are matched after lowercasing and stripping
  * a leading "the". Goldman is not on this list. This is not the syndicating-outlet list.
