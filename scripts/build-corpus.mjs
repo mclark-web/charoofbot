@@ -56,11 +56,56 @@ function unique(rows, key, file) {
   return seen;
 }
 
+export function readGcbotTable(name) {
+  return read(name);
+}
+
+const OVERRIDE_ACTIONS = new Set(["retag", "exclude"]);
+
+// post-overrides.csv is append-only. It retags or drops a post from narrative
+// counts without rewriting posts.csv. Reposter rows for that post follow.
+export function applyPostOverrides(postRows, reposterRows, overrideRows) {
+  const postIds = new Set(postRows.map((row) => row.post_id));
+  const byId = new Map();
+  for (const row of overrideRows) {
+    if (!row.post_id) throw new Error("post-overrides.csv: a row has no post_id");
+    if (byId.has(row.post_id)) throw new Error(`post-overrides.csv: post ${row.post_id} is listed twice`);
+    if (!OVERRIDE_ACTIONS.has(row.action)) {
+      throw new Error(`post-overrides.csv: post ${row.post_id} has action "${row.action}"`);
+    }
+    if (!postIds.has(row.post_id)) {
+      throw new Error(`post-overrides.csv: post ${row.post_id} is not in posts.csv`);
+    }
+    if (!row.reason || !row.reason.trim()) {
+      throw new Error(`post-overrides.csv: post ${row.post_id} has no reason`);
+    }
+    if (row.action === "retag") {
+      if (!row.new_narrative) throw new Error(`post-overrides.csv: retag ${row.post_id} has no new_narrative`);
+    } else if (row.new_narrative) {
+      throw new Error(`post-overrides.csv: exclude ${row.post_id} must leave new_narrative empty`);
+    }
+    byId.set(row.post_id, row);
+  }
+  for (const post of postRows) {
+    const override = byId.get(post.post_id);
+    if (!override) continue;
+    post.narrative_id = override.action === "exclude" ? "" : override.new_narrative;
+  }
+  for (const reposter of reposterRows) {
+    const override = byId.get(reposter.reposted_post_id);
+    if (!override) continue;
+    reposter.narrative_id = override.action === "exclude" ? "" : override.new_narrative;
+  }
+  return byId;
+}
+
 export function buildCorpus() {
   const narrativeRows = read("narratives.csv");
   const accountRows = read("accounts.csv");
   const postRows = read("posts.csv");
   const reposterRows = read("reposters.csv");
+  const overrideRows = read("post-overrides.csv");
+  applyPostOverrides(postRows, reposterRows, overrideRows);
   return corpusFrom(narrativeRows, accountRows, postRows, reposterRows);
 }
 
@@ -140,7 +185,7 @@ const corpus = {
       // Only a row marked truncated is cut off. unknown means not yet checked.
       textTruncated: effectivelyTruncated(row),
     })),
-    reposters: reposterRows.map((row) => {
+    reposters: reposterRows.filter((row) => row.narrative_id).map((row) => {
       if (!row.handle) throw new Error("reposters.csv: a row has no handle");
       if (!row.reposted_post_id) throw new Error(`reposters.csv: @${row.handle} has no reposted_post_id`);
       if (row.narrative_id && !narrativeIds.has(row.narrative_id)) {

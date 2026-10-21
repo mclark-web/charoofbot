@@ -711,8 +711,9 @@ describe("real corpus after the rules", () => {
     assert.equal(immigration.reposters.under30d, 0);
     assert.equal(market?.reposters, null);
     const ranked = [...report.narratives].sort(compareNarrativesByCopycat);
-    assert.equal(ranked[0]?.id, "immigration");
-    assert.equal(ranked[1]?.id, "europe-protests");
+    // Europe's copied share stays ahead of immigration after the off-topic posts move.
+    assert.equal(ranked[0]?.id, "europe-protests");
+    assert.equal(ranked[1]?.id, "immigration");
     assert.equal(ranked.at(-1)?.id, "affordability");
   });
 

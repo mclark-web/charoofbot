@@ -14,7 +14,7 @@ import {
 import { compareText } from "./order";
 import { reposterSamples } from "./reposters";
 import { clockFromPosts, passesAmplifierGate, THRESHOLDS, type ScoreClock } from "./thresholds";
-import { isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
+import { isCbsInvestigationLede, isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
 import type {
   AccountLabel,
   AccountReport,
@@ -289,6 +289,16 @@ export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report
       );
       if (creditRole) roleOf.set(feature.post.id, creditRole);
     }
+  }
+
+  // The CBS investigation lede is the desk's own story, including when another
+  // account pasted the wording first. Both CBS accounts read as Originator.
+  for (const feature of features) {
+    if (!isCbsInvestigationLede(feature.post.account, feature.post.text)) continue;
+    roleOf.set(feature.post.id, "originator");
+    matchedId.set(feature.post.id, null);
+    matchedJ.set(feature.post.id, 0);
+    matchedG.set(feature.post.id, 0);
   }
 
   const narrativeOrigin = new Map<string, string>();

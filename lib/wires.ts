@@ -13,12 +13,23 @@ export const SYNDICATING_OUTLETS: readonly { handle: string; name: string }[] = 
   { handle: "AlArabiya_Eng", name: "Al Arabiya English" },
   { handle: "ARYNEWSOFFICIAL", name: "ARY News" },
   { handle: "KING5Seattle", name: "KING 5 Seattle" },
+  { handle: "CBSNews", name: "CBS News" },
+  { handle: "CBSPhiladelphia", name: "CBS News Philadelphia" },
 ];
 
 const SYNDICATING_HANDLES = new Set(SYNDICATING_OUTLETS.map((outlet) => outlet.handle));
 
 export function isSyndicatingOutlet(handle: string): boolean {
   return SYNDICATING_HANDLES.has(handle);
+}
+
+/**
+ * CBS published this lede ("a CBS News Investigation"). Other accounts pasted
+ * the same wording earlier. The desk that published it is an originator.
+ */
+export function isCbsInvestigationLede(account: string, text: string): boolean {
+  if (account !== "CBSNews" && account !== "CBSPhiladelphia") return false;
+  return /cbs news investigation/i.test(text);
 }
 
 /**
