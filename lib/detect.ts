@@ -14,6 +14,7 @@ import {
 import { compareText } from "./order";
 import { reposterSamples } from "./reposters";
 import { clockFromPosts, passesAmplifierGate, THRESHOLDS, type ScoreClock } from "./thresholds";
+import { isListedOutlet, textCitesOutlet } from "./outlet-citation";
 import { isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
 import type {
   AccountLabel,
@@ -253,8 +254,9 @@ export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report
     }
 
     // The earliest poster of this text is its originator. One later credit does not
-    // move the origin or clear the other copiers. A later outlet is not relabeled
-    // originator for publishing the same wording.
+    // move the origin or clear the other copiers. A later outlet is the originator
+    // of its own article when an earlier post in the cluster links that outlet's
+    // domain or names the outlet. Everyone else stays a copy.
     const originHandle = group[0].post.account;
     const clusterHandles = new Set(group.map((feature) => feature.post.account));
     const syndicatingAccounts = new Set(
@@ -275,6 +277,10 @@ export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report
         // A headline reprinted by another syndicating outlet is syndication,
         // including a verbatim reprint. Accounts outside the set stay copies.
         roleOf.set(feature.post.id, "syndicated");
+        continue;
+      }
+      if (citedByEarlierPost(feature, group)) {
+        roleOf.set(feature.post.id, "originator");
         continue;
       }
       const prior = roleOf.get(feature.post.id);
@@ -504,6 +510,18 @@ function pairMatch(
   }
   if (!kind) return null;
   return { kind, score, shared };
+}
+
+/** An outlet is not a copy of an earlier post that links or names that outlet. */
+function citedByEarlierPost(feature: Features, group: Features[]): boolean {
+  if (!isListedOutlet(feature.post.account)) return false;
+  return group.some((earlier) => {
+    if (earlier.post.id === feature.post.id) return false;
+    const before =
+      earlier.post.postedAt < feature.post.postedAt ||
+      (earlier.post.postedAt === feature.post.postedAt && earlier.post.id < feature.post.id);
+    return before && textCitesOutlet(earlier.post.text, feature.post.account);
+  });
 }
 
 function creditsOutletAccount(credits: SourceCredit[], handle: string): boolean {

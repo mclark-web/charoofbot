@@ -260,8 +260,12 @@ export default function MethodologyPage() {
           originator. The other syndicating outlets in the set are Syndicated, with copy weight 0. They are not clones
           of each other for that headline. CNBC reprinting Reuters’ Alberta headline is syndication. An account outside
           the set that pastes the same headline is still a copy. A single syndicating outlet copying a non-outlet, with
-          no second syndicating outlet in the cluster, is still a copy. A credit on one post never marks the whole
-          cluster source outside corpus and never drops the clone weight on an uncredited copy.
+          no second syndicating outlet in the cluster, is still a copy, unless an earlier post in that cluster links
+          the outlet&apos;s own domain or names the outlet. The link&apos;s domain resolves to the outlet, including a
+          t.co short link when its destination is known. That outlet&apos;s post then counts as an Originator. The
+          other accounts stay copies. A link to a different site, or another outlet&apos;s name, leaves the score in
+          place. A credit on one post never marks the whole cluster source outside corpus and never drops the clone
+          weight on an uncredited copy.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           {SYNDICATING_OUTLETS.map((outlet) => (

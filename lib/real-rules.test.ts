@@ -183,6 +183,96 @@ describe("real-data copy rules", () => {
     assert.equal(report.posts.find((item) => item.account === "Reuters")?.role, "exact");
   });
 
+  it("does not score an outlet as copying a post that links or names that outlet", () => {
+    const article = "https://www.reuters.com/world/example";
+    const linked = analyzeCorpus(
+      corpus([
+        post({ id: "p", account: "person", postedAt: "2026-10-18T07:00:00.000Z", text: `${TEXT} ${article}` }),
+        post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+        post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
+      ]),
+    );
+    const reuters = linked.posts.find((item) => item.account === "Reuters");
+    assert.equal(linked.clusters[0]?.originAccount, "person");
+    assert.equal(reuters?.role, "originator");
+    assert.equal(isCopyRole(reuters?.role ?? "exact"), false);
+    assert.equal(linked.accounts.find((item) => item.handle === "Reuters")?.label, "Originator");
+    assert.equal(linked.accounts.find((item) => item.handle === "Reuters")?.clonePostCount, 0);
+    assert.equal(linked.posts.find((item) => item.account === "copier")?.role, "exact");
+
+    const named = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT}, via Bloomberg`,
+        }),
+        post({ id: "b", account: "business", postedAt: "2026-10-18T08:00:00.000Z" }),
+        post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(named.clusters[0]?.originAccount, "person");
+    assert.equal(named.posts.find((item) => item.account === "business")?.role, "originator");
+    assert.equal(named.accounts.find((item) => item.handle === "business")?.label, "Originator");
+    assert.equal(named.posts.find((item) => item.account === "copier")?.role, "exact");
+
+    const otherSite = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT} https://example.com/story`,
+        }),
+        post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(otherSite.posts.find((item) => item.account === "Reuters")?.role, "exact");
+
+    const otherName = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT}, per Bloomberg`,
+        }),
+        post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(otherName.posts.find((item) => item.account === "Reuters")?.role, "near");
+
+    const shortLink = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT} https://t.co/Fzv5PhYpD1`,
+        }),
+        post({ id: "c", account: "CBSNews", postedAt: "2026-10-18T08:00:00.000Z" }),
+        post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(shortLink.posts.find((item) => item.account === "CBSNews")?.role, "originator");
+    assert.equal(shortLink.accounts.find((item) => item.handle === "CBSNews")?.clonePostCount, 0);
+    assert.equal(shortLink.posts.find((item) => item.account === "copier")?.role, "exact");
+
+    const unknownShort = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT} https://t.co/notalist`,
+        }),
+        post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(unknownShort.posts.find((item) => item.account === "Reuters")?.role, "exact");
+  });
+
   it("scores an account by its highest single-post copy weight", () => {
     const report = analyzeCorpus(
       corpus([
@@ -711,10 +801,13 @@ describe("real corpus after the rules", () => {
     assert.equal(immigration.reposters.under30d, 0);
     assert.equal(market?.reposters, null);
     const ranked = [...report.narratives].sort(compareNarrativesByCopycat);
-    // Immigration's copied share leads once the earliest poster of the shared
-    // wording stays the originator and the later CBS News reprint counts as a copy.
-    assert.equal(ranked[0]?.id, "immigration");
-    assert.equal(ranked[1]?.id, "europe-protests");
+    // Europe's copied share leads. Immigration is 10/73 once CBS News is not
+    // scored as copying the post that links its own article.
+    assert.equal(ranked[0]?.id, "europe-protests");
+    assert.equal(ranked[1]?.id, "immigration");
+    assert.equal(immigration.clonePosts, 10);
+    assert.equal(immigration.postCount, 73);
+    assert.equal(report.totals.clonePostCount, 85);
     assert.equal(ranked.at(-1)?.id, "affordability");
     const iran = report.narratives.find((item) => item.id === "iran");
     assert.equal(iran?.postCount, 89);

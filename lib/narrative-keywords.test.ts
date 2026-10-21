@@ -123,9 +123,12 @@ describe("phrase-search keyword sanity", () => {
     assert.equal(cluster.originAccount, earliestPoster.account);
     assert.equal(earliestPoster.role, "originator");
     assert.equal(earliestPoster.account, "shannonrwatts");
-    assert.notEqual(cbsNews.role, "originator");
+    // EThompsonWV links cbsnews.com, so CBS News is publishing its own article.
+    assert.equal(cbsNews.role, "originator");
+    assert.equal(cbsNews.matchedAccount, "EThompsonWV");
     const cbsAccount = report.accounts.find((item) => item.handle === "CBSNews");
-    assert.equal(cbsAccount?.label, "Clone");
+    assert.equal(cbsAccount?.label, "Originator");
+    assert.equal(cbsAccount?.clonePostCount, 0);
     const philly = report.posts.find((post) => post.account === "CBSPhiladelphia");
     const phillyAccount = report.accounts.find((item) => item.handle === "CBSPhiladelphia");
     assert.equal(philly?.role, "solo");
