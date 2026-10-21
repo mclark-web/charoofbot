@@ -902,7 +902,9 @@ p:not(.flex) .tap:focus-visible {
 .narrative-quote {
   display: -webkit-box;
   margin: 0;
-  padding: 10px 12px;
+  padding: 10px 12px 0;
+  /* clamp: bottom inset is a border, so the 5th line can't show in the padding box */
+  border-bottom: 10px solid #101218;
   overflow: hidden;
   overflow-wrap: anywhere;
   white-space: pre-wrap;

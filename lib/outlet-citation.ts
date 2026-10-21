@@ -101,3 +101,19 @@ export function textCitesOutlet(text: string, handle: string): boolean {
   if (hosts.some((host) => outlet.domains.some((domain) => hostCites(host, domain)))) return true;
   return outlet.namePattern?.test(text) ?? false;
 }
+
+/**
+ * True when this desk shares a domain with another listed outlet and the text
+ * names that outlet. A local desk running the outlet's lede is that outlet's
+ * own article, same as a post whose earlier citation links the domain.
+ */
+export function textNamesSisterOutlet(text: string, handle: string): boolean {
+  const outlet = LISTED.get(handle);
+  if (!outlet) return false;
+  for (const [other, sister] of LISTED) {
+    if (other === handle) continue;
+    const shared = outlet.domains.some((domain) => sister.domains.includes(domain));
+    if (shared && textCitesOutlet(text, other)) return true;
+  }
+  return false;
+}

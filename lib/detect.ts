@@ -14,7 +14,7 @@ import {
 import { compareText } from "./order";
 import { reposterSamples } from "./reposters";
 import { clockFromPosts, passesAmplifierGate, THRESHOLDS, type ScoreClock } from "./thresholds";
-import { isListedOutlet, textCitesOutlet } from "./outlet-citation";
+import { isListedOutlet, textCitesOutlet, textNamesSisterOutlet } from "./outlet-citation";
 import { isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
 import type {
   AccountLabel,
@@ -244,7 +244,9 @@ export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report
     if (group.length < 2) {
       for (const feature of group) {
         clusterOf.set(feature.post.id, feature.post.id);
-        roleOf.set(feature.post.id, "solo");
+        // A same-domain desk that names the outlet is publishing that article.
+        const ownArticle = textNamesSisterOutlet(feature.post.text, feature.post.account);
+        roleOf.set(feature.post.id, ownArticle ? "originator" : "solo");
         matchedId.set(feature.post.id, null);
         matchedJ.set(feature.post.id, 0);
         matchedG.set(feature.post.id, 0);
@@ -279,7 +281,7 @@ export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report
         roleOf.set(feature.post.id, "syndicated");
         continue;
       }
-      if (citedByEarlierPost(feature, group)) {
+      if (citedByEarlierPost(feature, group) || textNamesSisterOutlet(feature.post.text, feature.post.account)) {
         roleOf.set(feature.post.id, "originator");
         continue;
       }

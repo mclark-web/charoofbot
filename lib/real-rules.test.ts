@@ -271,6 +271,39 @@ describe("real-data copy rules", () => {
       ]),
     );
     assert.equal(unknownShort.posts.find((item) => item.account === "Reuters")?.role, "exact");
+
+    const sister = analyzeCorpus(
+      corpus([
+        post({ id: "p", account: "person", postedAt: "2026-10-18T07:00:00.000Z" }),
+        post({
+          id: "local",
+          account: "CBSPhiladelphia",
+          postedAt: "2026-10-18T08:00:00.000Z",
+          text: `${TEXT}, a CBS News Investigation has found.`,
+        }),
+        post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
+      ]),
+    );
+    const local = sister.posts.find((item) => item.account === "CBSPhiladelphia");
+    assert.equal(local?.role, "originator");
+    assert.equal(isCopyRole(local?.role ?? "exact"), false);
+    assert.equal(sister.accounts.find((item) => item.handle === "CBSPhiladelphia")?.label, "Originator");
+    assert.equal(sister.accounts.find((item) => item.handle === "CBSPhiladelphia")?.clonePostCount, 0);
+    assert.equal(sister.clusters[0]?.originAccount, "person");
+    assert.equal(isCopyRole(sister.posts.find((item) => item.account === "copier")?.role ?? "solo"), true);
+
+    const otherDesk = analyzeCorpus(
+      corpus([
+        post({ id: "p", account: "person", postedAt: "2026-10-18T07:00:00.000Z" }),
+        post({
+          id: "r",
+          account: "Reuters",
+          postedAt: "2026-10-18T08:00:00.000Z",
+          text: `${TEXT}, a CBS News Investigation has found.`,
+        }),
+      ]),
+    );
+    assert.equal(isCopyRole(otherDesk.posts.find((item) => item.account === "Reuters")?.role ?? "solo"), true);
   });
 
   it("scores an account by its highest single-post copy weight", () => {

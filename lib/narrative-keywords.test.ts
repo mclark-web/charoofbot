@@ -131,8 +131,10 @@ describe("phrase-search keyword sanity", () => {
     assert.equal(cbsAccount?.clonePostCount, 0);
     const philly = report.posts.find((post) => post.account === "CBSPhiladelphia");
     const phillyAccount = report.accounts.find((item) => item.handle === "CBSPhiladelphia");
-    assert.equal(philly?.role, "solo");
-    assert.equal(phillyAccount?.label, "Clean");
+    // Same domain, and the lede names CBS News, so Philadelphia is an Originator too.
+    assert.equal(philly?.role, "originator");
+    assert.equal(philly?.clusterId, null);
+    assert.equal(phillyAccount?.label, "Originator");
     assert.equal(phillyAccount?.clonePostCount, 0);
     const affordability = report.narratives.find((item) => item.id === "affordability");
     assert.ok(affordability);

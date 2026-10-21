@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { LabelBadge } from "@/components/label-badge";
 import type { AccountLabel } from "@/lib/types";
 
@@ -26,6 +26,13 @@ export function NarrativeAccounts({
   title: string;
 }) {
   const [showAll, setShowAll] = useState(false);
+  const bodyRef = useRef<HTMLTableSectionElement>(null);
+  const expanded = useRef(false);
+  useEffect(() => {
+    // The button unmounts on expand: hand focus to the first newly shown row.
+    if (!showAll || !expanded.current) return;
+    bodyRef.current?.querySelectorAll<HTMLAnchorElement>("tr a")[PREVIEW_ROWS]?.focus();
+  }, [showAll]);
   const visible = showAll ? accounts : accounts.slice(0, PREVIEW_ROWS);
   const capped = accounts.length > PREVIEW_ROWS;
 
@@ -44,7 +51,7 @@ export function NarrativeAccounts({
             <th>Followers</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody ref={bodyRef}>
           {visible.map((account) => (
             <tr key={account.handle}>
               <td data-l="Account">
@@ -67,7 +74,10 @@ export function NarrativeAccounts({
         </tbody>
       </table>
       {capped && !showAll ? (
-        <button type="button" className="narrative-show-all" onClick={() => setShowAll(true)}>
+        <button type="button" className="narrative-show-all" onClick={() => {
+            expanded.current = true;
+            setShowAll(true);
+          }}>
           Show all {accounts.length}
         </button>
       ) : null}

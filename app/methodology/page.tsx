@@ -258,14 +258,12 @@ export default function MethodologyPage() {
           Syndicating outlets are a separate list from the recognized news outlets above. When two or more syndicating
           outlets share a headline, including an exact reprint, that text is one cluster. The earliest poster is the
           originator. The other syndicating outlets in the set are Syndicated, with copy weight 0. They are not clones
-          of each other for that headline. CNBC reprinting Reuters’ Alberta headline is syndication. An account outside
-          the set that pastes the same headline is still a copy. A single syndicating outlet copying a non-outlet, with
-          no second syndicating outlet in the cluster, is still a copy, unless an earlier post in that cluster links
-          the outlet&apos;s own domain or names the outlet. The link&apos;s domain resolves to the outlet, including a
-          t.co short link when its destination is known. That outlet&apos;s post then counts as an Originator. The
-          other accounts stay copies. A link to a different site, or another outlet&apos;s name, leaves the score in
-          place. A credit on one post never marks the whole cluster source outside corpus and never drops the clone
-          weight on an uncredited copy.
+          of each other for that headline. CNBC reprinting Reuters’ Alberta headline is syndication.
+        </p>
+        <p className="leading-relaxed">
+          An account outside the set that pastes the same headline is still a copy. A single syndicating outlet copying
+          a non-outlet, with no second syndicating outlet in the cluster, is still a copy. A credit on one post never
+          marks the whole cluster source outside corpus and never drops the clone weight on an uncredited copy.
         </p>
         <ul className="list-disc space-y-2 pl-5 leading-relaxed">
           {SYNDICATING_OUTLETS.map((outlet) => (
@@ -274,6 +272,17 @@ export default function MethodologyPage() {
             </li>
           ))}
         </ul>
+        <h3 className="font-serif text-xl">The outlet&apos;s own article</h3>
+        <p className="leading-relaxed">
+          A listed outlet is not scored as copying an earlier post that links the outlet&apos;s own domain or names the
+          outlet. The link&apos;s domain resolves to the outlet, including a t.co short link when its destination is
+          known. That post counts as an Originator. The other accounts stay copies. A link to a different site, or
+          another outlet&apos;s name, leaves the score in place.
+        </p>
+        <p className="leading-relaxed">
+          A desk on the same domain follows the same rule when its post names the outlet. Both posts are Originators of
+          that article.
+        </p>
         <h3 className="font-serif text-xl">Minimum sample</h3>
         <p className="leading-relaxed">
           Every account is scored on one window, {clock.start} through {clock.end}, measured at{" "}
