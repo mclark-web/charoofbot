@@ -67,14 +67,46 @@ export const THRESHOLDS = {
   leaderboardMinPosts: 5,
 } as const;
 
-/** Inclusive calendar dates. Every account is scored on this window, not its own span. */
-export const SCORE_WINDOW = {
-  start: "2026-10-04",
-  end: "2026-10-18",
-} as const;
+/** First inclusive UTC day. The window end is the latest post's UTC date, not a fixed close. */
+export const SCORE_WINDOW_START = "2026-10-04";
 
-/** As-of stamp for the real corpus in data/corpus.json (18 Oct 2026, 5:00 PM ET). */
-export const DEMO_PASTE_STAMP = "2026-10-18T21:00:00.000Z";
+export type ScoreClock = {
+  start: string;
+  end: string;
+  /** Instant account ages are measured against. */
+  asOf: string;
+};
+
+/**
+ * Practice-set clock. Paste and fixture tests pin this so a later corpus
+ * does not move their ages or drop their posts.
+ */
+export const FIXTURE_CLOCK: ScoreClock = {
+  start: SCORE_WINDOW_START,
+  end: "2026-10-18",
+  asOf: "2026-10-18T21:00:00.000Z",
+};
+
+/** As-of stamp for the practice set (18 Oct 2026, 5:00 PM ET). The live corpus does not use this. */
+export const DEMO_PASTE_STAMP = FIXTURE_CLOCK.asOf;
+
+/**
+ * Window end and the age clock follow the latest post unless a fixture pins them.
+ * A partial pin overrides only the fields it sets.
+ */
+export function clockFromPosts(posts: { postedAt: string }[], pin?: Partial<ScoreClock>): ScoreClock {
+  let latest = "";
+  for (const post of posts) {
+    if (post.postedAt > latest) latest = post.postedAt;
+  }
+  const end = pin?.end ?? (latest ? latest.slice(0, 10) : SCORE_WINDOW_START);
+  const asOf = pin?.asOf ?? (latest || `${end}T00:00:00.000Z`);
+  return {
+    start: pin?.start ?? SCORE_WINDOW_START,
+    end,
+    asOf,
+  };
+}
 
 /** Same predicate detect.ts uses for the amplifier label. Display must not invent a second gate. */
 export function passesAmplifierGate(
@@ -91,5 +123,5 @@ export function passesAmplifierGate(
   );
 }
 
-/** Corpus and paste ages are measured against this stamp, not the wall clock. */
+/** Practice-set default when a caller does not pass a clock. Live reports use the latest post. */
 export const AGE_AS_OF = DEMO_PASTE_STAMP;

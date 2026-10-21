@@ -1,7 +1,7 @@
 import corpusJson from "@/data/fixture-corpus.json";
 import { parseCreatedAt } from "./age";
 import { analyzeCorpus } from "./detect";
-import { DEMO_PASTE_STAMP } from "./thresholds";
+import { DEMO_PASTE_STAMP, FIXTURE_CLOCK } from "./thresholds";
 import type {
   AccountReport,
   AnnotatedPost,
@@ -227,13 +227,16 @@ export function runPaste(raw: string): PasteRun {
       warnings: parsed.warnings,
       findings: [],
       accounts: [],
-      report: analyzeCorpus(corpus),
+      report: analyzeCorpus(corpus, FIXTURE_CLOCK),
     };
   }
-  const report = analyzeCorpus({
-    ...corpus,
-    posts: [...corpus.posts, ...parsed.posts],
-  });
+  const report = analyzeCorpus(
+    {
+      ...corpus,
+      posts: [...corpus.posts, ...parsed.posts],
+    },
+    FIXTURE_CLOCK,
+  );
   const ids = new Set(parsed.posts.map((post) => post.id));
   const findings = report.posts.filter((post) => ids.has(post.id));
   const handles = new Set(findings.map((post) => post.account));

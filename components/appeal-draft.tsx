@@ -7,7 +7,7 @@ Handle:
 Post text:
 Match shown (exact / near / template / attributed / syndicated / amplifier):
 Why this should be reviewed:
-Check: normalization, 14-day window, self-repeat (same account), earliest poster in the cluster, a via / Source / per / h/t credit that names the account that was copied or that post's outlet (otherwise a verbatim or near copy stays a copy; a bare h/t does not), and whether both accounts are syndicating outlets.`;
+Check: normalization, 14-day window, self-repeat (same account), earliest poster in the cluster, a via / Source / per / h/t credit that names the account that was copied or that post's outlet (otherwise a verbatim or near copy stays a copy; a bare h/t does not), whether an earlier post links the outlet's own domain or names the outlet, and whether both accounts are syndicating outlets.`;
 
 export function AppealDraft() {
   const [copied, setCopied] = useState(false);

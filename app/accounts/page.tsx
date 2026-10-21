@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AccountsBoard } from "@/components/accounts-board";
 import { accountSourceUrl, formatStamp } from "@/lib/format";
 import { getReport } from "@/lib/corpus";
-import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
+import { THRESHOLDS } from "@/lib/thresholds";
 import type { AccountReport } from "@/lib/types";
 
 export const metadata: Metadata = {
@@ -31,7 +31,7 @@ export default function AccountsPage() {
         </p>
         <h1 className="mt-2 font-serif text-4xl tracking-tight text-ink">Accounts</h1>
         <p className="mt-4 text-lg leading-relaxed text-ink-soft">
-          As of {formatStamp(AGE_AS_OF)}. One GC score per account: 100 minus the copy score. Amplifier detection
+          As of {formatStamp(report.clock.asOf)}. One GC score per account: 100 minus the copy score. Amplifier detection
           is not in that number. STRONG is 70 and above. Best/Worst on the dashboard keeps accounts with at least{" "}
           {THRESHOLDS.leaderboardMinPosts} posts in the window. This list includes every tracked account, including
           one with no posts yet.

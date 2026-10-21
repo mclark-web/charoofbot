@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { countNoun, displayPostText, joinPresent } from "./format";
+import { countNoun, displayPostText, etDay, formatEtStamp, formatWindowLabel, joinPresent } from "./format";
 
 describe("countNoun", () => {
   it("pluralizes a single post and leaves other counts plural", () => {
@@ -18,6 +18,15 @@ describe("displayPostText", () => {
     assert.equal(displayPostText("already cut…", true), "already cut…");
     assert.equal(displayPostText("already cut...", true), "already cut...");
     assert.equal(displayPostText("KOSPI", false), "KOSPI");
+  });
+});
+
+describe("eastern window labels", () => {
+  it("pins an October stamp to US Eastern and labels the window", () => {
+    assert.equal(etDay("2026-10-21T03:30:00.000Z"), "2026-10-20");
+    assert.equal(etDay("2026-10-21T04:00:00.000Z"), "2026-10-21");
+    assert.equal(formatEtStamp("2026-10-21T11:27:00.000Z"), "Oct 21, 7:27 AM ET");
+    assert.equal(formatWindowLabel("2026-10-04", "2026-10-21"), "Oct 4–21, 2026");
   });
 });
 

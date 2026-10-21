@@ -12,7 +12,9 @@ import {
   truncatedPrefix,
 } from "./normalize";
 import { compareText } from "./order";
-import { passesAmplifierGate, SCORE_WINDOW, THRESHOLDS } from "./thresholds";
+import { reposterSamples } from "./reposters";
+import { clockFromPosts, passesAmplifierGate, THRESHOLDS, type ScoreClock } from "./thresholds";
+import { isListedOutlet, textCitesOutlet, textNamesSisterOutlet } from "./outlet-citation";
 import { isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
 import type {
   AccountLabel,
@@ -27,6 +29,7 @@ import type {
   NarrativeEdge,
   NarrativeVolume,
   PostRole,
+  ReposterSample,
   Report,
 } from "./types";
 
@@ -66,9 +69,9 @@ function frameHits(
   return { ids, phrases };
 }
 
-function inScoreWindow(iso: string): boolean {
+function inScoreWindow(iso: string, clock: ScoreClock): boolean {
   const day = iso.slice(0, 10);
-  return day >= SCORE_WINDOW.start && day <= SCORE_WINDOW.end;
+  return day >= clock.start && day <= clock.end;
 }
 
 /** Phrase-search and quote-search hits are not a timeline. Omitted source counts as one. */
@@ -122,9 +125,10 @@ function blankAccount(handle: string): FixtureAccount {
   };
 }
 
-export function analyzeCorpus(corpus: Corpus): Report {
+export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report {
+  const clock = clockFromPosts(corpus.posts, pin);
   const ordered = corpus.posts
-    .filter((post) => inScoreWindow(post.postedAt))
+    .filter((post) => inScoreWindow(post.postedAt, clock))
     .sort((a, b) => compareText(a.postedAt, b.postedAt) || compareText(a.id, b.id));
   const features = ordered.map((post) => featurize(post, corpus.narratives));
 
@@ -240,7 +244,9 @@ export function analyzeCorpus(corpus: Corpus): Report {
     if (group.length < 2) {
       for (const feature of group) {
         clusterOf.set(feature.post.id, feature.post.id);
-        roleOf.set(feature.post.id, "solo");
+        // A same-domain desk that names the outlet is publishing that article.
+        const ownArticle = textNamesSisterOutlet(feature.post.text, feature.post.account);
+        roleOf.set(feature.post.id, ownArticle ? "originator" : "solo");
         matchedId.set(feature.post.id, null);
         matchedJ.set(feature.post.id, 0);
         matchedG.set(feature.post.id, 0);
@@ -249,8 +255,10 @@ export function analyzeCorpus(corpus: Corpus): Report {
       continue;
     }
 
-    // The earliest in-corpus poster stays the originator. One later credit does not
-    // move the origin or clear the other copiers.
+    // The earliest poster of this text is its originator. One later credit does not
+    // move the origin or clear the other copiers. A later outlet is the originator
+    // of its own article when an earlier post in the cluster links that outlet's
+    // domain or names the outlet. Everyone else stays a copy.
     const originHandle = group[0].post.account;
     const clusterHandles = new Set(group.map((feature) => feature.post.account));
     const syndicatingAccounts = new Set(
@@ -271,6 +279,10 @@ export function analyzeCorpus(corpus: Corpus): Report {
         // A headline reprinted by another syndicating outlet is syndication,
         // including a verbatim reprint. Accounts outside the set stay copies.
         roleOf.set(feature.post.id, "syndicated");
+        continue;
+      }
+      if (citedByEarlierPost(feature, group) || textNamesSisterOutlet(feature.post.text, feature.post.account)) {
+        roleOf.set(feature.post.id, "originator");
         continue;
       }
       const prior = roleOf.get(feature.post.id);
@@ -302,7 +314,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
 
   const accountDirectory = new Map(corpus.accounts.map((account) => [account.handle, account]));
   const ageById = new Map(
-    features.map((feature) => [feature.post.id, ageOfPoster(feature.post, accountDirectory)]),
+    features.map((feature) => [feature.post.id, ageOfPoster(feature.post, accountDirectory, clock.asOf)]),
   );
 
   const posts: AnnotatedPost[] = features.map((feature) => {
@@ -389,8 +401,8 @@ export function analyzeCorpus(corpus: Corpus): Report {
     .map(([id, group]) => buildCluster(id, group, postById, accountDirectory, false))
     .sort((a, b) => b.cloneCount - a.cloneCount || compareText(a.originAt, b.originAt));
 
-  const accounts = gradeAccounts(posts, corpus.accounts);
-  const narratives = gradeNarratives(corpus, posts, accounts);
+  const accounts = gradeAccounts(posts, corpus.accounts, clock.asOf);
+  const narratives = gradeNarratives(corpus, posts, accounts, reposterSamples(corpus.reposters ?? [], clock.asOf));
   const edges = narrativeEdges(posts);
 
   const clonePostCount = posts.filter((post) => isCopyRole(post.role)).length;
@@ -401,6 +413,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
     accounts,
     narratives,
     edges,
+    clock,
     totals: {
       postCount: posts.length,
       narrativeCount: corpus.narratives.length,
@@ -499,6 +512,18 @@ function pairMatch(
   }
   if (!kind) return null;
   return { kind, score, shared };
+}
+
+/** An outlet is not a copy of an earlier post that links or names that outlet. */
+function citedByEarlierPost(feature: Features, group: Features[]): boolean {
+  if (!isListedOutlet(feature.post.account)) return false;
+  return group.some((earlier) => {
+    if (earlier.post.id === feature.post.id) return false;
+    const before =
+      earlier.post.postedAt < feature.post.postedAt ||
+      (earlier.post.postedAt === feature.post.postedAt && earlier.post.id < feature.post.id);
+    return before && textCitesOutlet(earlier.post.text, feature.post.account);
+  });
 }
 
 function creditsOutletAccount(credits: SourceCredit[], handle: string): boolean {
@@ -619,7 +644,7 @@ function buildCluster(
   };
 }
 
-function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): AccountReport[] {
+function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[], asOf: string): AccountReport[] {
   const byHandle = new Map<string, AnnotatedPost[]>();
   for (const post of posts) {
     const list = byHandle.get(post.account);
@@ -635,7 +660,7 @@ function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): Acc
     const meta = known.get(handle) ?? blankAccount(handle);
     if (owned.length === 0 && !meta.trackedBoard) continue;
     const age = known.has(handle)
-      ? resolveAge({ accountCreatedAt: meta.accountCreatedAt, joined: meta.joined })
+      ? resolveAge({ accountCreatedAt: meta.accountCreatedAt, joined: meta.joined }, asOf)
       : ageFromPosts(owned);
     const clonePosts = owned.filter((post) => isCopyRole(post.role));
     const attributedPosts = owned.filter((post) => post.role === "attributed");
@@ -740,6 +765,7 @@ function gradeNarratives(
   corpus: Corpus,
   posts: AnnotatedPost[],
   accounts: AccountReport[],
+  samples: Map<string, ReposterSample>,
 ): NarrativeVolume[] {
   return corpus.narratives
     .map((narrative) => {
@@ -793,6 +819,7 @@ function gradeNarratives(
         age: summarizeAges(related.map((post) => post.ageBand)),
         freshBoostPosts,
         underYearBoostPosts,
+        reposters: samples.get(narrative.id) ?? null,
       };
     })
     .sort((a, b) => b.postCount - a.postCount || compareText(a.title, b.title));

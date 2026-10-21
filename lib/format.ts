@@ -1,5 +1,73 @@
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+export function formatMonthDay(isoDate: string): string {
+  const month = Number(isoDate.slice(5, 7));
+  const day = Number(isoDate.slice(8, 10));
+  if (!month || !day) return isoDate;
+  return `${MONTHS[month - 1]} ${day}`;
+}
+
+/** Inclusive UTC dates, YYYY-MM-DD. */
+export function eachUtcDay(start: string, end: string): string[] {
+  const days: string[] = [];
+  const cursor = new Date(`${start.slice(0, 10)}T00:00:00.000Z`);
+  const last = Date.parse(`${end.slice(0, 10)}T00:00:00.000Z`);
+  if (Number.isNaN(cursor.getTime()) || Number.isNaN(last)) return days;
+  while (cursor.getTime() <= last) {
+    days.push(cursor.toISOString().slice(0, 10));
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
+  return days;
+}
+
+/** "Oct 4–21, 2026" when the window stays in one month. */
+export function formatWindowLabel(start: string, end: string): string {
+  const startMonth = Number(start.slice(5, 7));
+  const endMonth = Number(end.slice(5, 7));
+  const startDay = Number(start.slice(8, 10));
+  const endDay = Number(end.slice(8, 10));
+  const startYear = start.slice(0, 4);
+  const endYear = end.slice(0, 4);
+  if (startYear === endYear && startMonth === endMonth) {
+    return `${MONTHS[startMonth - 1]} ${startDay}–${endDay}, ${endYear}`;
+  }
+  if (startYear === endYear) {
+    return `${MONTHS[startMonth - 1]} ${startDay}–${MONTHS[endMonth - 1]} ${endDay}, ${endYear}`;
+  }
+  return `${formatMonthDay(start)}, ${startYear}–${formatMonthDay(end)}, ${endYear}`;
+}
+
+const etFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
+const etDayFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Calendar day in US Eastern, which is EDT (UTC−4) for this October window. */
+export function etDay(iso: string): string {
+  const parts = etDayFormat.formatToParts(new Date(iso));
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+/** "Oct 21, 7:27 AM ET". */
+export function formatEtStamp(iso: string): string {
+  const parts = etFormat.formatToParts(new Date(iso));
+  const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";
+  return `${value("month")} ${value("day")}, ${value("hour")}:${value("minute")} ${value("dayPeriod")} ET`;
+}
+
 export function formatStamp(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso;

@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { liveClock } from "@/lib/corpus";
+import { formatWindowLabel } from "@/lib/format";
 import "./globals.css";
+
+const windowLabel = formatWindowLabel(liveClock().start, liveClock().end);
 
 const sans = Source_Sans_3({
   subsets: ["latin"],
@@ -31,7 +35,7 @@ export const metadata: Metadata = {
     template: "%s · GCBot",
   },
   description:
-    "GCBot, a GradedCalls product. The GC Scale reads authenticity: higher means more trustworthy. Real public X posts as of 18 Oct 2026 and a paste bench. No API keys.",
+    `GCBot, a GradedCalls product. The GC Scale reads authenticity: higher means more trustworthy. Real public X posts for ${windowLabel} and a paste bench. No API keys.`,
   robots: "noindex",
   icons: {
     icon: [

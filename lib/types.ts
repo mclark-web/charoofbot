@@ -60,10 +60,29 @@ export type Narrative = {
   framePhrases: string[];
 };
 
+/** A sampled reposter of a seed post. This is not a post row. */
+export type Reposter = {
+  repostedPostId: string;
+  narrativeId: string;
+  handle: string;
+  accountCreatedAt: string;
+  followers: number;
+  following: number;
+};
+
+/** New-account share among sampled reposters of one narrative. */
+export type ReposterSample = {
+  reposters: number;
+  under1y: number;
+  under30d: number;
+};
+
 export type Corpus = {
   narratives: Narrative[];
   accounts: FixtureAccount[];
   posts: FixturePost[];
+  /** Omitted on the practice set. The live corpus lists sampled reposters. */
+  reposters?: Reposter[];
 };
 
 export type MatchKind = "exact" | "near" | "template";
@@ -190,6 +209,8 @@ export type NarrativeVolume = {
   age: AgeVolume;
   freshBoostPosts: number;
   underYearBoostPosts: number;
+  /** Null when this narrative has no reposter sample. */
+  reposters: ReposterSample | null;
 };
 
 export type NarrativeEdge = {
@@ -204,6 +225,12 @@ export type Report = {
   accounts: AccountReport[];
   narratives: NarrativeVolume[];
   edges: NarrativeEdge[];
+  /** Score window and the age clock used for this report. */
+  clock: {
+    start: string;
+    end: string;
+    asOf: string;
+  };
   totals: {
     postCount: number;
     narrativeCount: number;

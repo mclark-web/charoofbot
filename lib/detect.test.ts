@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { analyzeCorpus } from "./detect";
+import { FIXTURE_CLOCK } from "./thresholds";
 import { sha256 } from "./hash";
 import { normalizeText } from "./normalize";
 import { runPaste } from "./paste";
@@ -12,7 +13,7 @@ const corpus = JSON.parse(
   readFileSync(new URL("../data/fixture-corpus.json", import.meta.url), "utf8"),
 ) as Corpus;
 
-const report = analyzeCorpus(corpus);
+const report = analyzeCorpus(corpus, FIXTURE_CLOCK);
 
 function post(id: string) {
   const found = report.posts.find((item) => item.id === id);

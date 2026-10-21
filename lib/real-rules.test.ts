@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { extractCredits, isAttributedRepost, textCreditsSource } from "./attribution";
-import { splitBoard } from "./board";
+import { compareNarrativesByCopycat, splitBoard } from "./board";
 import { analyzeCorpus, isCopyRole } from "./detect";
 import { gcScoreFrom } from "./grade";
-import { THRESHOLDS } from "./thresholds";
+import { FIXTURE_CLOCK, THRESHOLDS } from "./thresholds";
 import type { AnnotatedPost, Corpus, FixtureAccount, FixturePost } from "./types";
 import { isSyndicatingOutlet } from "./wires";
 
@@ -181,6 +181,129 @@ describe("real-data copy rules", () => {
     );
     assert.equal(report.clusters[0]?.originAccount, "person");
     assert.equal(report.posts.find((item) => item.account === "Reuters")?.role, "exact");
+  });
+
+  it("does not score an outlet as copying a post that links or names that outlet", () => {
+    const article = "https://www.reuters.com/world/example";
+    const linked = analyzeCorpus(
+      corpus([
+        post({ id: "p", account: "person", postedAt: "2026-10-18T07:00:00.000Z", text: `${TEXT} ${article}` }),
+        post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+        post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
+      ]),
+    );
+    const reuters = linked.posts.find((item) => item.account === "Reuters");
+    assert.equal(linked.clusters[0]?.originAccount, "person");
+    assert.equal(reuters?.role, "originator");
+    assert.equal(isCopyRole(reuters?.role ?? "exact"), false);
+    assert.equal(linked.accounts.find((item) => item.handle === "Reuters")?.label, "Originator");
+    assert.equal(linked.accounts.find((item) => item.handle === "Reuters")?.clonePostCount, 0);
+    assert.equal(linked.posts.find((item) => item.account === "copier")?.role, "exact");
+
+    const named = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT}, via Bloomberg`,
+        }),
+        post({ id: "b", account: "business", postedAt: "2026-10-18T08:00:00.000Z" }),
+        post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(named.clusters[0]?.originAccount, "person");
+    assert.equal(named.posts.find((item) => item.account === "business")?.role, "originator");
+    assert.equal(named.accounts.find((item) => item.handle === "business")?.label, "Originator");
+    assert.equal(named.posts.find((item) => item.account === "copier")?.role, "exact");
+
+    const otherSite = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT} https://example.com/story`,
+        }),
+        post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(otherSite.posts.find((item) => item.account === "Reuters")?.role, "exact");
+
+    const otherName = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT}, per Bloomberg`,
+        }),
+        post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(otherName.posts.find((item) => item.account === "Reuters")?.role, "near");
+
+    const shortLink = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT} https://t.co/Fzv5PhYpD1`,
+        }),
+        post({ id: "c", account: "CBSNews", postedAt: "2026-10-18T08:00:00.000Z" }),
+        post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(shortLink.posts.find((item) => item.account === "CBSNews")?.role, "originator");
+    assert.equal(shortLink.accounts.find((item) => item.handle === "CBSNews")?.clonePostCount, 0);
+    assert.equal(shortLink.posts.find((item) => item.account === "copier")?.role, "exact");
+
+    const unknownShort = analyzeCorpus(
+      corpus([
+        post({
+          id: "p",
+          account: "person",
+          postedAt: "2026-10-18T07:00:00.000Z",
+          text: `${TEXT} https://t.co/notalist`,
+        }),
+        post({ id: "r", account: "Reuters", postedAt: "2026-10-18T08:00:00.000Z" }),
+      ]),
+    );
+    assert.equal(unknownShort.posts.find((item) => item.account === "Reuters")?.role, "exact");
+
+    const sister = analyzeCorpus(
+      corpus([
+        post({ id: "p", account: "person", postedAt: "2026-10-18T07:00:00.000Z" }),
+        post({
+          id: "local",
+          account: "CBSPhiladelphia",
+          postedAt: "2026-10-18T08:00:00.000Z",
+          text: `${TEXT}, a CBS News Investigation has found.`,
+        }),
+        post({ id: "x", account: "copier", postedAt: "2026-10-18T09:00:00.000Z" }),
+      ]),
+    );
+    const local = sister.posts.find((item) => item.account === "CBSPhiladelphia");
+    assert.equal(local?.role, "originator");
+    assert.equal(isCopyRole(local?.role ?? "exact"), false);
+    assert.equal(sister.accounts.find((item) => item.handle === "CBSPhiladelphia")?.label, "Originator");
+    assert.equal(sister.accounts.find((item) => item.handle === "CBSPhiladelphia")?.clonePostCount, 0);
+    assert.equal(sister.clusters[0]?.originAccount, "person");
+    assert.equal(isCopyRole(sister.posts.find((item) => item.account === "copier")?.role ?? "solo"), true);
+
+    const otherDesk = analyzeCorpus(
+      corpus([
+        post({ id: "p", account: "person", postedAt: "2026-10-18T07:00:00.000Z" }),
+        post({
+          id: "r",
+          account: "Reuters",
+          postedAt: "2026-10-18T08:00:00.000Z",
+          text: `${TEXT}, a CBS News Investigation has found.`,
+        }),
+      ]),
+    );
+    assert.equal(isCopyRole(otherDesk.posts.find((item) => item.account === "Reuters")?.role ?? "solo"), true);
   });
 
   it("scores an account by its highest single-post copy weight", () => {
@@ -570,6 +693,44 @@ describe("false-positive classes", () => {
     assert.equal(desk?.postCount, 1);
     assert.equal(desk?.graded, false);
   });
+
+  it("ends the score window on the latest post date", () => {
+    const report = analyzeCorpus(
+      corpus([
+        post({ id: "old", account: "desk", postedAt: "2026-10-03T12:00:00.000Z" }),
+        post({
+          id: "late",
+          account: "desk",
+          postedAt: "2026-10-21T14:50:58.000Z",
+          text: "A short original note about rainfall.",
+        }),
+      ]),
+    );
+    assert.equal(report.clock.start, "2026-10-04");
+    assert.equal(report.clock.end, "2026-10-21");
+    assert.equal(report.clock.asOf, "2026-10-21T14:50:58.000Z");
+    assert.equal(report.posts.some((item) => item.id === "old"), false);
+    assert.equal(report.posts.some((item) => item.id === "late"), true);
+  });
+
+  it("keeps a pinned fixture clock when a later post is in the file", () => {
+    const report = analyzeCorpus(
+      corpus([
+        post({ id: "late", account: "desk", postedAt: "2026-10-21T14:50:58.000Z" }),
+        post({
+          id: "in",
+          account: "desk",
+          postedAt: "2026-10-10T12:00:00.000Z",
+          text: "A short original note about rainfall.",
+        }),
+      ]),
+      FIXTURE_CLOCK,
+    );
+    assert.equal(report.clock.end, FIXTURE_CLOCK.end);
+    assert.equal(report.clock.asOf, FIXTURE_CLOCK.asOf);
+    assert.equal(report.posts.some((item) => item.id === "late"), false);
+    assert.equal(report.posts.some((item) => item.id === "in"), true);
+  });
 });
 
 describe("headline GC score", () => {
@@ -655,6 +816,38 @@ describe("real corpus after the rules", () => {
   ) as Corpus;
   const report = analyzeCorpus(corpusJson);
 
+  it("ages the live corpus against its latest post", () => {
+    const latest = corpusJson.posts.reduce((max, post) => (post.postedAt > max ? post.postedAt : max), "");
+    assert.equal(report.clock.end, latest.slice(0, 10));
+    assert.equal(report.clock.asOf, latest);
+    assert.equal(report.clock.start, "2026-10-04");
+    assert.ok(report.posts.every((post) => post.postedAt.slice(0, 10) <= report.clock.end));
+    assert.ok(report.posts.every((post) => post.postedAt.slice(0, 10) >= report.clock.start));
+  });
+
+  it("counts new-account reposters from the reposter sample", () => {
+    const immigration = report.narratives.find((item) => item.id === "immigration");
+    const market = report.narratives.find((item) => item.id === "market-news");
+    assert.ok(immigration?.reposters);
+    assert.equal(immigration.reposters.reposters, 50);
+    assert.equal(immigration.reposters.under1y, 1);
+    assert.equal(immigration.reposters.under30d, 0);
+    assert.equal(market?.reposters, null);
+    const ranked = [...report.narratives].sort(compareNarrativesByCopycat);
+    // Europe's copied share leads. Immigration is 10/73 once CBS News is not
+    // scored as copying the post that links its own article.
+    assert.equal(ranked[0]?.id, "europe-protests");
+    assert.equal(ranked[1]?.id, "immigration");
+    assert.equal(immigration.clonePosts, 10);
+    assert.equal(immigration.postCount, 73);
+    assert.equal(report.totals.clonePostCount, 85);
+    assert.equal(ranked.at(-1)?.id, "affordability");
+    const iran = report.narratives.find((item) => item.id === "iran");
+    assert.equal(iran?.postCount, 89);
+    assert.equal(iran?.clonePosts, 6);
+    assert.equal(iran?.accountCount, 76);
+  });
+
   it("never scores a post as a copy of the same account", () => {
     const selfCopies = report.posts.filter(
       (item) => item.matchedAccount === item.account && isCopyRole(item.role),
@@ -690,7 +883,9 @@ describe("real corpus after the rules", () => {
     assert.equal(reuters.label, "Originator");
     assert.equal(reuters.cloneScore, 0);
     assert.equal(reuters.gcScore, 100);
-    assert.equal(reuters.graded, false);
+    // The 21 Oct Iran post is the fifth in-window post, so the sample is no longer thin.
+    assert.equal(reuters.graded, true);
+    assert.equal(reuters.postCount, 5);
 
     assert.equal(whales.graded, true);
     // Confirmed complete text, so this stays the originator. The old truncated/solo expectation was the cut-off guess.

@@ -56,14 +56,60 @@ function unique(rows, key, file) {
   return seen;
 }
 
+export function readGcbotTable(name) {
+  return read(name);
+}
+
+const OVERRIDE_ACTIONS = new Set(["retag", "exclude"]);
+
+// post-overrides.csv is append-only. It retags or drops a post from narrative
+// counts without rewriting posts.csv. Reposter rows for that post follow.
+export function applyPostOverrides(postRows, reposterRows, overrideRows) {
+  const postIds = new Set(postRows.map((row) => row.post_id));
+  const byId = new Map();
+  for (const row of overrideRows) {
+    if (!row.post_id) throw new Error("post-overrides.csv: a row has no post_id");
+    if (byId.has(row.post_id)) throw new Error(`post-overrides.csv: post ${row.post_id} is listed twice`);
+    if (!OVERRIDE_ACTIONS.has(row.action)) {
+      throw new Error(`post-overrides.csv: post ${row.post_id} has action "${row.action}"`);
+    }
+    if (!postIds.has(row.post_id)) {
+      throw new Error(`post-overrides.csv: post ${row.post_id} is not in posts.csv`);
+    }
+    if (!row.reason || !row.reason.trim()) {
+      throw new Error(`post-overrides.csv: post ${row.post_id} has no reason`);
+    }
+    if (row.action === "retag") {
+      if (!row.new_narrative) throw new Error(`post-overrides.csv: retag ${row.post_id} has no new_narrative`);
+    } else if (row.new_narrative) {
+      throw new Error(`post-overrides.csv: exclude ${row.post_id} must leave new_narrative empty`);
+    }
+    byId.set(row.post_id, row);
+  }
+  for (const post of postRows) {
+    const override = byId.get(post.post_id);
+    if (!override) continue;
+    post.narrative_id = override.action === "exclude" ? "" : override.new_narrative;
+  }
+  for (const reposter of reposterRows) {
+    const override = byId.get(reposter.reposted_post_id);
+    if (!override) continue;
+    reposter.narrative_id = override.action === "exclude" ? "" : override.new_narrative;
+  }
+  return byId;
+}
+
 export function buildCorpus() {
   const narrativeRows = read("narratives.csv");
   const accountRows = read("accounts.csv");
   const postRows = read("posts.csv");
-  return corpusFrom(narrativeRows, accountRows, postRows);
+  const reposterRows = read("reposters.csv");
+  const overrideRows = read("post-overrides.csv");
+  applyPostOverrides(postRows, reposterRows, overrideRows);
+  return corpusFrom(narrativeRows, accountRows, postRows, reposterRows);
 }
 
-function corpusFrom(narrativeRows, accountRows, postRows) {
+function corpusFrom(narrativeRows, accountRows, postRows, reposterRows) {
   const narrativeIds = unique(narrativeRows, "narrative_id", "narratives.csv");
   const handles = unique(accountRows, "handle", "accounts.csv");
   unique(postRows, "post_id", "posts.csv");
@@ -139,7 +185,31 @@ const corpus = {
       // Only a row marked truncated is cut off. unknown means not yet checked.
       textTruncated: effectivelyTruncated(row),
     })),
+    reposters: reposterRows.filter((row) => row.narrative_id).map((row) => {
+      if (!row.handle) throw new Error("reposters.csv: a row has no handle");
+      if (!row.reposted_post_id) throw new Error(`reposters.csv: @${row.handle} has no reposted_post_id`);
+      if (row.narrative_id && !narrativeIds.has(row.narrative_id)) {
+        throw new Error(`reposters.csv: @${row.handle} names unknown narrative ${row.narrative_id}`);
+      }
+      assertStrictIso(row.account_created_at, `reposters.csv: @${row.handle} account_created_at`);
+      return {
+        repostedPostId: row.reposted_post_id,
+        narrativeId: row.narrative_id,
+        handle: row.handle,
+        accountCreatedAt: row.account_created_at,
+        followers: Number(row.followers) || 0,
+        following: Number(row.following) || 0,
+      };
+    }),
   };
+  const seenReposts = new Set();
+  for (const row of corpus.reposters) {
+    const key = `${row.repostedPostId}\t${row.handle.toLowerCase()}`;
+    if (seenReposts.has(key)) {
+      throw new Error(`reposters.csv: @${row.handle} is listed twice for post ${row.repostedPostId}`);
+    }
+    seenReposts.add(key);
+  }
   return corpus;
 }
 
@@ -194,5 +264,5 @@ if (process.argv[1]?.endsWith("build-corpus.mjs")) {
   assertPosts();
   const corpus = buildCorpus();
   writeFileSync(out, `${JSON.stringify(corpus, null, 2)}\n`);
-  console.log(`corpus.json: ${corpus.narratives.length} narratives, ${corpus.accounts.length} accounts, ${corpus.posts.length} posts`);
+  console.log(`corpus.json: ${corpus.narratives.length} narratives, ${corpus.accounts.length} accounts, ${corpus.posts.length} posts, ${corpus.reposters.length} reposters`);
 }
