@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { bandForAgeDays, resolveAge, summarizeAges } from "./age";
-import { AGE_AS_OF } from "./thresholds";
+
+/** Pinned practice-set clock. This test does not follow the live corpus. */
+const FIXTURE_AS_OF = "2026-10-18T21:00:00.000Z";
 
 describe("account age bands", () => {
   it("splits fresh, under a year, established, and unknown", () => {
@@ -14,18 +16,18 @@ describe("account age bands", () => {
   });
 
   it("reads a created date or ageDays against the fixture clock", () => {
-    const fromDate = resolveAge({ accountCreatedAt: "2026-10-01" }, AGE_AS_OF);
+    const fromDate = resolveAge({ accountCreatedAt: "2026-10-01" }, FIXTURE_AS_OF);
     assert.equal(fromDate.ageDays, 17);
     assert.equal(fromDate.ageBand, "fresh");
 
-    const fromDays = resolveAge({ ageDays: 100 }, AGE_AS_OF);
+    const fromDays = resolveAge({ ageDays: 100 }, FIXTURE_AS_OF);
     assert.equal(fromDays.ageDays, 100);
     assert.equal(fromDays.ageBand, "young");
-    assert.equal(resolveAge({ ageDays: 365 }, AGE_AS_OF).ageBand, "established");
+    assert.equal(resolveAge({ ageDays: 365 }, FIXTURE_AS_OF).ageBand, "established");
 
-    assert.equal(resolveAge({}, AGE_AS_OF).ageBand, "unknown");
-    assert.equal(resolveAge({ accountCreatedAt: "yesterday", ageDays: 4 }, AGE_AS_OF).ageBand, "fresh");
-    assert.equal(resolveAge({ accountCreatedAt: "yesterday" }, AGE_AS_OF).ageBand, "unknown");
+    assert.equal(resolveAge({}, FIXTURE_AS_OF).ageBand, "unknown");
+    assert.equal(resolveAge({ accountCreatedAt: "yesterday", ageDays: 4 }, FIXTURE_AS_OF).ageBand, "fresh");
+    assert.equal(resolveAge({ accountCreatedAt: "yesterday" }, FIXTURE_AS_OF).ageBand, "unknown");
   });
 
   it("highlights when new accounts are at least half the posts", () => {

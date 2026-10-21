@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import fixtureJson from "../data/fixture-corpus.json";
 import { analyzeCorpus } from "../lib/detect";
+import { FIXTURE_CLOCK } from "../lib/thresholds";
 import { runPaste } from "../lib/paste";
 import { samplePastes } from "../lib/samples";
 import type { Corpus } from "../lib/types";
@@ -183,7 +184,7 @@ describe("amplifierScaleScore", () => {
   });
 
   it("withholds a failed gate on the account page path and still grades a passing gate", () => {
-    const report = analyzeCorpus(fixtureJson as Corpus);
+    const report = analyzeCorpus(fixtureJson as Corpus, FIXTURE_CLOCK);
     const withheld = report.accounts.find((account) => account.handle === "assay_paul");
     assert.ok(withheld);
     assert.equal(withheld.passesAmpGate, false);

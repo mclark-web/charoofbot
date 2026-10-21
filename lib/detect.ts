@@ -12,7 +12,8 @@ import {
   truncatedPrefix,
 } from "./normalize";
 import { compareText } from "./order";
-import { passesAmplifierGate, SCORE_WINDOW, THRESHOLDS } from "./thresholds";
+import { reposterSamples } from "./reposters";
+import { clockFromPosts, passesAmplifierGate, THRESHOLDS, type ScoreClock } from "./thresholds";
 import { isRecognizedNewsOutlet, isSyndicatingOutlet, outletAccounts } from "./wires";
 import type {
   AccountLabel,
@@ -27,6 +28,7 @@ import type {
   NarrativeEdge,
   NarrativeVolume,
   PostRole,
+  ReposterSample,
   Report,
 } from "./types";
 
@@ -66,9 +68,9 @@ function frameHits(
   return { ids, phrases };
 }
 
-function inScoreWindow(iso: string): boolean {
+function inScoreWindow(iso: string, clock: ScoreClock): boolean {
   const day = iso.slice(0, 10);
-  return day >= SCORE_WINDOW.start && day <= SCORE_WINDOW.end;
+  return day >= clock.start && day <= clock.end;
 }
 
 /** Phrase-search and quote-search hits are not a timeline. Omitted source counts as one. */
@@ -122,9 +124,10 @@ function blankAccount(handle: string): FixtureAccount {
   };
 }
 
-export function analyzeCorpus(corpus: Corpus): Report {
+export function analyzeCorpus(corpus: Corpus, pin?: Partial<ScoreClock>): Report {
+  const clock = clockFromPosts(corpus.posts, pin);
   const ordered = corpus.posts
-    .filter((post) => inScoreWindow(post.postedAt))
+    .filter((post) => inScoreWindow(post.postedAt, clock))
     .sort((a, b) => compareText(a.postedAt, b.postedAt) || compareText(a.id, b.id));
   const features = ordered.map((post) => featurize(post, corpus.narratives));
 
@@ -302,7 +305,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
 
   const accountDirectory = new Map(corpus.accounts.map((account) => [account.handle, account]));
   const ageById = new Map(
-    features.map((feature) => [feature.post.id, ageOfPoster(feature.post, accountDirectory)]),
+    features.map((feature) => [feature.post.id, ageOfPoster(feature.post, accountDirectory, clock.asOf)]),
   );
 
   const posts: AnnotatedPost[] = features.map((feature) => {
@@ -389,8 +392,8 @@ export function analyzeCorpus(corpus: Corpus): Report {
     .map(([id, group]) => buildCluster(id, group, postById, accountDirectory, false))
     .sort((a, b) => b.cloneCount - a.cloneCount || compareText(a.originAt, b.originAt));
 
-  const accounts = gradeAccounts(posts, corpus.accounts);
-  const narratives = gradeNarratives(corpus, posts, accounts);
+  const accounts = gradeAccounts(posts, corpus.accounts, clock.asOf);
+  const narratives = gradeNarratives(corpus, posts, accounts, reposterSamples(corpus.reposters ?? [], clock.asOf));
   const edges = narrativeEdges(posts);
 
   const clonePostCount = posts.filter((post) => isCopyRole(post.role)).length;
@@ -401,6 +404,7 @@ export function analyzeCorpus(corpus: Corpus): Report {
     accounts,
     narratives,
     edges,
+    clock,
     totals: {
       postCount: posts.length,
       narrativeCount: corpus.narratives.length,
@@ -619,7 +623,7 @@ function buildCluster(
   };
 }
 
-function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): AccountReport[] {
+function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[], asOf: string): AccountReport[] {
   const byHandle = new Map<string, AnnotatedPost[]>();
   for (const post of posts) {
     const list = byHandle.get(post.account);
@@ -635,7 +639,7 @@ function gradeAccounts(posts: AnnotatedPost[], directory: FixtureAccount[]): Acc
     const meta = known.get(handle) ?? blankAccount(handle);
     if (owned.length === 0 && !meta.trackedBoard) continue;
     const age = known.has(handle)
-      ? resolveAge({ accountCreatedAt: meta.accountCreatedAt, joined: meta.joined })
+      ? resolveAge({ accountCreatedAt: meta.accountCreatedAt, joined: meta.joined }, asOf)
       : ageFromPosts(owned);
     const clonePosts = owned.filter((post) => isCopyRole(post.role));
     const attributedPosts = owned.filter((post) => post.role === "attributed");
@@ -740,6 +744,7 @@ function gradeNarratives(
   corpus: Corpus,
   posts: AnnotatedPost[],
   accounts: AccountReport[],
+  samples: Map<string, ReposterSample>,
 ): NarrativeVolume[] {
   return corpus.narratives
     .map((narrative) => {
@@ -793,6 +798,7 @@ function gradeNarratives(
         age: summarizeAges(related.map((post) => post.ageBand)),
         freshBoostPosts,
         underYearBoostPosts,
+        reposters: samples.get(narrative.id) ?? null,
       };
     })
     .sort((a, b) => b.postCount - a.postCount || compareText(a.title, b.title));

@@ -1,6 +1,16 @@
-import type { AccountReport } from "./types";
+import type { AccountReport, NarrativeVolume } from "./types";
 import { compareText } from "./order";
 import { THRESHOLDS } from "./thresholds";
+
+/** Share of posts that are copied wording. Zero posts is zero. */
+export function copycatShare(narrative: Pick<NarrativeVolume, "clonePosts" | "postCount">): number {
+  return narrative.postCount === 0 ? 0 : narrative.clonePosts / narrative.postCount;
+}
+
+/** Highest copycat share first. Ties break on post count, then title. */
+export function compareNarrativesByCopycat(a: NarrativeVolume, b: NarrativeVolume): number {
+  return copycatShare(b) - copycatShare(a) || b.postCount - a.postCount || compareText(a.title, b.title);
+}
 
 /**
  * Most original (highest GC score) and biggest copycats (lowest GC score).

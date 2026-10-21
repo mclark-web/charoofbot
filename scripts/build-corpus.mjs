@@ -60,10 +60,11 @@ export function buildCorpus() {
   const narrativeRows = read("narratives.csv");
   const accountRows = read("accounts.csv");
   const postRows = read("posts.csv");
-  return corpusFrom(narrativeRows, accountRows, postRows);
+  const reposterRows = read("reposters.csv");
+  return corpusFrom(narrativeRows, accountRows, postRows, reposterRows);
 }
 
-function corpusFrom(narrativeRows, accountRows, postRows) {
+function corpusFrom(narrativeRows, accountRows, postRows, reposterRows) {
   const narrativeIds = unique(narrativeRows, "narrative_id", "narratives.csv");
   const handles = unique(accountRows, "handle", "accounts.csv");
   unique(postRows, "post_id", "posts.csv");
@@ -139,7 +140,31 @@ const corpus = {
       // Only a row marked truncated is cut off. unknown means not yet checked.
       textTruncated: effectivelyTruncated(row),
     })),
+    reposters: reposterRows.map((row) => {
+      if (!row.handle) throw new Error("reposters.csv: a row has no handle");
+      if (!row.reposted_post_id) throw new Error(`reposters.csv: @${row.handle} has no reposted_post_id`);
+      if (row.narrative_id && !narrativeIds.has(row.narrative_id)) {
+        throw new Error(`reposters.csv: @${row.handle} names unknown narrative ${row.narrative_id}`);
+      }
+      assertStrictIso(row.account_created_at, `reposters.csv: @${row.handle} account_created_at`);
+      return {
+        repostedPostId: row.reposted_post_id,
+        narrativeId: row.narrative_id,
+        handle: row.handle,
+        accountCreatedAt: row.account_created_at,
+        followers: Number(row.followers) || 0,
+        following: Number(row.following) || 0,
+      };
+    }),
   };
+  const seenReposts = new Set();
+  for (const row of corpus.reposters) {
+    const key = `${row.repostedPostId}\t${row.handle.toLowerCase()}`;
+    if (seenReposts.has(key)) {
+      throw new Error(`reposters.csv: @${row.handle} is listed twice for post ${row.repostedPostId}`);
+    }
+    seenReposts.add(key);
+  }
   return corpus;
 }
 
@@ -194,5 +219,5 @@ if (process.argv[1]?.endsWith("build-corpus.mjs")) {
   assertPosts();
   const corpus = buildCorpus();
   writeFileSync(out, `${JSON.stringify(corpus, null, 2)}\n`);
-  console.log(`corpus.json: ${corpus.narratives.length} narratives, ${corpus.accounts.length} accounts, ${corpus.posts.length} posts`);
+  console.log(`corpus.json: ${corpus.narratives.length} narratives, ${corpus.accounts.length} accounts, ${corpus.posts.length} posts, ${corpus.reposters.length} reposters`);
 }

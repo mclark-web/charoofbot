@@ -8,7 +8,7 @@ Built for accountability in an age of market fomo, prediction craze, and loud an
 
 ## What you can do
 
-- Open the dashboard. Figure 1 is narrative volume (which frames are being sewn, and how hard). Figure 1b is the same narratives split by poster age: accounts under 30 days, and accounts from 30 days to under 1 year. Figure 2 links narratives that share accounts and rings the ones new accounts dominate. Copied-language clusters and the flagged-amplifier list stay separate. The list leads with the lowest organic reach. A new-account badge sits beside a grade and does not change it.
+- Open the dashboard. Each card is one narrative, sorted by copycat share: posts per day, copied wording, the accounts pushing it, and new-account reposters. The narrative GC Scale reads Not graded yet. Open the account list on a card for the evidence. A new-account badge sits beside a grade and does not change it.
 - Open a cluster for the originator, the timeline, and a normalized text diff.
 - Open an account. Original voice and organic reach are two authenticity meters. Higher means more trustworthy. They are not added together. A withheld amplifier signal reads Not graded yet.
 - Paste a duplicate of a practice set post on `/paste`. Decorations (links, @handles, cashtags, emoji) are stripped, and an exact copy lowers original voice. A slogan without the copied paragraph is a boost hit, not copied wording.
@@ -48,11 +48,11 @@ You can also paste your own text, several posts split by a line that is only `--
 5. Two or more shared 4-grams, with Jaccard ≥ 0.5 and below 0.85, is a template skeleton.
 6. Copies only join a cluster within 14 days of first seen. A leading `RT @handle:` is excluded.
 
-Thresholds, the amplifier formula, and the new-account rules are printed on `/methodology` from the same constants the code uses. Ages are `accountCreatedAt` on each account (the public X created date), measured at 18 Oct 2026 21:00 UTC. That is a file in the repo, not a live X profile lookup. Paste can send `accountCreatedAt` or `ageDays`. Omit both and the age is unknown.
+Thresholds, the amplifier formula, and the new-account rules are printed on `/methodology` from the same constants the code uses. Ages are `accountCreatedAt` on each account (the public X created date), measured against the latest post in the file. That is a file in the repo, not a live X profile lookup. The paste bench pins its own practice-set clock, 18 Oct 2026 21:00 UTC. Paste can send `accountCreatedAt` or `ageDays`. Omit both and the age is unknown.
 
 A cluster or narrative is highlighted when accounts under 1 year wrote at least half of its posts. The under-30-day share is reported separately and uses the same half-volume line.
 
-The corpus (`data/corpus.json`) is real public X posts as of 18 Oct 2026: recent posts from the accounts tracked on GradedCalls Sports and FinTwit, plus copies and quote posts of them. It is generated from the CSVs in `data/gcbot/` (see below). The paste bench and the detector tests use a separate synthetic practice set, `data/fixture-corpus.json`, with deliberate copies and boosters. Follower counts are bait. They are displayed and not scored, so a large copied account does not rise on organic reach unless it also boosts. The flagged-amplifier list still leads with the lowest authenticity.
+The corpus (`data/corpus.json`) is real public X posts. The score window opens on 4 Oct 2026 and closes on the latest post's UTC date. It includes recent posts from the accounts tracked on GradedCalls Sports and FinTwit, plus copies, quote posts, and later narrative rows. It is generated from the CSVs in `data/gcbot/` (see below). The paste bench and the detector tests use a separate synthetic practice set, `data/fixture-corpus.json`, with deliberate copies and boosters. Those tests pin 18 Oct 2026 21:00 UTC so they do not follow the live file. Follower counts are bait. They are displayed and not scored, so a large copied account does not rise on organic reach unless it also boosts. The flagged-amplifier list still leads with the lowest authenticity.
 
 ## Corpus data (CSV source of truth)
 
@@ -61,6 +61,7 @@ The corpus (`data/corpus.json`) is real public X posts as of 18 Oct 2026: recent
 - `accounts.csv`: one row per X account, keyed by `handle`. `tracked_board` is `sports` or `fintwit` for accounts tracked on the other GradedCalls boards and empty for accounts found copying or quoting them. `narrative_id` is the tracked account's lane.
 - `posts.csv`: one row per public post, keyed by `post_id`, with `handle`, `created_at` (UTC), `action` (`post`, `quote`, `reply`), `text`, `url`, `narrative_id`, `ref_post_id` (the tracked post it copies or quotes), `ref_in_corpus` (`true` when that ref is a row in this file and strictly earlier, `false` when the ref is outside the file), `source` (`timeline`, `phrase-search`, `quotes`) and `fetched_at`. `fetched_at` is a full ISO-8601 UTC datetime. The exact fetch clock time was not recorded for these rows, so both `posts.csv` and `accounts.csv` use `2026-10-18T00:00:00Z`. Equal timestamps break by snowflake id: the smaller `post_id` is earlier.
 - `narratives.csv`: one row per narrative. `frame_phrases` is optional, `|`-separated.
+- `reposters.csv`: sampled reposters of a seed post (`reposted_post_id`, `narrative_id`, `handle`, `account_created_at`). These rows are not posts. The New-account reposters figure is the share of that sample under 1 year, aged on the same clock as the posters. A narrative with no rows reads “reposters not captured.”
 
 The files are append-only. To add an account or a weekly refresh, append rows (new handles to `accounts.csv`, new post ids to `posts.csv`) and run:
 

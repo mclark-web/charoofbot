@@ -4,7 +4,8 @@ import { LabelBadge } from "@/components/label-badge";
 import { SourceLink } from "@/components/source-link";
 import { splitBoard } from "@/lib/board";
 import { accountSourceUrl, countNoun, formatStamp } from "@/lib/format";
-import { AGE_AS_OF, THRESHOLDS } from "@/lib/thresholds";
+import { liveClock } from "@/lib/corpus";
+import { THRESHOLDS } from "@/lib/thresholds";
 import type { AccountReport, AnnotatedPost } from "@/lib/types";
 
 export function BestWorst({
@@ -25,7 +26,7 @@ export function BestWorst({
         <h2 className="mt-1 font-serif text-2xl text-ink">Most original and biggest copycats</h2>
       </div>
       <p className="max-w-3xl text-sm leading-relaxed text-ink-soft">
-        As of {formatStamp(AGE_AS_OF)}. Lanes include accounts with at least {THRESHOLDS.leaderboardMinPosts} posts
+        As of {formatStamp(liveClock().asOf)}. Lanes include accounts with at least {THRESHOLDS.leaderboardMinPosts} posts
         in the scored window. The GC score is 100 minus the copy score. Most original also needs at least one post
         that is not a copy and not a credited repost.{" "}
         <Link href="/accounts" className="tap underline decoration-rule underline-offset-4 hover:decoration-ink">

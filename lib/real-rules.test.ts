@@ -2,10 +2,10 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import { extractCredits, isAttributedRepost, textCreditsSource } from "./attribution";
-import { splitBoard } from "./board";
+import { compareNarrativesByCopycat, splitBoard } from "./board";
 import { analyzeCorpus, isCopyRole } from "./detect";
 import { gcScoreFrom } from "./grade";
-import { THRESHOLDS } from "./thresholds";
+import { FIXTURE_CLOCK, THRESHOLDS } from "./thresholds";
 import type { AnnotatedPost, Corpus, FixtureAccount, FixturePost } from "./types";
 import { isSyndicatingOutlet } from "./wires";
 
@@ -570,6 +570,44 @@ describe("false-positive classes", () => {
     assert.equal(desk?.postCount, 1);
     assert.equal(desk?.graded, false);
   });
+
+  it("ends the score window on the latest post date", () => {
+    const report = analyzeCorpus(
+      corpus([
+        post({ id: "old", account: "desk", postedAt: "2026-10-03T12:00:00.000Z" }),
+        post({
+          id: "late",
+          account: "desk",
+          postedAt: "2026-10-21T14:50:58.000Z",
+          text: "A short original note about rainfall.",
+        }),
+      ]),
+    );
+    assert.equal(report.clock.start, "2026-10-04");
+    assert.equal(report.clock.end, "2026-10-21");
+    assert.equal(report.clock.asOf, "2026-10-21T14:50:58.000Z");
+    assert.equal(report.posts.some((item) => item.id === "old"), false);
+    assert.equal(report.posts.some((item) => item.id === "late"), true);
+  });
+
+  it("keeps a pinned fixture clock when a later post is in the file", () => {
+    const report = analyzeCorpus(
+      corpus([
+        post({ id: "late", account: "desk", postedAt: "2026-10-21T14:50:58.000Z" }),
+        post({
+          id: "in",
+          account: "desk",
+          postedAt: "2026-10-10T12:00:00.000Z",
+          text: "A short original note about rainfall.",
+        }),
+      ]),
+      FIXTURE_CLOCK,
+    );
+    assert.equal(report.clock.end, FIXTURE_CLOCK.end);
+    assert.equal(report.clock.asOf, FIXTURE_CLOCK.asOf);
+    assert.equal(report.posts.some((item) => item.id === "late"), false);
+    assert.equal(report.posts.some((item) => item.id === "in"), true);
+  });
 });
 
 describe("headline GC score", () => {
@@ -655,6 +693,29 @@ describe("real corpus after the rules", () => {
   ) as Corpus;
   const report = analyzeCorpus(corpusJson);
 
+  it("ages the live corpus against its latest post", () => {
+    const latest = corpusJson.posts.reduce((max, post) => (post.postedAt > max ? post.postedAt : max), "");
+    assert.equal(report.clock.end, latest.slice(0, 10));
+    assert.equal(report.clock.asOf, latest);
+    assert.equal(report.clock.start, "2026-10-04");
+    assert.ok(report.posts.every((post) => post.postedAt.slice(0, 10) <= report.clock.end));
+    assert.ok(report.posts.every((post) => post.postedAt.slice(0, 10) >= report.clock.start));
+  });
+
+  it("counts new-account reposters from the reposter sample", () => {
+    const immigration = report.narratives.find((item) => item.id === "immigration");
+    const market = report.narratives.find((item) => item.id === "market-news");
+    assert.ok(immigration?.reposters);
+    assert.equal(immigration.reposters.reposters, 50);
+    assert.equal(immigration.reposters.under1y, 1);
+    assert.equal(immigration.reposters.under30d, 0);
+    assert.equal(market?.reposters, null);
+    const ranked = [...report.narratives].sort(compareNarrativesByCopycat);
+    assert.equal(ranked[0]?.id, "immigration");
+    assert.equal(ranked[1]?.id, "europe-protests");
+    assert.equal(ranked.at(-1)?.id, "affordability");
+  });
+
   it("never scores a post as a copy of the same account", () => {
     const selfCopies = report.posts.filter(
       (item) => item.matchedAccount === item.account && isCopyRole(item.role),
@@ -690,7 +751,9 @@ describe("real corpus after the rules", () => {
     assert.equal(reuters.label, "Originator");
     assert.equal(reuters.cloneScore, 0);
     assert.equal(reuters.gcScore, 100);
-    assert.equal(reuters.graded, false);
+    // The 21 Oct Iran post is the fifth in-window post, so the sample is no longer thin.
+    assert.equal(reuters.graded, true);
+    assert.equal(reuters.postCount, 5);
 
     assert.equal(whales.graded, true);
     // Confirmed complete text, so this stays the originator. The old truncated/solo expectation was the cut-off guess.

@@ -1,8 +1,11 @@
 import { Suspense } from "react";
 import { LogoLink } from "@/components/logo-link";
 import { SiteNav } from "@/components/site-nav";
+import { liveClock } from "@/lib/corpus";
+import { formatWindowLabel } from "@/lib/format";
 
 export function SiteHeader() {
+  const clock = liveClock();
   return (
     <header className="site-header">
       <div className="site-header-inner">
@@ -11,7 +14,7 @@ export function SiteHeader() {
           <SiteNav />
         </Suspense>
       </div>
-      <p className="corpus-stamp">Real X posts · 18 Oct 2026</p>
+      <p className="corpus-stamp">Real X posts · {formatWindowLabel(clock.start, clock.end)}</p>
     </header>
   );
 }

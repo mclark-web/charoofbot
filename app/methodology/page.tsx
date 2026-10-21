@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { AppealDraft } from "@/components/appeal-draft";
 import { AMPLIFIER_NOT_AVAILABLE_SENTENCE, ORGANIC_REACH_RULE } from "@/components/organic-reach-copy";
-import { formatStamp } from "@/lib/format";
+import { liveClock } from "@/lib/corpus";
+import { formatStamp, formatWindowLabel } from "@/lib/format";
 import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
-import { AGE_AS_OF, SCORE_WINDOW, THRESHOLDS } from "@/lib/thresholds";
+import { DEMO_PASTE_STAMP, THRESHOLDS } from "@/lib/thresholds";
 import { RECOGNIZED_NEWS_OUTLETS, SYNDICATING_OUTLETS } from "@/lib/wires";
 
 export const metadata: Metadata = {
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
 const WINDOW_DAYS = THRESHOLDS.clusterWindowHours / 24;
 
 export default function MethodologyPage() {
+  const clock = liveClock();
+  const windowLabel = formatWindowLabel(clock.start, clock.end);
   return (
     <article className="grid max-w-3xl gap-10">
       <header>
@@ -34,13 +37,13 @@ export default function MethodologyPage() {
           <li>No paid language model. Matching is normalization, SHA-256, and token overlap.</li>
           <li>
             No live X user lookup. Account ages are each account&apos;s public X created date, stored as{" "}
-            <span className="font-mono">accountCreatedAt</span> and measured at {formatStamp(AGE_AS_OF)}. That clock
-            does not move with the wall date.
+            <span className="font-mono">accountCreatedAt</span> and measured at {formatStamp(clock.asOf)}, the
+            latest post in the file. That clock does not move with the wall date.
           </li>
           <li>Hosting can be a Vercel Hobby project. Nothing in the app reads environment variables.</li>
         </ul>
         <p className="leading-relaxed text-ink-soft">
-          Two inputs are enough. The corpus is real public X posts as of 18 Oct 2026: recent posts from the
+          Two inputs are enough. The corpus is real public X posts for {windowLabel}: recent posts from the
           accounts tracked on GradedCalls Sports and FinTwit, plus copies and quote posts of them found by phrase
           search. The paste bench runs the same functions in the browser on text you supply, against a separate
           synthetic practice set with known originators, exact copies, near-duplicates, and accounts that only boost.
@@ -128,12 +131,12 @@ export default function MethodologyPage() {
               <Row label="Detector clone signal" value={`score ≥ ${THRESHOLDS.cloneLabel} flags copied wording`} />
               <Row label="Best/Worst minimum sample" value={`≥ ${THRESHOLDS.leaderboardMinPosts} posts in the window`} />
               <Row label="Lone template label" value={`needs ≥ ${THRESHOLDS.cloneMinTemplateMatches} template matches, or copied posts ≥ ${THRESHOLDS.cloneShareThreshold * 100}% of the window`} />
-              <Row label="Score window" value={`${SCORE_WINDOW.start} through ${SCORE_WINDOW.end}`} />
+              <Row label="Score window" value={`${clock.start} through ${clock.end}`} />
               <Row label="Detector amplifier signal" value={`score ≥ ${THRESHOLDS.ampLabel}, ≥ ${THRESHOLDS.ampMinBoostPosts} boosts on ≥ ${THRESHOLDS.ampMinBoostDays} days, and ≥ ${THRESHOLDS.ampTimelineBaseline} timeline posts`} />
               <Row label="Fresh account" value={`age < ${THRESHOLDS.freshAccountDays} days`} />
               <Row label="New account" value={`age < ${THRESHOLDS.youngAccountDays} days, which includes fresh`} />
               <Row label="New-account dominance" value={`≥ ${THRESHOLDS.newAccountDominateShare * 100}% of posts in the cluster or narrative`} />
-              <Row label="Age clock" value={formatStamp(AGE_AS_OF)} />
+              <Row label="Age clock" value={formatStamp(clock.asOf)} />
             </tbody>
           </table>
         </div>
@@ -174,7 +177,8 @@ export default function MethodologyPage() {
         <p className="leading-relaxed">
           Ages come from <span className="font-mono">accountCreatedAt</span> on each account in{" "}
           <span className="font-mono">data/corpus.json</span>, the public X created date. They are measured at{" "}
-          {formatStamp(AGE_AS_OF)}, the same stamp the paste bench uses. The site does not call the X API at
+          {formatStamp(clock.asOf)}, the latest post in the file. The paste bench uses a separate practice-set clock,{" "}
+          {formatStamp(DEMO_PASTE_STAMP)}. The site does not call the X API at
           runtime, and it does not infer age from follower count
           or bio. Paste a post with <span className="font-mono">accountCreatedAt</span>,{" "}
           <span className="font-mono">createdAt</span>, <span className="font-mono">joined</span>, or{" "}
@@ -191,7 +195,7 @@ export default function MethodologyPage() {
       <section className="grid gap-3">
         <h2 className="font-serif text-2xl">Real-data rules</h2>
         <p className="leading-relaxed">
-          The scored file is real public posts as of {formatStamp(AGE_AS_OF)}. These rules keep syndicating outlets
+          The scored file is real public posts for {windowLabel}. These rules keep syndicating outlets
           and credited reposts from reading as clones of language they posted first or marked as someone else’s.
         </p>
         <h3 className="font-serif text-xl">Self-repeats</h3>
@@ -268,8 +272,8 @@ export default function MethodologyPage() {
         </ul>
         <h3 className="font-serif text-xl">Minimum sample</h3>
         <p className="leading-relaxed">
-          Every account is scored on one window, {SCORE_WINDOW.start} through {SCORE_WINDOW.end}, measured at{" "}
-          {formatStamp(AGE_AS_OF)}. Posts outside that window do not count. Most original and Biggest copycats include
+          Every account is scored on one window, {clock.start} through {clock.end}, measured at{" "}
+          {formatStamp(clock.asOf)}. Posts outside that window do not count. Most original and Biggest copycats include
           accounts with at least {THRESHOLDS.leaderboardMinPosts} posts in the window, and Most original also needs at
           least one post that is not a copy and not a credited repost. Fewer posts is a thin sample: the grade line
           reads “{THIN_SAMPLE_LINE}” and no GC percent is shown. An account with no posts in the window reads
@@ -289,7 +293,7 @@ export default function MethodologyPage() {
             Follower count and a default-looking bio are shown as context. They are not scored. Account age is flagged
             at the two thresholds above and is not added to either grade.
           </li>
-          <li>The corpus is a snapshot of real public posts as of 18 Oct 2026. It is not a complete or live sample of any timeline.</li>
+          <li>The corpus is a snapshot of real public posts for {windowLabel}. It is not a complete or live sample of any timeline.</li>
           <li>Nothing here is investment advice, a harassment list, or a grade for sale.</li>
         </ul>
       </section>
@@ -305,8 +309,7 @@ export default function MethodologyPage() {
           template matching except when a later post contains its stored prefix or near-matches that prefix; whether
           both accounts are syndicating outlets, because an exact reprint between them is syndication; and whether a
           lone template match is the only evidence. If the grade line says thin sample, count the posts in the{" "}
-          {SCORE_WINDOW.start}–
-          {SCORE_WINDOW.end} window against the {THRESHOLDS.leaderboardMinPosts}-post minimum.
+          {clock.start}–{clock.end} window against the {THRESHOLDS.leaderboardMinPosts}-post minimum.
         </p>
         <p className="leading-relaxed">
           If the label is still wrong, the review queue for a solo operator is manual: one draft, one person, no

@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { PasteBench } from "@/components/paste-bench";
+import { formatStamp } from "@/lib/format";
+import { DEMO_PASTE_STAMP } from "@/lib/thresholds";
 
 export const metadata: Metadata = {
   title: "Paste bench",
@@ -29,8 +31,9 @@ export default function PastePage() {
   {"account": "yearling", "text": "…", "ageDays": 120}
 ]`}</pre>
         <p className="mt-3">
-          Omitted timestamps use 18 Oct 2026 21:00 UTC, which still sits inside the 14-day window of the practice
-          corpus. A timestamp outside that window will not join an older cluster. Ages use that same clock.{" "}
+          Omitted timestamps use {formatStamp(DEMO_PASTE_STAMP)}, the practice-set clock, which still sits inside the
+          14-day window of the practice corpus. A timestamp outside that window will not join an older cluster. Ages
+          use that same clock.{" "}
           <span className="font-mono">accountCreatedAt</span>, <span className="font-mono">createdAt</span>, or{" "}
           <span className="font-mono">joined</span> is a date. <span className="font-mono">ageDays</span> is the age in
           days when you do not have a date. Omit both and the finding is marked age unknown. A handle that already

@@ -10,6 +10,9 @@ import { buildCorpus } from "./build-corpus.mjs";
 
 const INPUTS = [
   new URL("../data/gcbot/posts.csv", import.meta.url),
+  new URL("../data/gcbot/accounts.csv", import.meta.url),
+  new URL("../data/gcbot/narratives.csv", import.meta.url),
+  new URL("../data/gcbot/reposters.csv", import.meta.url),
   new URL("../data/corpus.json", import.meta.url),
   new URL("../public/sitemap.xml", import.meta.url),
   new URL("./check-posts.mjs", import.meta.url),
