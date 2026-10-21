@@ -181,6 +181,22 @@ thead {
   letter-spacing: 0.02em;
 }
 
+.brand-lockup {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.product-tag {
+  color: #9a9aa3;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
 .site-header-inner {
   display: flex;
   align-items: center;
@@ -304,7 +320,7 @@ dt .tap {
 p .tap {
   display: inline;
   min-height: 0;
-  padding-block: 14px;
+  padding-block: 0;
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
@@ -323,9 +339,6 @@ dt .tap::before {
   transform: translate(-50%, -50%);
 }
 
-p .tap::before {
-  content: none;
-}
 
 p.flex .tap {
   display: inline-flex;
@@ -887,14 +900,19 @@ p:not(.flex) .tap:focus-visible {
 }
 
 .narrative-quote {
+  display: -webkit-box;
   margin: 0;
   padding: 10px 12px;
+  overflow: hidden;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
   border-left: 2px solid #eb6505;
   background: #101218;
   color: #f2f1ee;
   font-size: 14px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
 }
 
 .cite {
@@ -924,6 +942,27 @@ p:not(.flex) .tap:focus-visible {
   color: #ee9a44;
   font-weight: 600;
   cursor: pointer;
+}
+
+.narrative-show-all {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 44px;
+  margin: 4px 0 8px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: #ee9a44;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.narrative-show-all:focus-visible {
+  outline: 2px solid #eb6505;
+  outline-offset: 2px;
 }
 
 .narrative-accounts {
@@ -999,3 +1038,6 @@ p:not(.flex) .tap:focus-visible {
     animation: none;
   }
 }
+
+/* design-gate r1: no heading/label orphans */
+h1, h2, h3, summary, dt, th { text-wrap: balance; }

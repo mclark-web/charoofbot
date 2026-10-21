@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { GcScale } from "@/components/gc-scale";
-import { LabelBadge } from "@/components/label-badge";
+import { NarrativeAccounts, type NarrativeAccountRow } from "@/components/narrative-accounts";
 import { compareNarrativesByCopycat, copycatShare } from "@/lib/board";
 import {
   countNoun,
@@ -13,8 +13,6 @@ import {
 import { compareText } from "@/lib/order";
 import { newAccountReposterPct } from "@/lib/reposters";
 import type { AccountReport, AnnotatedPost, CloneCluster, NarrativeVolume, Report } from "@/lib/types";
-
-const QUOTE_LIMIT = 220;
 
 export function NarrativeBoard({ report }: { report: Report }) {
   const days = eachUtcDay(report.clock.start, report.clock.end);
@@ -183,7 +181,9 @@ function NarrativeCard({
           {rankedClusters.length > 0
             ? rankedClusters.map((cluster) => (
                 <li key={cluster.id}>
-                  <blockquote className="narrative-quote">{clip(cluster.sampleText)}</blockquote>
+                  <blockquote className="narrative-quote" title={cluster.sampleText}>
+                    {cluster.sampleText}
+                  </blockquote>
                   <p className="cite">
                     {cluster.originAccount ? (
                       <Link href={`/accounts/${cluster.originAccount}`} className="cite-link tap">
@@ -203,7 +203,9 @@ function NarrativeCard({
               ))
             : originals.map((post) => (
                 <li key={post.id}>
-                  <blockquote className="narrative-quote">{clip(post.text)}</blockquote>
+                  <blockquote className="narrative-quote" title={post.text}>
+                    {post.text}
+                  </blockquote>
                   <p className="cite">
                     <Link href={`/accounts/${post.account}`} className="cite-link tap">
                       @{post.account}
@@ -219,46 +221,23 @@ function NarrativeCard({
 
       <details className="narrative-details">
         <summary>Accounts behind this narrative ({rankedAccounts.length})</summary>
-        <div className="max-w-full min-w-0">
-          <table className="narrative-accounts">
-            <caption className="sr-only">Accounts behind {narrative.title}</caption>
-            <thead>
-              <tr>
-                <th>Account</th>
-                <th>Label</th>
-                <th>Posts</th>
-                <th>Copied</th>
-                <th>Copy score</th>
-                <th>Account age</th>
-                <th>Followers</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rankedAccounts.map((account) => (
-                <tr key={account.handle}>
-                  <td data-l="Account">
-                    <Link href={`/accounts/${account.handle}`} className="cite-link tap">
-                      @{account.handle}
-                    </Link>
-                  </td>
-                  <td data-l="Label">
-                    <LabelBadge label={account.label} />
-                  </td>
-                  <td data-l="Posts">{account.postCount}</td>
-                  <td data-l="Copied">{account.clonePostCount}</td>
-                  <td data-l="Copy score">
-                    {account.graded ? account.cloneScore : <span className="text-ink-soft">thin sample</span>}
-                  </td>
-                  <td data-l="Account age">{account.ageDays === null ? "—" : `${account.ageDays} d`}</td>
-                  <td data-l="Followers">{account.followers.toLocaleString("en-US")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <NarrativeAccounts accounts={rankedAccounts.map(accountRow)} title={narrative.title} />
       </details>
     </article>
   );
+}
+
+function accountRow(account: AccountReport): NarrativeAccountRow {
+  return {
+    handle: account.handle,
+    label: account.label,
+    postCount: account.postCount,
+    clonePostCount: account.clonePostCount,
+    graded: account.graded,
+    cloneScore: account.cloneScore,
+    ageDays: account.ageDays,
+    followers: account.followers,
+  };
 }
 
 function ReposterStat({ narrative }: { narrative: NarrativeVolume }) {
@@ -365,7 +344,3 @@ function sum(values: number[]): number {
   return values.reduce((total, value) => total + value, 0);
 }
 
-function clip(text: string): string {
-  if (text.length <= QUOTE_LIMIT) return text;
-  return `${text.slice(0, QUOTE_LIMIT)}…`;
-}

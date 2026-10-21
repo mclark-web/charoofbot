@@ -9,7 +9,10 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <LogoLink />
+        <div className="brand-lockup">
+          <LogoLink />
+          <span className="product-tag">GCBOT</span>
+        </div>
         <Suspense fallback={null}>
           <SiteNav />
         </Suspense>
