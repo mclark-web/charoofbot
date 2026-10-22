@@ -12,7 +12,7 @@
     "test": "tsx --test lib/age.test.ts lib/format.test.ts lib/detect.test.ts lib/real-rules.test.ts lib/narrative-keywords.test.ts components/gc-scale.test.ts components/logo-link.test.ts"
   },
   "dependencies": {
-    "next": "16.3.5",
+    "next": "16.4.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "recharts": "^3.10.1"
@@ -23,7 +23,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.5",
+    "eslint-config-next": "16.4.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
     "typescript": "^5"
