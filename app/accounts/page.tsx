@@ -3,12 +3,14 @@ import Link from "next/link";
 import { AccountsBoard } from "@/components/accounts-board";
 import { accountSourceUrl, formatStamp } from "@/lib/format";
 import { getReport } from "@/lib/corpus";
+import { routeOpenGraph } from "@/lib/site-urls";
 import { THRESHOLDS } from "@/lib/thresholds";
 import type { AccountReport } from "@/lib/types";
 
 export const metadata: Metadata = {
   title: "Accounts",
   description: "Every scored X account on the GC Scale. Sort by GC score. Higher means more authentic.",
+  openGraph: routeOpenGraph("/accounts"),
 };
 
 type AccountRow = AccountReport & { sourceUrl: string };

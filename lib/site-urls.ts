@@ -29,3 +29,32 @@ export const FINTWIT_URL = resolveSiteOrigin(
 );
 
 export const SPORTS_URL = `${HUB_URL}/sports`;
+
+/** Share image served from public/, not the opengraph-image file convention. */
+export const OG_IMAGE_URL = `${SITE_URL}/opengraph-image.png`;
+
+export const SHARE_IMAGE = {
+  url: OG_IMAGE_URL,
+  width: 1200,
+  height: 630,
+  alt: "GradedCalls",
+} as const;
+
+/** Absolute URL on this board. `pageUrl("/")` is SITE_URL with no trailing slash. */
+export function pageUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) return path.replace(/\/+$/, "");
+  const suffix = path.startsWith("/") ? path : `/${path}`;
+  if (suffix === "/") return SITE_URL;
+  return `${SITE_URL}${suffix}`;
+}
+
+/** Open Graph fields for one route. Absolute url and image so preview hosts are not substituted. */
+export function routeOpenGraph(path: string) {
+  return {
+    url: pageUrl(path),
+    title: { absolute: "GCBot · GradedCalls" },
+    siteName: "GradedCalls",
+    type: "website" as const,
+    images: [SHARE_IMAGE],
+  };
+}

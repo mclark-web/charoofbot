@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import {
   ANALYSTS_URL,
   FINTWIT_URL,
   HUB_URL,
+  OG_IMAGE_URL,
   SITE_URL,
   SPORTS_URL,
+  pageUrl,
   resolveSiteOrigin,
 } from "./site-urls";
 
@@ -34,6 +36,14 @@ describe("site urls", () => {
       resolveSiteOrigin(process.env.NEXT_PUBLIC_FINTWIT_URL, "https://fintwit.gradedcalls.com"),
     );
     assert.equal(SPORTS_URL, `${HUB_URL}/sports`);
+    assert.equal(pageUrl("/"), SITE_URL);
+    assert.equal(pageUrl("/accounts"), `${SITE_URL}/accounts`);
+    assert.equal(pageUrl("paste"), `${SITE_URL}/paste`);
+    assert.equal(pageUrl("https://bot.gradedcalls.com/methodology/"), "https://bot.gradedcalls.com/methodology");
+    assert.equal(OG_IMAGE_URL, `${SITE_URL}/opengraph-image.png`);
+    assert.equal(existsSync(new URL("../public/opengraph-image.png", import.meta.url)), true);
+    assert.equal(existsSync(new URL("../app/opengraph-image.png", import.meta.url)), false);
+    assert.equal(existsSync(new URL("../app/opengraph-image.alt.txt", import.meta.url)), false);
   });
 
   it("keeps metadata, robots, sitemap, and the hub links on those origins", () => {
@@ -48,10 +58,33 @@ describe("site urls", () => {
     assert.match(urls, /https:\/\/fintwit\.gradedcalls\.com/);
 
     const layout = readFileSync(new URL("../app/layout.tsx", import.meta.url), "utf8");
-    assert.match(layout, /import \{ SITE_URL \} from "@\/lib\/site-urls"/);
+    assert.match(urls, /OG_IMAGE_URL/);
+    assert.match(urls, /export function pageUrl/);
+    assert.match(urls, /export function routeOpenGraph/);
+
+    assert.match(layout, /import \{ SHARE_IMAGE, SITE_URL, routeOpenGraph \} from "@\/lib\/site-urls"/);
     assert.match(layout, /metadataBase: new URL\(SITE_URL\)/);
     assert.match(layout, /canonical: "\/"/);
-    assert.match(layout, /url: "\/",/);
+    assert.match(layout, /openGraph: routeOpenGraph\("\/"\)/);
+    assert.match(layout, /images: \[SHARE_IMAGE\]/);
+
+    for (const [file, call] of [
+      ["../app/page.tsx", 'routeOpenGraph("/")'],
+      ["../app/accounts/page.tsx", 'routeOpenGraph("/accounts")'],
+      ["../app/paste/page.tsx", 'routeOpenGraph("/paste")'],
+      ["../app/methodology/page.tsx", 'routeOpenGraph("/methodology")'],
+      ["../app/not-found.tsx", 'routeOpenGraph("/")'],
+      ["../app/accounts/[handle]/page.tsx", "routeOpenGraph(`/accounts/${encodeURIComponent(handle)}`)"],
+      ["../app/clusters/[id]/page.tsx", "routeOpenGraph(`/clusters/${encodeURIComponent(id)}`)"],
+    ] as const) {
+      const source = readFileSync(new URL(file, import.meta.url), "utf8");
+      assert.ok(source.includes(call), `${file} should set ${call}`);
+    }
+
+    const previewCheck = readFileSync(new URL("../scripts/check-preview-head.mjs", import.meta.url), "utf8");
+    assert.match(previewCheck, /VERCEL_URL/);
+    assert.match(previewCheck, /VERCEL_BRANCH_URL/);
+    assert.match(previewCheck, /VERCEL_ENV/);
 
     const robots = readFileSync(new URL("../app/robots.ts", import.meta.url), "utf8");
     assert.match(robots, /sitemap: `\$\{SITE_URL\}\/sitemap\.xml`/);

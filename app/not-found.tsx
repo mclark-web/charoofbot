@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { HUB_HREF } from "@/components/logo-link";
+import { routeOpenGraph } from "@/lib/site-urls";
 
 export const metadata: Metadata = {
   title: { absolute: "Page not found · GCBot" },
+  openGraph: routeOpenGraph("/"),
 };
 
 export default function NotFound() {

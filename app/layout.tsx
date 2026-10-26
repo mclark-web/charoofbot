@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { liveClock } from "@/lib/corpus";
 import { formatWindowLabel } from "@/lib/format";
-import { SITE_URL } from "@/lib/site-urls";
+import { SHARE_IMAGE, SITE_URL, routeOpenGraph } from "@/lib/site-urls";
 import "./globals.css";
 
 const windowLabel = formatWindowLabel(liveClock().start, liveClock().end);
@@ -48,30 +48,10 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
   },
-  openGraph: {
-    url: "/",
-    title: { absolute: "GCBot · GradedCalls" },
-    siteName: "GradedCalls",
-    type: "website",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "GradedCalls",
-      },
-    ],
-  },
+  openGraph: routeOpenGraph("/"),
   twitter: {
     card: "summary_large_image",
-    images: [
-      {
-        url: "/opengraph-image.png",
-        width: 1200,
-        height: 630,
-        alt: "GradedCalls",
-      },
-    ],
+    images: [SHARE_IMAGE],
   },
 };
 

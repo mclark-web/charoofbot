@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { PasteBench } from "@/components/paste-bench";
 import { formatStamp } from "@/lib/format";
+import { routeOpenGraph } from "@/lib/site-urls";
 import { DEMO_PASTE_STAMP } from "@/lib/thresholds";
 
 export const metadata: Metadata = {
   title: "Paste bench",
   description: "Paste tweet text and compare it with the GCBot practice set. No API key.",
+  openGraph: routeOpenGraph("/paste"),
 };
 
 export default function PastePage() {

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check:preview-head": "node scripts/check-preview-head.mjs",
     "start": "next start",
     "lint": "eslint",
     "corpus": "node scripts/build-corpus.mjs",
