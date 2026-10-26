@@ -9,7 +9,7 @@
     "lint": "eslint",
     "corpus": "node scripts/build-corpus.mjs",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "tsx --test lib/age.test.ts lib/format.test.ts lib/detect.test.ts lib/real-rules.test.ts lib/narrative-keywords.test.ts components/gc-scale.test.ts components/logo-link.test.ts"
+    "test": "tsx --test lib/age.test.ts lib/format.test.ts lib/detect.test.ts lib/real-rules.test.ts lib/narrative-keywords.test.ts lib/site-urls.test.ts components/gc-scale.test.ts components/logo-link.test.ts"
   },
   "dependencies": {
     "next": "16.4.1",

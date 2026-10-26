@@ -4,6 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { liveClock } from "@/lib/corpus";
 import { formatWindowLabel } from "@/lib/format";
+import { SITE_URL } from "@/lib/site-urls";
 import "./globals.css";
 
 const windowLabel = formatWindowLabel(liveClock().start, liveClock().end);
@@ -28,7 +29,10 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://charoofbot.vercel.app"),
+  metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "/",
+  },
   applicationName: "GCBot",
   title: {
     default: "GCBot",
@@ -45,6 +49,7 @@ export const metadata: Metadata = {
     apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
   },
   openGraph: {
+    url: "/",
     title: { absolute: "GCBot · GradedCalls" },
     siteName: "GradedCalls",
     type: "website",

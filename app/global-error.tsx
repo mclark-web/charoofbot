@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { LogoLink } from "@/components/logo-link";
+import { HUB_HREF, LogoLink } from "@/components/logo-link";
 
 export default function GlobalError({
   error,
@@ -57,7 +57,7 @@ export default function GlobalError({
           </p>
           <p style={{ marginTop: 8 }}>
             <a
-              href="https://charoof.vercel.app"
+              href={HUB_HREF}
               style={{
                 display: "inline-flex",
                 alignItems: "center",

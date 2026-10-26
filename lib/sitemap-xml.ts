@@ -1,6 +1,5 @@
+import { SITE_URL } from "./site-urls";
 import type { Report } from "./types";
-
-const ORIGIN = "https://charoofbot.vercel.app";
 
 function escapeXml(value: string): string {
   return value
@@ -11,7 +10,7 @@ function escapeXml(value: string): string {
 }
 
 function loc(path: string, priority: string): string {
-  const url = escapeXml(`${ORIGIN}${path}`);
+  const url = escapeXml(`${SITE_URL}${path}`);
   return `<url>\n<loc>${url}</loc>\n<changefreq>weekly</changefreq>\n<priority>${priority}</priority>\n</url>`;
 }
 
