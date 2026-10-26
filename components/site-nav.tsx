@@ -3,17 +3,24 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useLayoutEffect, useRef, useState, type FocusEvent } from "react";
+import { ANALYSTS_URL, FINTWIT_URL, SPORTS_URL } from "@/lib/site-urls";
 
-const LINKS = [
+type NavItem = { href: string; label: string; external?: boolean };
+
+const LINKS: NavItem[] = [
   { href: "/", label: "Dashboard" },
   { href: "/accounts", label: "Accounts" },
   { href: "/paste", label: "Paste bench" },
   { href: "/methodology", label: "Methodology" },
+  { href: SPORTS_URL, label: "Sports", external: true },
+  { href: ANALYSTS_URL, label: "Analysts", external: true },
+  { href: FINTWIT_URL, label: "FinTwit", external: true },
 ];
 
-function isCurrent(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
+function isCurrent(pathname: string, link: NavItem): boolean {
+  if (link.external) return false;
+  if (link.href === "/") return pathname === "/";
+  return pathname === link.href || pathname.startsWith(`${link.href}/`);
 }
 
 function canScrollFurtherRight(nav: HTMLElement): boolean {
@@ -66,7 +73,14 @@ export function SiteNav() {
       aria-label="Primary"
     >
       {LINKS.map((link) => {
-        const current = isCurrent(pathname, link.href);
+        const current = isCurrent(pathname, link);
+        if (link.external) {
+          return (
+            <a key={link.href} href={link.href} className="nav-link" onFocus={revealFocusedLink}>
+              {link.label}
+            </a>
+          );
+        }
         return (
           <Link
             key={link.href}

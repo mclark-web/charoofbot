@@ -808,6 +808,12 @@ p:not(.flex) .tap:focus-visible {
   }
 }
 
+@media (min-width: 820px) and (max-width: 959px) {
+  .nav-link {
+    padding: 0 8px;
+  }
+}
+
 .narrative-totals {
   display: flex;
   flex-wrap: wrap;

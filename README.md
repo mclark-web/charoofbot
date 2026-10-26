@@ -21,7 +21,7 @@ npm test
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). No `.env` file is required.
+Open [http://localhost:3000](http://localhost:3000). No `.env` file is required. Unset site URL variables use the gradedcalls.com defaults below.
 
 `npm test` checks the SHA-256 fingerprint, the practice-set roles (exact, near, template, amplifier, originator), and the paste bench. `npm run typecheck` generates route types, then runs `tsc`.
 
@@ -72,11 +72,30 @@ npm run corpus
 
 The script has no dependencies. It fails on a duplicate id, a post whose handle is not in `accounts.csv`, a bad date or action, or an unknown narrative. Rows already present are never re-fetched or rewritten.
 
+## Domains
+
+| Board | URL |
+| --- | --- |
+| Hub | https://www.gradedcalls.com |
+| Sports | https://www.gradedcalls.com/sports |
+| Analysts | https://analysts.gradedcalls.com |
+| FinTwit | https://fintwit.gradedcalls.com |
+| GCBot (this board) | https://bot.gradedcalls.com |
+
+The logo in the top left links to the Hub. Origins live in `lib/site-urls.ts`. Optional overrides are absolute origins with no trailing slash:
+
+- `NEXT_PUBLIC_SITE_URL` for this board (default `https://bot.gradedcalls.com`)
+- `NEXT_PUBLIC_HUB_URL` (default `https://www.gradedcalls.com`)
+- `NEXT_PUBLIC_ANALYSTS_URL` (default `https://analysts.gradedcalls.com`)
+- `NEXT_PUBLIC_FINTWIT_URL` (default `https://fintwit.gradedcalls.com`)
+
+Sports is the Hub origin plus `/sports`.
+
 ## Deploy on Vercel Hobby ($0)
 
 1. Push the repo and import it as a Next.js project.
-2. Leave environment variables empty. The app does not read any.
-3. Build command `npm run build`, output left at the Next.js default.
+2. Leave the site URL variables unset to use the gradedcalls.com defaults, or set `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_HUB_URL`, `NEXT_PUBLIC_ANALYSTS_URL`, and `NEXT_PUBLIC_FINTWIT_URL`.
+3. Build command `npm run build`, output left at the Next.js default. `public/sitemap.xml` is checked against `NEXT_PUBLIC_SITE_URL`, so a production build should leave that variable unset or set it to `https://bot.gradedcalls.com`.
 4. Deploy. The Hobby tier is enough because pages are static and the paste bench runs in the browser.
 
 Do not add a paid X API integration to make the demo “real.” A later phase can, when a budget exists. This phase is the proof that the two detectors and the volume graph work on text you already have.

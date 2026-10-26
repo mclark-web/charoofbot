@@ -10,6 +10,7 @@ import { SourceLink } from "@/components/source-link";
 import { getReport } from "@/lib/corpus";
 import { accountSourceUrl, countNoun, displayPostText, excerpt, formatAgeDays, formatStamp } from "@/lib/format";
 import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
+import { routeCanonical, routeOpenGraph, shareOpenGraph } from "@/lib/site-urls";
 import { THRESHOLDS } from "@/lib/thresholds";
 
 type PageProps = {
@@ -23,8 +24,9 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { handle } = await params;
   const account = getReport().accounts.find((item) => item.handle === handle);
-  if (!account) return { title: { absolute: "Page not found · GCBot" } };
-  return { title: `@${handle}` };
+  if (!account) return { title: { absolute: "Page not found · GCBot" }, openGraph: shareOpenGraph() };
+  const path = `/accounts/${encodeURIComponent(handle)}`;
+  return { title: `@${handle}`, alternates: routeCanonical(path), openGraph: routeOpenGraph(path) };
 }
 
 const DEFAULT_BIO = /just a guy|thoughts are my own|market observer/i;

@@ -5,7 +5,8 @@ import { describe, it } from "node:test";
 describe("logo link", () => {
   it("points at the GradedCalls hub in the same tab", () => {
     const source = readFileSync(new URL("./logo-link.tsx", import.meta.url), "utf8");
-    assert.match(source, /export const HUB_HREF = "https:\/\/charoof\.vercel\.app"/);
+    assert.match(source, /import \{ HUB_URL \} from "@\/lib\/site-urls"/);
+    assert.match(source, /export const HUB_HREF = HUB_URL/);
     assert.match(source, /href=\{HUB_HREF\}/);
     assert.match(source, /aria-label="GradedCalls"/);
     assert.match(source, /alt="GradedCalls"/);
@@ -23,7 +24,8 @@ describe("logo link", () => {
     const globalError = readFileSync(new URL("../app/global-error.tsx", import.meta.url), "utf8");
     assert.match(globalError, /<LogoLink\s+embedded\s*\/>/);
     assert.match(globalError, /<title>This page failed to render · GCBot<\/title>/);
-    assert.match(globalError, /href="https:\/\/charoof\.vercel\.app"/);
+    assert.match(globalError, /import \{ HUB_HREF, LogoLink \} from "@\/components\/logo-link"/);
+    assert.match(globalError, /href=\{HUB_HREF\}/);
     assert.match(globalError, />\s*Hub\s*</);
 
     assert.match(source, /\/gradedcalls-mark-44\.png/);

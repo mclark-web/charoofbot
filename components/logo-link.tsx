@@ -1,6 +1,7 @@
+import { HUB_URL } from "@/lib/site-urls";
 import styles from "./logo-link.module.css";
 
-export const HUB_HREF = "https://charoof.vercel.app";
+export const HUB_HREF = HUB_URL;
 
 // Pre-sized transparent PNGs. The image optimizer at width 32 re-encodes a WebP
 // whose perimeter pixels pick up stray alpha (about 2/255) and a faint edge.
