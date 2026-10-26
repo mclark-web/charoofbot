@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { liveClock } from "@/lib/corpus";
 import { formatWindowLabel } from "@/lib/format";
-import { SHARE_IMAGE, SITE_URL, routeOpenGraph } from "@/lib/site-urls";
+import { SHARE_IMAGE, SITE_URL, shareOpenGraph } from "@/lib/site-urls";
 import "./globals.css";
 
 const windowLabel = formatWindowLabel(liveClock().start, liveClock().end);
@@ -30,9 +30,6 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  alternates: {
-    canonical: "/",
-  },
   applicationName: "GCBot",
   title: {
     default: "GCBot",
@@ -48,7 +45,7 @@ export const metadata: Metadata = {
     ],
     apple: [{ url: "/apple-icon.png", type: "image/png", sizes: "180x180" }],
   },
-  openGraph: routeOpenGraph("/"),
+  openGraph: shareOpenGraph(),
   twitter: {
     card: "summary_large_image",
     images: [SHARE_IMAGE],

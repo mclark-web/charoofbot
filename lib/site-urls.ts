@@ -48,13 +48,25 @@ export function pageUrl(path: string): string {
   return `${SITE_URL}${suffix}`;
 }
 
-/** Open Graph fields for one route. Absolute url and image so preview hosts are not substituted. */
-export function routeOpenGraph(path: string) {
+/** Share card without a page URL. The 404 uses this so it does not inherit the home URL. */
+export function shareOpenGraph() {
   return {
-    url: pageUrl(path),
     title: { absolute: "GCBot · GradedCalls" },
     siteName: "GradedCalls",
     type: "website" as const,
     images: [SHARE_IMAGE],
   };
+}
+
+/** Open Graph fields for one route. Absolute url and image so preview hosts are not substituted. */
+export function routeOpenGraph(path: string) {
+  return {
+    ...shareOpenGraph(),
+    url: pageUrl(path),
+  };
+}
+
+/** Canonical for one route. Absolute, so it is not the home URL inherited from the layout. */
+export function routeCanonical(path: string) {
+  return { canonical: pageUrl(path) };
 }

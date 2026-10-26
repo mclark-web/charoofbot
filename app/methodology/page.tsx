@@ -5,12 +5,13 @@ import { liveClock } from "@/lib/corpus";
 import { formatStamp, formatWindowLabel } from "@/lib/format";
 import { NO_POSTS_LINE, THIN_SAMPLE_LINE } from "@/lib/sample-copy";
 import { DEMO_PASTE_STAMP, THRESHOLDS } from "@/lib/thresholds";
-import { routeOpenGraph } from "@/lib/site-urls";
+import { routeCanonical, routeOpenGraph } from "@/lib/site-urls";
 import { RECOGNIZED_NEWS_OUTLETS, SYNDICATING_OUTLETS } from "@/lib/wires";
 
 export const metadata: Metadata = {
   title: "Methodology",
   description: "How the GC Scale shows authenticity, and the detector signals underneath. Higher means more trustworthy.",
+  alternates: routeCanonical("/methodology"),
   openGraph: routeOpenGraph("/methodology"),
 };
 

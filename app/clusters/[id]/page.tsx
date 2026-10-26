@@ -7,7 +7,7 @@ import { AgeBadge, RoleBadge } from "@/components/label-badge";
 import { getReport } from "@/lib/corpus";
 import { wordDiff } from "@/lib/diff";
 import { countNoun, displayPostText, excerpt, formatAgeDays, formatLatency, formatStamp, joinPresent } from "@/lib/format";
-import { routeOpenGraph } from "@/lib/site-urls";
+import { routeCanonical, routeOpenGraph, shareOpenGraph } from "@/lib/site-urls";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -20,8 +20,9 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const cluster = getReport().clusters.find((item) => item.id === id);
-  if (!cluster) return { title: { absolute: "Page not found · GCBot" }, openGraph: routeOpenGraph("/") };
-  return { title: excerpt(cluster.sampleText, 72), openGraph: routeOpenGraph(`/clusters/${encodeURIComponent(id)}`) };
+  if (!cluster) return { title: { absolute: "Page not found · GCBot" }, openGraph: shareOpenGraph() };
+  const path = `/clusters/${encodeURIComponent(id)}`;
+  return { title: excerpt(cluster.sampleText, 72), alternates: routeCanonical(path), openGraph: routeOpenGraph(path) };
 }
 
 export default async function ClusterPage({ params }: PageProps) {
