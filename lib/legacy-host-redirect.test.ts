@@ -13,6 +13,7 @@ import {
   allowedRedirectLine,
   collectPublishableOutputs,
   deploymentHost,
+  emptyPublishableScriptGroups,
   hostHitsInFiles,
   isAllowedSourceLine,
   publishableHostHits,
@@ -202,6 +203,30 @@ describe("legacy production host redirect", () => {
     assert.equal(outputs.includes(manifest), false);
     assert.equal(outputs.includes(requiredJson), false);
     assert.equal(outputs.includes(requiredJs), false);
+    assert.deepEqual(emptyPublishableScriptGroups(dir), []);
+  });
+
+  it("fails when a script group is missing or empty", () => {
+    const dir = mkdtempSync(join(tmpdir(), "legacy-host-empty-group-"));
+    assert.deepEqual(emptyPublishableScriptGroups(dir), [
+      ".next/static js/css",
+      ".next/server/chunks",
+      ".next/server/app js",
+    ]);
+
+    mkdirSync(join(dir, ".next", "static", "chunks"), { recursive: true });
+    mkdirSync(join(dir, ".next", "server", "chunks"), { recursive: true });
+    mkdirSync(join(dir, ".next", "server", "app"), { recursive: true });
+    writeFileSync(join(dir, ".next", "static", "chunks", "main.js"), "client");
+    writeFileSync(join(dir, ".next", "server", "chunks", "note.txt"), "not a script");
+    writeFileSync(join(dir, ".next", "server", "app", "page.txt"), "not js");
+    assert.deepEqual(emptyPublishableScriptGroups(dir), [".next/server/chunks", ".next/server/app js"]);
+
+    writeFileSync(join(dir, ".next", "server", "chunks", "layout.js"), "server");
+    assert.deepEqual(emptyPublishableScriptGroups(dir), [".next/server/app js"]);
+
+    writeFileSync(join(dir, ".next", "server", "app", "page.js"), "page");
+    assert.deepEqual(emptyPublishableScriptGroups(dir), []);
   });
 
   it("fails the guard when a split host literal is bundled, then the sources stay clean", { timeout: 600_000 }, () => {

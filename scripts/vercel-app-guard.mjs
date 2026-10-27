@@ -71,20 +71,37 @@ function isScriptOrStyle(rel) {
  * root are the redirect config, not a published page, so they are left out.
  * The source allowlist does not apply to any of these files.
  */
-export function collectPublishableOutputs(root) {
-  const files = walk(join(root, ".next", "server"), (path) => {
+export function collectPublishableGroups(root) {
+  const documents = walk(join(root, ".next", "server"), (path) => {
     const rel = relFrom(root, path);
     if (rel.endsWith(".html") || rel.endsWith(".rsc")) return true;
     if (rel.includes("/robots")) return true;
     if (rel.endsWith("sitemap.xml")) return true;
-    if (rel.startsWith(".next/server/chunks/") && isScriptOrStyle(rel)) return true;
-    if (rel.startsWith(".next/server/app/") && rel.endsWith(".js")) return true;
     return false;
   }, []);
-  walk(join(root, ".next", "static"), (path) => isScriptOrStyle(relFrom(root, path)), files);
   const publicSitemap = join(root, "public", "sitemap.xml");
-  if (existsSync(publicSitemap)) files.push(publicSitemap);
-  return files;
+  if (existsSync(publicSitemap)) documents.push(publicSitemap);
+  return {
+    documents,
+    staticScripts: walk(join(root, ".next", "static"), (path) => isScriptOrStyle(relFrom(root, path)), []),
+    serverChunks: walk(join(root, ".next", "server", "chunks"), (path) => isScriptOrStyle(relFrom(root, path)), []),
+    serverAppJs: walk(join(root, ".next", "server", "app"), (path) => relFrom(root, path).endsWith(".js"), []),
+  };
+}
+
+export function collectPublishableOutputs(root) {
+  const groups = collectPublishableGroups(root);
+  return [...new Set([...groups.documents, ...groups.staticScripts, ...groups.serverChunks, ...groups.serverAppJs])];
+}
+
+/** Names of the three script groups that produced no files. A missing directory counts as empty. */
+export function emptyPublishableScriptGroups(root) {
+  const groups = collectPublishableGroups(root);
+  const empty = [];
+  if (groups.staticScripts.length === 0) empty.push(".next/static js/css");
+  if (groups.serverChunks.length === 0) empty.push(".next/server/chunks");
+  if (groups.serverAppJs.length === 0) empty.push(".next/server/app js");
+  return empty;
 }
 
 export function hostHitsInFiles(files) {

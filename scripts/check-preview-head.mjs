@@ -10,6 +10,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   deploymentHost,
+  emptyPublishableScriptGroups,
   publishableHostHits,
   sourceAllowlistViolations,
   textHasDeploymentHost,
@@ -163,13 +164,17 @@ if (canonicalMisses.length > 0) {
   process.exit(1);
 }
 
+const emptyGroups = emptyPublishableScriptGroups(root);
+for (const group of emptyGroups) {
+  console.error(`preview head check: no files in ${group}`);
+}
 const builtHits = publishableHostHits(root);
 if (builtHits.length > 0) {
   console.error(
     `preview head check: ${deploymentHost} in ${builtHits.length} built HTML, page data, robots, sitemap, or script file(s)`,
   );
   for (const file of builtHits.slice(0, 20)) console.error(`  ${file}`);
-  process.exit(1);
 }
+if (emptyGroups.length > 0 || builtHits.length > 0) process.exit(1);
 
 console.log(`preview head check: ${pages} HTML heads, no ${deploymentHost}, canonical and og:url match each page`);

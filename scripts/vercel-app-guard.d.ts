@@ -13,7 +13,16 @@ export function sourceAllowlistViolations(root: string): {
   denied: { file: string; line: number; content: string }[];
 };
 
+export function collectPublishableGroups(root: string): {
+  documents: string[];
+  staticScripts: string[];
+  serverChunks: string[];
+  serverAppJs: string[];
+};
+
 export function collectPublishableOutputs(root: string): string[];
+
+export function emptyPublishableScriptGroups(root: string): string[];
 
 export function hostHitsInFiles(files: string[]): string[];
 
