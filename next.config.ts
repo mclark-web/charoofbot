@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import type { NextConfig } from "next";
+import { SITE_URL } from "./lib/site-urls";
 
 // Vercel invokes `next build` directly, which skips npm prebuild.
 execFileSync(process.execPath, ["scripts/check-build.mjs"], { stdio: "inherit" });
@@ -31,6 +32,13 @@ const nextConfig: NextConfig = {
       {
         source: "/method",
         destination: "/methodology",
+        permanent: true,
+      },
+      // Old production alias only. Branch and hash preview hosts stay on this deployment.
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "charoofbot.vercel.app" }],
+        destination: `${SITE_URL}/:path*`,
         permanent: true,
       },
     ];

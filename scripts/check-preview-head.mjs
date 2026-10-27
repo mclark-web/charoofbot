@@ -1,13 +1,20 @@
 // Build as a Vercel preview and fail if any rendered HTML <head> names that deployment host.
 // Next rewrites file-convention social images onto VERCEL_BRANCH_URL / VERCEL_URL when
 // VERCEL_ENV=preview, even if metadataBase is the public origin. Absolute share URLs must not.
+// The same host is also forbidden in built HTML, page data, robots, and sitemap.
+// Source may name it only on the legacy production redirect line in next.config.ts.
 import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  deploymentHost,
+  publishableHostHits,
+  sourceAllowlistViolations,
+  textHasDeploymentHost,
+} from "./vercel-app-guard.mjs";
 
 const root = fileURLToPath(new URL("..", import.meta.url));
-const deploymentHost = ["vercel", "app"].join(".");
 const previewHost = `charoofbot-preview.${deploymentHost}`;
 const branchHost = `charoofbot-git-preview.${deploymentHost}`;
 const productionHost = `charoofbot.${deploymentHost}`;
@@ -22,6 +29,18 @@ env.VERCEL_ENV = "preview";
 env.VERCEL_URL = previewHost;
 env.VERCEL_BRANCH_URL = branchHost;
 env.VERCEL_PROJECT_PRODUCTION_URL = productionHost;
+
+const source = sourceAllowlistViolations(root);
+if (source.denied.length > 0 || source.allowed.length !== 1) {
+  console.error(
+    `preview head check: ${deploymentHost} is only allowed on the legacy production redirect line in next.config.ts`,
+  );
+  for (const hit of source.denied.slice(0, 20)) console.error(`  ${hit.file}:${hit.line}:${hit.content}`);
+  if (source.allowed.length !== 1) {
+    console.error(`  expected 1 allowlisted redirect line, found ${source.allowed.length}`);
+  }
+  process.exit(1);
+}
 
 const build = spawnSync(process.execPath, [join(root, "node_modules/next/dist/bin/next"), "build"], {
   cwd: root,
@@ -49,7 +68,6 @@ if (files.length === 0) {
 const appDir = join(nextDir, "server", "app");
 const origin = "https://bot.gradedcalls.com";
 const shareImage = `${origin}/opengraph-image.png`;
-const hostPattern = new RegExp(deploymentHost.replace(".", "\\."), "i");
 const hits = [];
 const canonicalMisses = [];
 let pages = 0;
@@ -91,7 +109,7 @@ for (const file of files) {
   if (headEnd === -1) continue;
   const head = html.slice(0, headEnd);
   pages += 1;
-  if (hostPattern.test(head)) hits.push(file);
+  if (textHasDeploymentHost(head)) hits.push(file);
 
   const route = routeFromHtml(file);
   const canonical = tagValue(head, /<link\b[^>]*rel="canonical"[^>]*>/i);
@@ -141,6 +159,13 @@ if (pages === 0) {
 if (canonicalMisses.length > 0) {
   console.error(`preview head check: ${canonicalMisses.length} page(s) with the wrong canonical, og:url, or share image`);
   for (const line of canonicalMisses.slice(0, 20)) console.error(`  ${line}`);
+  process.exit(1);
+}
+
+const builtHits = publishableHostHits(root);
+if (builtHits.length > 0) {
+  console.error(`preview head check: ${deploymentHost} in ${builtHits.length} built HTML, page data, robots, or sitemap file(s)`);
+  for (const file of builtHits.slice(0, 20)) console.error(`  ${file}`);
   process.exit(1);
 }
 
