@@ -57,15 +57,31 @@ function walk(dir, accept, found) {
   return found;
 }
 
-/** Built HTML, RSC page data, robots, and sitemap. Not routes manifests. */
+function relFrom(root, path) {
+  return relative(root, path).replaceAll("\\", "/");
+}
+
+function isScriptOrStyle(rel) {
+  return rel.endsWith(".js") || rel.endsWith(".css");
+}
+
+/**
+ * Built HTML, RSC page data, robots, sitemap, client bundles, server chunks,
+ * and server app JS. Routes manifests and required-server-files at the .next
+ * root are the redirect config, not a published page, so they are left out.
+ * The source allowlist does not apply to any of these files.
+ */
 export function collectPublishableOutputs(root) {
   const files = walk(join(root, ".next", "server"), (path) => {
-    const rel = relative(root, path).replaceAll("\\", "/");
+    const rel = relFrom(root, path);
     if (rel.endsWith(".html") || rel.endsWith(".rsc")) return true;
     if (rel.includes("/robots")) return true;
     if (rel.endsWith("sitemap.xml")) return true;
+    if (rel.startsWith(".next/server/chunks/") && isScriptOrStyle(rel)) return true;
+    if (rel.startsWith(".next/server/app/") && rel.endsWith(".js")) return true;
     return false;
   }, []);
+  walk(join(root, ".next", "static"), (path) => isScriptOrStyle(relFrom(root, path)), files);
   const publicSitemap = join(root, "public", "sitemap.xml");
   if (existsSync(publicSitemap)) files.push(publicSitemap);
   return files;

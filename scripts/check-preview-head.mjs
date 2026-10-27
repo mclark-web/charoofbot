@@ -1,7 +1,8 @@
 // Build as a Vercel preview and fail if any rendered HTML <head> names that deployment host.
 // Next rewrites file-convention social images onto VERCEL_BRANCH_URL / VERCEL_URL when
 // VERCEL_ENV=preview, even if metadataBase is the public origin. Absolute share URLs must not.
-// The same host is also forbidden in built HTML, page data, robots, and sitemap.
+// The same host is also forbidden in built HTML, page data, robots, sitemap,
+// client bundles (.next/static js and css), server chunks, and server app JS.
 // Source may name it only on the legacy production redirect line in next.config.ts.
 import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync, statSync } from "node:fs";
@@ -164,7 +165,9 @@ if (canonicalMisses.length > 0) {
 
 const builtHits = publishableHostHits(root);
 if (builtHits.length > 0) {
-  console.error(`preview head check: ${deploymentHost} in ${builtHits.length} built HTML, page data, robots, or sitemap file(s)`);
+  console.error(
+    `preview head check: ${deploymentHost} in ${builtHits.length} built HTML, page data, robots, sitemap, or script file(s)`,
+  );
   for (const file of builtHits.slice(0, 20)) console.error(`  ${file}`);
   process.exit(1);
 }
