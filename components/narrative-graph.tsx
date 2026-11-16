@@ -65,7 +65,8 @@ export function NarrativeGraph({
 }) {
   const placed = nodes.map((node, index) => {
     const angle = -Math.PI / 2 + (index * 2 * Math.PI) / Math.max(nodes.length, 1);
-    const radius = 16 + Math.sqrt(node.postCount) * 8;
+    // A large narrative stays inside the orbit. Area still grows with post volume.
+    const radius = Math.min(28, 14 + Math.sqrt(node.postCount) * 0.85);
     const hasRing = node.age.freshAccountsDominate || node.age.newAccountsDominate;
     const outer = radius + (hasRing ? RING_PAD + RING_STROKE / 2 : 0);
     const cos = Math.cos(angle);
@@ -175,10 +176,10 @@ export function NarrativeGraph({
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         className="hidden h-auto w-full max-w-full md:block"
         role="img"
-        aria-labelledby="sewing-graph-title sewing-graph-desc"
+        aria-labelledby="narrative-links-title narrative-links-desc"
       >
-        <title id="sewing-graph-title">Narrative sewing graph</title>
-        <desc id="sewing-graph-desc">
+        <title id="narrative-links-title">How accounts link narratives</title>
+        <desc id="narrative-links-desc">
           Each node is a narrative. Node area follows post volume. A line means at least two accounts posted in both
           narratives. A ring means new accounts, under 30 days or under 1 year, supply at least half of that
           narrative&apos;s posts.
@@ -213,7 +214,7 @@ export function NarrativeGraph({
                 y={node.y + 5}
                 textAnchor="middle"
                 fill="#1a1005"
-                fontSize="13"
+                fontSize={String(node.postCount).length >= 4 ? 12 : 13}
                 fontFamily="IBM Plex Mono, ui-monospace, monospace"
               >
                 {node.postCount}

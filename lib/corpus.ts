@@ -1,8 +1,7 @@
-import { cache } from "react";
 import corpusJson from "@/data/corpus.json";
 import { analyzeCorpus } from "./detect";
 import { clockFromPosts, type ScoreClock } from "./thresholds";
-import type { Corpus } from "./types";
+import type { Corpus, Report } from "./types";
 
 export function getCorpus(): Corpus {
   return corpusJson as Corpus;
@@ -13,4 +12,11 @@ export function liveClock(): ScoreClock {
   return clockFromPosts(getCorpus().posts);
 }
 
-export const getReport = cache(() => analyzeCorpus(getCorpus()));
+// The corpus file does not change during a process. Score it once so static
+// account and cluster pages do not repeat the match pass.
+let scored: Report | undefined;
+
+export function getReport(): Report {
+  scored ??= analyzeCorpus(getCorpus());
+  return scored;
+}
