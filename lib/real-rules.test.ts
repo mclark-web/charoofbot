@@ -834,18 +834,41 @@ describe("real corpus after the rules", () => {
     assert.equal(immigration.reposters.under30d, 0);
     assert.equal(market?.reposters, null);
     const ranked = [...report.narratives].sort(compareNarrativesByCopycat);
-    // Europe's copied share leads. Immigration is 10/73 once CBS News is not
-    // scored as copying the post that links its own article.
-    assert.equal(ranked[0]?.id, "europe-protests");
-    assert.equal(ranked[1]?.id, "immigration");
+    // Fed week is the most copied share after the 15 Nov refresh. Immigration
+    // stays 10/73 once CBS News is not scored as copying the post that links its own article.
+    assert.equal(ranked[0]?.id, "fed-week");
+    assert.equal(ranked[0]?.originAccount, "Reuters");
+    assert.equal(ranked[0]?.clonePosts, 19);
+    assert.equal(ranked[0]?.postCount, 36);
     assert.equal(immigration.clonePosts, 10);
     assert.equal(immigration.postCount, 73);
-    assert.equal(report.totals.clonePostCount, 85);
+    assert.equal(report.clock.end, "2026-11-15");
+    assert.equal(report.clock.asOf, "2026-11-15T21:31:47.000Z");
+    assert.equal(report.totals.postCount, 9536);
+    assert.equal(report.totals.narrativeCount, 22);
+    assert.equal(report.totals.clonePostCount, 636);
+    assert.equal(report.totals.clusterCount, 277);
     assert.equal(ranked.at(-1)?.id, "affordability");
     const iran = report.narratives.find((item) => item.id === "iran");
     assert.equal(iran?.postCount, 89);
     assert.equal(iran?.clonePosts, 6);
     assert.equal(iran?.accountCount, 76);
+    const originOf = (id: string) => report.narratives.find((item) => item.id === id);
+    assert.equal(originOf("nvidia-leadership")?.originAccount, "FirstSquawk");
+    assert.equal(originOf("iran-gulf")?.originAccount, "SpiritsView");
+    assert.equal(originOf("houthis-red-sea")?.originAccount, "stockswithaaron");
+    assert.equal(originOf("btc")?.originAccount, "CryptoPlanetCal");
+    assert.equal(originOf("cuba")?.originAccount, "lequotidien509E");
+    assert.equal(originOf("ground-stop")?.originAccount, "zerohedge");
+    const gulf = report.edges.find(
+      (edge) =>
+        (edge.source === "houthis-red-sea" && edge.target === "iran-gulf") ||
+        (edge.source === "iran-gulf" && edge.target === "houthis-red-sea"),
+    );
+    assert.equal(gulf?.sharedAccounts, 59);
+    assert.ok(
+      report.posts.every((post) => post.url?.startsWith("https://x.com/") && post.url.includes(`/status/${post.id}`)),
+    );
   });
 
   it("never scores a post as a copy of the same account", () => {
@@ -880,12 +903,18 @@ describe("real corpus after the rules", () => {
     const joshua = expectScore("Joshuatrader1");
     const joe = expectScore("JTFOz");
 
-    assert.equal(reuters.label, "Originator");
-    assert.equal(reuters.cloneScore, 0);
-    assert.equal(reuters.gcScore, 100);
-    // The 21 Oct Iran post is the fifth in-window post, so the sample is no longer thin.
+    // The 15 Nov wire is a near copy of zerohedge on the Nvidia comeback. "FT reports"
+    // names the Financial Times, not the account that was copied, so the copy stays.
+    const huang = report.posts.find((item) => item.id === "2122053291668300059");
+    assert.equal(huang?.account, "Reuters");
+    assert.equal(huang?.narrativeId, "nvidia-leadership");
+    assert.equal(huang?.role, "near");
+    assert.equal(huang?.matchedAccount, "zerohedge");
+    assert.equal(huang?.url, "https://x.com/Reuters/status/2122053291668300059");
+    assert.equal(reuters.label, "Clone");
+    assert.equal(reuters.cloneScore, THRESHOLDS.cloneNearWeight);
+    assert.equal(reuters.gcScore, 100 - THRESHOLDS.cloneNearWeight);
     assert.equal(reuters.graded, true);
-    assert.equal(reuters.postCount, 5);
 
     assert.equal(whales.graded, true);
     // Confirmed complete text, so this stays the originator. The old truncated/solo expectation was the cut-off guess.
@@ -918,8 +947,15 @@ describe("real corpus after the rules", () => {
     assert.equal(joshuaCopy?.matchedPostId, "2111532949590196711");
     assert.equal(joshuaCopy?.matchedAccount, "unusual_whales");
     assert.equal(joshua.label, "Clean");
-    assert.equal(joshua.cloneScore, 0);
-    assert.equal(joshua.gcScore, 100);
+    // One template of the Khamenei line is under half the posts, so the label stays Clean.
+    // The score still records that template weight.
+    const khamenei = report.posts.find((item) => item.id === "2116486747211329851");
+    assert.equal(khamenei?.account, "Joshuatrader1");
+    assert.equal(khamenei?.role, "template");
+    assert.equal(khamenei?.matchedAccount, "MarketsCapApp");
+    assert.equal(khamenei?.narrativeId, "iran-gulf");
+    assert.equal(joshua.cloneScore, THRESHOLDS.cloneTemplateWeight);
+    assert.equal(joshua.gcScore, 100 - THRESHOLDS.cloneTemplateWeight);
     assert.equal(report.posts.find((item) => item.id === "2107220780006408594")?.role, "attributed");
 
     assert.equal(joe.label, "Clean");
@@ -953,8 +989,15 @@ describe("real corpus after the rules", () => {
     copy("2107414972074729955", "ArcherDion");
     const diesel = report.clusters.find((cluster) => cluster.posts.some((item) => item.id === "2107393195059335458"));
     assert.equal(diesel?.originAccount, "CNBC");
-    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.label, "Originator");
-    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.cloneScore, 0);
+    // Later exact copy of AP, plus a near copy of the Nvidia scrutiny line. The diesel
+    // cluster origin is unchanged. The account grade follows the highest copy weight.
+    const golf = report.posts.find((item) => item.id === "2121966934216327405");
+    assert.equal(golf?.account, "CNBC");
+    assert.equal(golf?.role, "exact");
+    assert.equal(golf?.matchedAccount, "AP");
+    assert.equal(golf?.url, "https://x.com/CNBC/status/2121966934216327405");
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.label, "Clone");
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.cloneScore, THRESHOLDS.cloneExactWeight);
     assert.equal(report.posts.find((item) => item.id === "2111788827421319175")?.role, "syndicated");
     assert.equal(report.posts.find((item) => item.id === "2111788827421319175")?.matchedAccount, "Reuters");
     assert.equal(diesel?.sourceOutside, false);
@@ -1179,7 +1222,6 @@ describe("real corpus after the rules", () => {
   it("keeps the reply-bot paraphrases, the uncredited CheddarFlow copy, and the new-account reposts", () => {
     const flagged = [
       ["2111124537639350393", "MichaelMook9", "template"],
-      ["2111135110120841432", "BullToss69", "template"],
       ["2110839336115790312", "JustinUnruh16", "template"],
       ["2111131463492280414", "SooJersey_Al", "exact"],
       ["2111847146517643600", "wirezero19", "exact"],
@@ -1191,5 +1233,10 @@ describe("real corpus after the rules", () => {
       assert.equal(post?.role, role, id);
       assert.equal(account?.label, "Clone", handle);
     }
+    // One template among three posts is under the half-share line, so the account stays Clean.
+    const bull = report.posts.find((item) => item.id === "2111135110120841432");
+    assert.equal(bull?.account, "BullToss69");
+    assert.equal(bull?.role, "template");
+    assert.equal(report.accounts.find((item) => item.handle === "BullToss69")?.label, "Clean");
   });
 });

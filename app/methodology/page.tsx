@@ -47,9 +47,10 @@ export default function MethodologyPage() {
         </ul>
         <p className="leading-relaxed text-ink-soft">
           Two inputs are enough. The corpus is real public X posts for {windowLabel}: recent posts from the
-          accounts tracked on GradedCalls Sports and FinTwit, plus copies and quote posts of them found by phrase
-          search. The paste bench runs the same functions in the browser on text you supply, against a separate
-          synthetic practice set with known originators, exact copies, near-duplicates, and accounts that only boost.
+          accounts tracked on GradedCalls Sports and FinTwit, plus copies, quote posts, and later waves found by
+          phrase and theme search. The paste bench runs the same functions in the browser on text you supply, against a
+          separate synthetic practice set with known originators, exact copies, near-duplicates, and accounts that only
+          boost.
         </p>
       </section>
 

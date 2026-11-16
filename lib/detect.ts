@@ -74,9 +74,15 @@ function inScoreWindow(iso: string, clock: ScoreClock): boolean {
   return day >= clock.start && day <= clock.end;
 }
 
-/** Phrase-search and quote-search hits are not a timeline. Omitted source counts as one. */
+/**
+ * Phrase search, quote search, and theme search are not the account's own timeline.
+ * A batch pull of a tracked account or a wire is that account's posts. Omitted source counts as one.
+ */
 export function countsAsTimeline(source: string | null | undefined): boolean {
-  return source !== "phrase-search" && source !== "quotes";
+  if (!source) return true;
+  if (source === "phrase-search" || source === "quotes") return false;
+  if (source.startsWith("theme-search:")) return false;
+  return true;
 }
 
 function featurize(post: FixturePost, narratives: Corpus["narratives"]): Features {

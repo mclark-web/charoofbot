@@ -127,8 +127,15 @@ describe("phrase-search keyword sanity", () => {
     assert.equal(cbsNews.role, "originator");
     assert.equal(cbsNews.matchedAccount, "EThompsonWV");
     const cbsAccount = report.accounts.find((item) => item.handle === "CBSNews");
-    assert.equal(cbsAccount?.label, "Originator");
-    assert.equal(cbsAccount?.clonePostCount, 0);
+    // That immigration post stays an originator. A later Gulf line is a near copy of @staunovo.
+    const gulfLine = report.posts.find((post) => post.id === "2119188143802884363");
+    assert.equal(gulfLine?.account, "CBSNews");
+    assert.equal(gulfLine?.role, "near");
+    assert.equal(gulfLine?.matchedAccount, "staunovo");
+    assert.equal(gulfLine?.narrativeId, "iran-gulf");
+    assert.equal(gulfLine?.url, "https://x.com/CBSNews/status/2119188143802884363");
+    assert.equal(cbsAccount?.label, "Clone");
+    assert.equal(cbsAccount?.clonePostCount, 1);
     const philly = report.posts.find((post) => post.account === "CBSPhiladelphia");
     const phillyAccount = report.accounts.find((item) => item.handle === "CBSPhiladelphia");
     // Same domain, and the lede names CBS News, so Philadelphia is an Originator too.

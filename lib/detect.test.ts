@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
-import { analyzeCorpus } from "./detect";
+import { analyzeCorpus, countsAsTimeline } from "./detect";
 import { FIXTURE_CLOCK } from "./thresholds";
 import { sha256 } from "./hash";
 import { normalizeText } from "./normalize";
@@ -270,5 +270,18 @@ describe("paste bench", () => {
     assert.equal(account?.cloneScore, 0);
     assert.equal(account?.ageBand, "fresh");
     assert.ok((account?.ampScore ?? 0) >= 45);
+  });
+});
+
+describe("timeline sources", () => {
+  it("counts a batch of an account's own posts and skips theme search", () => {
+    assert.equal(countsAsTimeline("timeline"), true);
+    assert.equal(countsAsTimeline("tracked-from-batch"), true);
+    assert.equal(countsAsTimeline("wire-from-batch"), true);
+    assert.equal(countsAsTimeline("wire-from-batch:gulf-oil-theme"), true);
+    assert.equal(countsAsTimeline(undefined), true);
+    assert.equal(countsAsTimeline("phrase-search"), false);
+    assert.equal(countsAsTimeline("quotes"), false);
+    assert.equal(countsAsTimeline("theme-search:btc-selloff"), false);
   });
 });

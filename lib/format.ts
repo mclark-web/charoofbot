@@ -54,7 +54,7 @@ const etDayFormat = new Intl.DateTimeFormat("en-US", {
   day: "2-digit",
 });
 
-/** Calendar day in US Eastern, which is EDT (UTC−4) for this October window. */
+/** Calendar day in US Eastern. The zone covers EDT and EST, including the November window. */
 export function etDay(iso: string): string {
   const parts = etDayFormat.formatToParts(new Date(iso));
   const value = (type: Intl.DateTimeFormatPartTypes) => parts.find((part) => part.type === type)?.value ?? "";

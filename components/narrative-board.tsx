@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { GcScale } from "@/components/gc-scale";
 import { NarrativeAccounts, type NarrativeAccountRow } from "@/components/narrative-accounts";
+import { NarrativeGraph } from "@/components/narrative-graph";
 import { compareNarrativesByCopycat, copycatShare } from "@/lib/board";
 import {
   countNoun,
@@ -57,6 +58,20 @@ export function NarrativeBoard({ report }: { report: Report }) {
         </div>
         <div>Window {windowLabel}</div>
       </dl>
+
+      <section className="grid min-w-0 gap-3" aria-labelledby="narrative-links-heading">
+        <div className="max-w-3xl">
+          <h2 id="narrative-links-heading" className="font-serif text-2xl text-ink">
+            How accounts link narratives
+          </h2>
+          <p className="mt-2 max-w-[70ch] text-sm leading-relaxed text-lab">
+            A line joins two narratives when at least two accounts posted in both. The number in a node is that
+            narrative&apos;s posts. On each card, the earliest originator is who started the wording here, and
+            most-copied wording is who repeated it.
+          </p>
+        </div>
+        <NarrativeGraph nodes={narratives.filter((narrative) => narrative.postCount > 0)} edges={report.edges} />
+      </section>
 
       <div className="narrative-grid">
         {narratives.map((narrative) => (

@@ -14,7 +14,7 @@ const NARRATIVE_KEYWORDS: Readonly<Record<string, RegExp>> = {
   immigration:
     /immigr|deport|\bice\b|\bborder\b|illegal alien|asylum|migrant|undocumented|non-?citizen|homeland security|\bdhs\b|\bvisa\b|sanctuary|\baliens?\b/i,
   "europe-protests":
-    /protest|\briots?\b|unrest|demonstrat|hit the streets|take to the streets|\bmacron\b|france is burning|\bburning\b/i,
+    /protest|\briots?\b|\brioters?\b|unrest|demonstrat|hit the streets|take to the streets|\bmacron\b|france is burning|\bburning\b/i,
 };
 
 /** Phrase-search narratives, in the order a missed post is retagged. */
