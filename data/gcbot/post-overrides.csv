@@ -70,3 +70,6 @@ post_id,action,new_narrative,reason
 2112919550190637358,retag,immigration,"Topic keywords match immigration, not uap"
 2112919555211489300,retag,immigration,"Topic keywords match immigration, not uap"
 2112919555395784995,retag,immigration,"Topic keywords match immigration, not uap"
+2122830665582551336,exclude,,"No iran topic keywords, and no other narrative fits"
+2122831867816837140,exclude,,"No iran topic keywords, and no other narrative fits"
+2122861738047783081,exclude,,"No iran topic keywords, and no other narrative fits"

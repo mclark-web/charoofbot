@@ -134,7 +134,7 @@ describe("phrase-search keyword sanity", () => {
     assert.equal(gulfLine?.matchedAccount, "staunovo");
     assert.equal(gulfLine?.narrativeId, "iran-gulf");
     assert.equal(gulfLine?.url, "https://x.com/CBSNews/status/2119188143802884363");
-    assert.equal(cbsAccount?.label, "Clone");
+    assert.equal(cbsAccount?.label, "Clone+Amp");
     assert.equal(cbsAccount?.clonePostCount, 1);
     const philly = report.posts.find((post) => post.account === "CBSPhiladelphia");
     const phillyAccount = report.accounts.find((item) => item.handle === "CBSPhiladelphia");

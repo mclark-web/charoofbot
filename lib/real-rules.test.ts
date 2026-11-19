@@ -834,25 +834,29 @@ describe("real corpus after the rules", () => {
     assert.equal(immigration.reposters.under30d, 0);
     assert.equal(market?.reposters, null);
     const ranked = [...report.narratives].sort(compareNarrativesByCopycat);
-    // Fed week is the most copied share after the 15 Nov refresh. Immigration
-    // stays 10/73 once CBS News is not scored as copying the post that links its own article.
-    assert.equal(ranked[0]?.id, "fed-week");
-    assert.equal(ranked[0]?.originAccount, "Reuters");
-    assert.equal(ranked[0]?.clonePosts, 19);
-    assert.equal(ranked[0]?.postCount, 36);
-    assert.equal(immigration.clonePosts, 10);
-    assert.equal(immigration.postCount, 73);
-    assert.equal(report.clock.end, "2026-11-15");
-    assert.equal(report.clock.asOf, "2026-11-15T21:31:47.000Z");
-    assert.equal(report.totals.postCount, 9536);
+    // Cuba is the most copied share after the 19 Nov refresh. Fed week stays
+    // 19 copies, now out of 88 posts, and is no longer the top share.
+    assert.equal(ranked[0]?.id, "cuba");
+    assert.equal(ranked[0]?.originAccount, "lequotidien509E");
+    assert.equal(ranked[0]?.clonePosts, 11);
+    assert.equal(ranked[0]?.postCount, 35);
+    const fedWeek = report.narratives.find((item) => item.id === "fed-week");
+    assert.equal(fedWeek?.originAccount, "Reuters");
+    assert.equal(fedWeek?.clonePosts, 19);
+    assert.equal(fedWeek?.postCount, 88);
+    assert.equal(immigration.clonePosts, 13);
+    assert.equal(immigration.postCount, 166);
+    assert.equal(report.clock.end, "2026-11-19");
+    assert.equal(report.clock.asOf, "2026-11-19T22:58:00.000Z");
+    assert.equal(report.totals.postCount, 13456);
     assert.equal(report.totals.narrativeCount, 22);
-    assert.equal(report.totals.clonePostCount, 636);
-    assert.equal(report.totals.clusterCount, 277);
-    assert.equal(ranked.at(-1)?.id, "affordability");
+    assert.equal(report.totals.clonePostCount, 684);
+    assert.equal(report.totals.clusterCount, 316);
+    assert.equal(ranked.at(-1)?.id, "uap");
     const iran = report.narratives.find((item) => item.id === "iran");
-    assert.equal(iran?.postCount, 89);
-    assert.equal(iran?.clonePosts, 6);
-    assert.equal(iran?.accountCount, 76);
+    assert.equal(iran?.postCount, 389);
+    assert.equal(iran?.clonePosts, 8);
+    assert.equal(iran?.accountCount, 94);
     const originOf = (id: string) => report.narratives.find((item) => item.id === id);
     assert.equal(originOf("nvidia-leadership")?.originAccount, "FirstSquawk");
     assert.equal(originOf("iran-gulf")?.originAccount, "SpiritsView");
@@ -865,7 +869,7 @@ describe("real corpus after the rules", () => {
         (edge.source === "houthis-red-sea" && edge.target === "iran-gulf") ||
         (edge.source === "iran-gulf" && edge.target === "houthis-red-sea"),
     );
-    assert.equal(gulf?.sharedAccounts, 59);
+    assert.equal(gulf?.sharedAccounts, 64);
     assert.ok(
       report.posts.every((post) => post.url?.startsWith("https://x.com/") && post.url.includes(`/status/${post.id}`)),
     );
@@ -996,7 +1000,7 @@ describe("real corpus after the rules", () => {
     assert.equal(golf?.role, "exact");
     assert.equal(golf?.matchedAccount, "AP");
     assert.equal(golf?.url, "https://x.com/CNBC/status/2121966934216327405");
-    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.label, "Clone");
+    assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.label, "Clone+Amp");
     assert.equal(report.accounts.find((item) => item.handle === "CNBC")?.cloneScore, THRESHOLDS.cloneExactWeight);
     assert.equal(report.posts.find((item) => item.id === "2111788827421319175")?.role, "syndicated");
     assert.equal(report.posts.find((item) => item.id === "2111788827421319175")?.matchedAccount, "Reuters");
