@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Append the Nov 15 X corpus onto data/gcbot without rewriting rows already there.
+"""Append an X corpus onto data/gcbot without rewriting rows already there.
 
 posts.csv and accounts.csv stay append-only. New rows keep the collector's X URL.
 Theme searches become narrative ids so the board can name who started a wave and
 who repeated it. A row already in the file is left untouched.
+
+The 19 Nov 2026 refresh uses the same script. Full-archive search was unavailable,
+so the upload is timelines of the tracked accounts and the wires already on the
+board. A wire post with no narrative is not appended. A tracked account's post
+keeps that account's lane when no theme matches.
 """
 import csv
 import re
@@ -187,9 +192,40 @@ IRAN_RE = re.compile(
 )
 BTC_RE = re.compile(r"\bbitcoin\b|\$BTC\b|\bBTC\b|\bbinance\b", re.I)
 CUBA_RE = re.compile(
-    r"d[ií]az-canel|military readiness|cuba.{0,60}(?:attack|strike|invasion|defend)|(?:attack|strike|invasion).{0,60}cuba",
+    r"\bd[ií]az-canel\b|military readiness"
+    r"|\bcuba\b.{0,80}(?:attack|strike|invasion|defend|war|braces)"
+    r"|(?:attack|strike|invasion|war).{0,80}\bcuba\b",
     re.I,
 )
+# Phrase narratives on a wire timeline. These are tighter than the October
+# keyword list: "ice" is not ICE, "selection" is not an election, and a t.co
+# token is not a UAP. URLs are removed before matching.
+IMMIGRATION_RE = re.compile(
+    r"immigr|deport|illegal alien|\basylum\b|\bmigrants?\b|undocumented|homeland security|\bdhs\b"
+    r"|sanctuary|\bborder (?:patrol|wall|crisis|security)",
+    re.I,
+)
+ICE_RE = re.compile(r"\bICE\b")
+ELECTIONS_RE = re.compile(r"\bmidterms?\b|\bballots?\b|\belections?\b|\bimpeach|\bsenator\b", re.I)
+UAP_RE = re.compile(
+    r"\bufo\b|\buaps?\b|extraterrestrial|area\s*51|\bnhi\b|flying saucer|unidentified (?:aerial|anomalous)",
+    re.I,
+)
+AFFORDABILITY_RE = re.compile(
+    r"afford|cost of living|cost-of-living|grocery|\bhousing\b|\brenter\b|\brent\b",
+    re.I,
+)
+FED_RATES_RE = re.compile(
+    r"\bfed\b|federal reserve|\bfomc\b|\bpowell\b|rate cut|interest rate|\binflation\b|\bcpi\b|\bppi\b|producer price|basis point",
+    re.I,
+)
+IRAN_WORD_RE = re.compile(r"\biran\b|iranian|tehran|khamenei|\birgc\b", re.I)
+PROTEST_RE = re.compile(r"protest|\briots?\b|\brioters?\b|unrest|demonstrat", re.I)
+EUROPE_PLACE_RE = re.compile(
+    r"frankfurt|\bparis\b|\bgermany\b|\bfrance\b|\bmacron\b|\bspain\b|\bitaly\b|\bgreece\b|\blondon\b|\buk\b",
+    re.I,
+)
+URL_RE = re.compile(r"https?://\S+")
 
 
 def read_rows(path):
@@ -229,10 +265,40 @@ def theme_of(source, text):
     return THEME.get(key, "")
 
 
-def keyword_of(text, created_at):
+def keyword_text(text):
+    return URL_RE.sub(" ", text)
+
+
+def phrase_narrative(raw):
+    """Phrase-narrative tag. It has to be one the board's keyword list accepts on the raw text."""
+    text = keyword_text(raw)
+    candidate = ""
+    if PROTEST_RE.search(text) and EUROPE_PLACE_RE.search(text):
+        candidate = "europe-protests"
+    elif IMMIGRATION_RE.search(text) or ICE_RE.search(raw):
+        candidate = "immigration"
+    elif ELECTIONS_RE.search(text):
+        candidate = "us-elections"
+    elif UAP_RE.search(text):
+        candidate = "uap"
+    elif AFFORDABILITY_RE.search(text):
+        candidate = "affordability"
+    elif FED_RATES_RE.search(text):
+        candidate = "fed-rates"
+    elif IRAN_WORD_RE.search(text):
+        candidate = "iran"
+    if candidate and KEYWORD_NARRATIVES[candidate].search(raw):
+        return candidate
+    return ""
+
+
+def keyword_of(raw, created_at):
     day = created_at[:10]
-    if KEYWORD_NARRATIVES["europe-protests"].search(text) and re.search(
-        r"frankfurt|\bparis\b|\bgermany\b|\bfrance\b|\bmacron\b", text, re.I
+    text = keyword_text(raw)
+    if (
+        PROTEST_RE.search(text)
+        and EUROPE_PLACE_RE.search(text)
+        and KEYWORD_NARRATIVES["europe-protests"].search(raw)
     ):
         return "europe-protests"
     if HOUTHI_RE.search(text):
@@ -253,7 +319,7 @@ def keyword_of(text, created_at):
         return "btc"
     if CUBA_RE.search(text):
         return "cuba"
-    return ""
+    return phrase_narrative(raw)
 
 
 def action_of(row):
@@ -325,6 +391,28 @@ def main():
                 continue
         narrative_of[row["post_id"]] = parent_narrative
 
+    accounts_by_handle = {row["handle"]: row for row in accounts}
+    for row in prepared:
+        if narrative_of[row["post_id"]]:
+            continue
+        if not row["source"].startswith("tracked-from-batch"):
+            continue
+        lane = accounts_by_handle.get(row["handle"], {}).get("narrative_id", "")
+        if lane:
+            narrative_of[row["post_id"]] = lane
+
+    # A wire timeline includes every headline. Keep the ones that join a
+    # narrative. Tracked-account posts stay, on their lane when no theme hits.
+    skipped = 0
+    kept = []
+    for row in prepared:
+        if narrative_of[row["post_id"]] or not row["source"].startswith("wire-from-batch"):
+            kept.append(row)
+            continue
+        skipped += 1
+        by_id.pop(row["post_id"], None)
+    prepared = kept
+
     same_text = defaultdict(list)
     for row in list(posts) + prepared:
         same_text[row["text"].strip()].append(row)
@@ -380,7 +468,7 @@ def main():
         writer.writerows(written)
 
     counts = Counter(row["narrative_id"] or "(untagged)" for row in written)
-    print(f"narratives +{len(new_narratives)} accounts +{len(new_accounts)} posts +{len(written)}")
+    print(f"narratives +{len(new_narratives)} accounts +{len(new_accounts)} posts +{len(written)} wires skipped {skipped}")
     print(f"ref retargeted {retargeted} cleared {cleared}")
     if written:
         print(f"new post dates {written[0]['created_at'][:10]} .. {written[-1]['created_at'][:10]}")
