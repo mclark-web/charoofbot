@@ -5,10 +5,11 @@ posts.csv and accounts.csv stay append-only. New rows keep the collector's X URL
 Theme searches become narrative ids so the board can name who started a wave and
 who repeated it. A row already in the file is left untouched.
 
-The 19 Nov 2026 refresh uses the same script. Full-archive search was unavailable,
-so the upload is timelines of the tracked accounts and the wires already on the
-board. A wire post with no narrative is not appended. A tracked account's post
-keeps that account's lane when no theme matches.
+The 19 Nov 2026 refresh and the 22 Nov 2026 refresh use the same script.
+Full-archive search was unavailable, so the upload is timelines of the tracked
+accounts and the wires already on the board. A wire post with no narrative is
+not appended. A tracked account's post keeps that account's lane when no theme
+matches.
 """
 import csv
 import re
