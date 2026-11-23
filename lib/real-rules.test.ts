@@ -834,34 +834,34 @@ describe("real corpus after the rules", () => {
     assert.equal(immigration.reposters.under30d, 0);
     assert.equal(market?.reposters, null);
     const ranked = [...report.narratives].sort(compareNarrativesByCopycat);
-    // Cuba is the most copied share after the 19 Nov refresh. Fed week stays
-    // 19 copies, now out of 88 posts, and is no longer the top share.
+    // Cuba is still the most copied share after the 22 Nov refresh. Fed week
+    // is 20 copies out of 101 posts.
     assert.equal(ranked[0]?.id, "cuba");
     assert.equal(ranked[0]?.originAccount, "lequotidien509E");
     assert.equal(ranked[0]?.clonePosts, 11);
-    assert.equal(ranked[0]?.postCount, 35);
+    assert.equal(ranked[0]?.postCount, 36);
     const fedWeek = report.narratives.find((item) => item.id === "fed-week");
     assert.equal(fedWeek?.originAccount, "Reuters");
-    assert.equal(fedWeek?.clonePosts, 19);
-    assert.equal(fedWeek?.postCount, 88);
+    assert.equal(fedWeek?.clonePosts, 20);
+    assert.equal(fedWeek?.postCount, 99);
     assert.equal(immigration.clonePosts, 13);
-    assert.equal(immigration.postCount, 166);
-    assert.equal(report.clock.end, "2026-11-19");
-    assert.equal(report.clock.asOf, "2026-11-19T22:58:00.000Z");
-    assert.equal(report.totals.postCount, 13456);
+    assert.equal(immigration.postCount, 201);
+    assert.equal(report.clock.end, "2026-11-22");
+    assert.equal(report.clock.asOf, "2026-11-22T21:59:16.000Z");
+    assert.equal(report.totals.postCount, 15803);
     assert.equal(report.totals.narrativeCount, 22);
-    assert.equal(report.totals.clonePostCount, 684);
-    assert.equal(report.totals.clusterCount, 316);
+    assert.equal(report.totals.clonePostCount, 719);
+    assert.equal(report.totals.clusterCount, 339);
     assert.equal(ranked.at(-1)?.id, "uap");
     const iran = report.narratives.find((item) => item.id === "iran");
-    assert.equal(iran?.postCount, 389);
-    assert.equal(iran?.clonePosts, 8);
-    assert.equal(iran?.accountCount, 94);
+    assert.equal(iran?.postCount, 612);
+    assert.equal(iran?.clonePosts, 16);
+    assert.equal(iran?.accountCount, 95);
     const originOf = (id: string) => report.narratives.find((item) => item.id === id);
     assert.equal(originOf("nvidia-leadership")?.originAccount, "FirstSquawk");
     assert.equal(originOf("iran-gulf")?.originAccount, "SpiritsView");
     assert.equal(originOf("houthis-red-sea")?.originAccount, "stockswithaaron");
-    assert.equal(originOf("btc")?.originAccount, "CryptoPlanetCal");
+    assert.equal(originOf("btc")?.originAccount, "simplykashif");
     assert.equal(originOf("cuba")?.originAccount, "lequotidien509E");
     assert.equal(originOf("ground-stop")?.originAccount, "zerohedge");
     const gulf = report.edges.find(
@@ -915,7 +915,9 @@ describe("real corpus after the rules", () => {
     assert.equal(huang?.role, "near");
     assert.equal(huang?.matchedAccount, "zerohedge");
     assert.equal(huang?.url, "https://x.com/Reuters/status/2122053291668300059");
-    assert.equal(reuters.label, "Clone");
+    // The near copy is still weight 55. The 22 Nov timeline cleared the amplifier
+    // gate (8 boosts on 3 days, signal 58), so the label is Clone+Amp.
+    assert.equal(reuters.label, "Clone+Amp");
     assert.equal(reuters.cloneScore, THRESHOLDS.cloneNearWeight);
     assert.equal(reuters.gcScore, 100 - THRESHOLDS.cloneNearWeight);
     assert.equal(reuters.graded, true);
