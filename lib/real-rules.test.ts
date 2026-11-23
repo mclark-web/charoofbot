@@ -843,7 +843,7 @@ describe("real corpus after the rules", () => {
     const fedWeek = report.narratives.find((item) => item.id === "fed-week");
     assert.equal(fedWeek?.originAccount, "Reuters");
     assert.equal(fedWeek?.clonePosts, 20);
-    assert.equal(fedWeek?.postCount, 101);
+    assert.equal(fedWeek?.postCount, 99);
     assert.equal(immigration.clonePosts, 13);
     assert.equal(immigration.postCount, 201);
     assert.equal(report.clock.end, "2026-11-22");
@@ -861,7 +861,7 @@ describe("real corpus after the rules", () => {
     assert.equal(originOf("nvidia-leadership")?.originAccount, "FirstSquawk");
     assert.equal(originOf("iran-gulf")?.originAccount, "SpiritsView");
     assert.equal(originOf("houthis-red-sea")?.originAccount, "stockswithaaron");
-    assert.equal(originOf("btc")?.originAccount, "CryptoPlanetCal");
+    assert.equal(originOf("btc")?.originAccount, "simplykashif");
     assert.equal(originOf("cuba")?.originAccount, "lequotidien509E");
     assert.equal(originOf("ground-stop")?.originAccount, "zerohedge");
     const gulf = report.edges.find(

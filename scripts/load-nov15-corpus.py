@@ -227,6 +227,34 @@ EUROPE_PLACE_RE = re.compile(
     re.I,
 )
 URL_RE = re.compile(r"https?://\S+")
+# Another country's contest. A US senator who mentions Israel still matches.
+FOREIGN_ELECTION_RE = re.compile(
+    r"knesset"
+    r"|israel(?:i|’s|'s)? elections?|elections? in israel"
+    r"|\bhaiti\b|jovenel|\bmoise\b"
+    r"|\ble pen\b"
+    r"|france(?:’s|'s)?.{0,160}elections?|elections?.{0,120}france|french elections?"
+    r"|spain(?:’s|'s)?.{0,160}elections?|elections?.{0,80}spain|ayuso|sánchez"
+    r"|brazil(?:’s|'s)?.{0,120}(?:ballot|elections?|runoff|vot)|bolsonaro"
+    r"|india(?:’s|'s)?.{0,160}elections?|elections?.{0,80}india|new delhi.{0,80}election"
+    r"|netherlands.{0,120}elections?|elections?.{0,80}netherlands|\bjetten\b"
+    r"|election in britain|next election in britain|wetherspoon|\bburnham\b",
+    re.I,
+)
+US_ELECTION_ANCHOR_RE = re.compile(
+    r"\bmidterms?\b|\bimpeach|\bcongress\b|\bwhite house\b|\bgop\b|\bdemocrats?\b|\brepublicans?\b"
+    r"|\belectoral college\b|\bus senator\b|\bu\.s\. senator\b",
+    re.I,
+)
+
+
+def non_us_election(raw):
+    text = URL_RE.sub(" ", raw)
+    if not ELECTIONS_RE.search(text):
+        return False
+    if not FOREIGN_ELECTION_RE.search(text):
+        return False
+    return US_ELECTION_ANCHOR_RE.search(text) is None
 
 
 def read_rows(path):
@@ -279,7 +307,9 @@ def phrase_narrative(raw):
     elif IMMIGRATION_RE.search(text) or ICE_RE.search(raw):
         candidate = "immigration"
     elif ELECTIONS_RE.search(text):
-        candidate = "us-elections"
+        # A foreign contest is not a US election, and it is not handed to the next phrase.
+        if not non_us_election(raw):
+            candidate = "us-elections"
     elif UAP_RE.search(text):
         candidate = "uap"
     elif AFFORDABILITY_RE.search(text):

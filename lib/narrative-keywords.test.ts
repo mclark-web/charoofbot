@@ -10,7 +10,10 @@ declare module "../scripts/build-corpus.mjs" {
 }
 
 import { buildCorpus, readGcbotTable } from "../scripts/build-corpus.mjs";
+import { keywordOf } from "../scripts/narrative-rules.mjs";
 import { analyzeCorpus } from "./detect";
+import { eachUtcDay, etDay } from "./format";
+import { clockFromPosts } from "./thresholds";
 import {
   inheritedNarrative,
   keywordOverride,
@@ -157,5 +160,37 @@ describe("phrase-search keyword sanity", () => {
     assert.equal(affordability.originAccount, earliestAffordability.account);
     assert.notEqual(affordability.originAccount, "HardcoreMetal89");
     assert.equal(narrativeMatchesKeywords("affordability", earliestAffordability.text), true);
+  });
+
+  it("tags both weeks of fed-rates and us-elections with the current phrase rules", () => {
+    const clock = clockFromPosts(corpus.posts);
+    const days = eachUtcDay(clock.start, clock.end);
+    const last = new Set(days.slice(-7));
+    const prior = new Set(days.slice(-14, -7));
+    const tally = (id: string) => {
+      let current = 0;
+      let previous = 0;
+      for (const post of corpus.posts) {
+        const utcDay = post.postedAt.slice(0, 10);
+        if (utcDay < clock.start || utcDay > clock.end || post.narrativeId !== id) continue;
+        const day = etDay(post.postedAt);
+        if (last.has(day)) current += 1;
+        else if (prior.has(day)) previous += 1;
+      }
+      return [current, previous];
+    };
+    assert.deepEqual(tally("fed-rates"), [303, 44]);
+    // The loose rule, before the foreign-election gate, is 163 vs 41.
+    // The gate removes the other countries' contests.
+    assert.deepEqual(tally("us-elections"), [141, 40]);
+    let removed = 0;
+    for (const row of posts) {
+      const day = row.created_at.slice(0, 10);
+      if (day < clock.start || day > clock.end) continue;
+      const loose = keywordOf(row.text, row.created_at, { usElections: "loose" });
+      const tight = keywordOf(row.text, row.created_at);
+      if (loose === "us-elections" && tight !== "us-elections") removed += 1;
+    }
+    assert.equal(removed, 38);
   });
 });

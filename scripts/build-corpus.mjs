@@ -3,6 +3,7 @@
 // handle and post_id. Append rows, then run `npm run corpus`.
 import { readFileSync, writeFileSync } from "node:fs";
 import { assertPosts } from "./check-posts.mjs";
+import { derivedNarrative } from "./narrative-rules.mjs";
 
 const dir = new URL("../data/gcbot/", import.meta.url);
 const out = new URL("../data/corpus.json", import.meta.url);
@@ -105,7 +106,15 @@ export function buildCorpus() {
   const postRows = read("posts.csv");
   const reposterRows = read("reposters.csv");
   const overrideRows = read("post-overrides.csv");
-  applyPostOverrides(postRows, reposterRows, overrideRows);
+  const overrides = applyPostOverrides(postRows, reposterRows, overrideRows);
+  // CSV narrative_id is the tag from the load that wrote the row. Phrase rules
+  // added later never touched the older rows, so the two weeks of a card were
+  // not using one tagger. Recompute fed-rates and us-elections here. An override
+  // is an explicit correction and stays. posts.csv is not rewritten.
+  for (const row of postRows) {
+    if (overrides.has(row.post_id)) continue;
+    row.narrative_id = derivedNarrative(row);
+  }
   return corpusFrom(narrativeRows, accountRows, postRows, reposterRows);
 }
 
